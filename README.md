@@ -6,6 +6,7 @@ HTTP/2 Apple Push Notification Service for Rust
 At first you need export APNs Certificate and private key from KeyChain to .p12 format. And convert to .crt, .key:
 ```shell
 openssl pkcs12 -in PushKey.p12 -nodes -out PushKey.key -nocerts
+openssl pkcs12 -in PushCert.p12 -out PushCert.pem
 openssl x509 -outform der -in PushCert.pem -out PushCert.crt
 ```
 
