@@ -7,3 +7,5 @@ description = "HTTP/2 Apple Push Notification Service for Rust"
 repository = "https://github.com/tkabit/apns2"
 
 [dependencies]
+hyper = "~0.7"
+rustc-serialize = "~0.3"
