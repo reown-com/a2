@@ -13,8 +13,8 @@ openssl x509 -outform der -in PushCert.pem -out PushCert.crt
 
 ```rust
 let service = apns2::Service::new(true, "/path/to/PushCert.pem", "/path/to/PushKey.key");
-let payload = apns2::Payload{badge: 1, sound: String::from("default"), alert: String::from("Message!")};
-let token_str = String::from("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-let dev_token = apns2::DeviceToken{token: token_str};
+let alert = apns2::APSAlert::Plain("Message!".to_string());
+let payload = apns2::Payload::new(alert, 1, "default");
+let dev_token = apns2::DeviceToken::new("xxx...xxx");
 service.push(payload, dev_token);
 ```
