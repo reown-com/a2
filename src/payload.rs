@@ -9,8 +9,8 @@ pub struct APS {
     pub alert: APSAlert,
     pub badge: u32,
     pub sound: String,
-    //pub content_available: Option<u32>,
-    //pub category: Option<String>,
+    pub content_available: Option<u32>,
+    pub category: Option<String>,
 }
 
 pub enum APSAlert {
@@ -36,8 +36,8 @@ impl Payload {
                 badge: badge,
                 sound: sound.into(),
                 alert: alert,
-                //content_available: None,
-                //category: None,
+                content_available: None,
+                category: None,
             }
         }
     }
@@ -60,6 +60,12 @@ impl ToJson for APS {
         });
         d.insert("badge".to_string(), self.badge.to_json());
         d.insert("sound".to_string(), self.sound.to_json());
+        if self.content_available.is_some() {
+            d.insert("content-available".to_string(), self.content_available.to_json());
+        }
+        if self.category.is_some() {
+            d.insert("category".to_string(), self.category.to_json());
+        }
         Json::Object(d)
     }
 }
