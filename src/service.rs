@@ -45,6 +45,6 @@ impl Service {
             .send().unwrap();
         println!("{:?}", res);
 
-        Response {status: 200}
+        Response {status: APNSStatus::Success, reason: Some(APNSError::PayloadEmpty), timestamp: None, apns_id: None}
     }
 }
