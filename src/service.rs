@@ -39,7 +39,7 @@ impl Service {
         let url_str: &str = &url;   // .as_str() waiting on RFC revision (see issue #27729)
         let pay = payload.to_json().to_string();
         let pay_str: &str = &pay;
-        println!("{:?}", pay_str);
+        println!("{}", pay_str);
         let res = self.client.post(url_str)
             .body(pay_str)
             .send().unwrap();
