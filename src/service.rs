@@ -14,6 +14,7 @@ static PRODUCTION:  &'static str = "https://api.push.apple.com";
 header! { (APNSId, "apns-id") => [String] }
 header! { (APNSExpiration, "apns-expiration") => [String] }
 header! { (APNSPriority, "apns-priority") => [String] }
+header! { (APNSContentLength, "content-length") => [String] }
 header! { (APNSTopic, "apns-topic") => [String] }
 
 pub struct Service {
