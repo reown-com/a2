@@ -1,5 +1,5 @@
-use ::payload::*;
-use ::device_token::*;
+use payload::*;
+use device_token::*;
 
 pub struct Notification {
     // The Remote Notification Payload.

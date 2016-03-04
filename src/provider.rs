@@ -3,9 +3,8 @@ use std::path::{Path};
 use hyper::Client;
 use hyper::http::h2::Http2Protocol;
 use hyper::net::{HttpsConnector, Openssl};
-use ::payload::*;
-use ::device_token::*;
-use ::response::*;
+use notification::*;
+use response::*;
 
 static DEVELOPMENT: &'static str = "https://api.development.push.apple.com";
 static PRODUCTION:  &'static str = "https://api.push.apple.com";
@@ -35,10 +34,10 @@ impl Provider {
         Provider {client: client, path: path}
     }
 
-    pub fn push(&self, payload: Payload, token: DeviceToken) -> Response {
-        let url = format!("{}{}", self.path, token.token);
+    pub fn push(&self, notification: Notification) -> Response {
+        let url = format!("{}{}", self.path, notification.device_token);
         let url_str: &str = &url;   // .as_str() waiting on RFC revision (see issue #27729)
-        let pay = payload.to_json().to_string();
+        let pay = notification.payload.to_json().to_string();
         let pay_str: &str = &pay;
         println!("{}", pay_str);
         let res = self.client.post(url_str)

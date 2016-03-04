@@ -15,6 +15,7 @@ openssl x509 -outform der -in push_cert.pem -out push_cert.crt
 let provider = apns2::Provider::new(true, "/path/to/push_cert.pem", "/path/to/push_key.key");
 let alert = apns2::APSAlert::Plain("Message!".to_string());
 let payload = apns2::Payload::new(alert, 1, "default");
-let dev_token = apns2::DeviceToken::new("xxx...xxx");
-provider.push(payload, dev_token);
+let token = apns2::DeviceToken::new("xxx...xxx");
+let notification = apns2::Notification::new(payload, token);
+provider.push(notification);
 ```

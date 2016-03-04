@@ -1,3 +1,5 @@
+use std::fmt;
+
 pub struct DeviceToken {
     pub token: String,
 }
