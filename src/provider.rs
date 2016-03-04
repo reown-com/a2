@@ -17,13 +17,13 @@ header! { (APNSPriority, "apns-priority") => [String] }
 header! { (APNSContentLength, "content-length") => [String] }
 header! { (APNSTopic, "apns-topic") => [String] }
 
-pub struct Service {
+pub struct Provider {
     pub client: Client,
     pub path: String,
 }
 
-impl Service {
-    pub fn new(sandbox: bool, certificate_path: &str, private_key_path: &str) -> Service {
+impl Provider {
+    pub fn new(sandbox: bool, certificate_path: &str, private_key_path: &str) -> Provider {
         let ssl = Openssl::with_cert_and_key(Path::new(certificate_path), Path::new(private_key_path)).unwrap();
         let ssl_connector = HttpsConnector::new(ssl);
         let client = Client::with_protocol(Http2Protocol::with_connector(ssl_connector));
@@ -32,7 +32,7 @@ impl Service {
         } else {
             format!("{}{}", PRODUCTION, "/3/device/")
         };
-        Service {client: client, path: path}
+        Provider {client: client, path: path}
     }
 
     pub fn push(&self, payload: Payload, token: DeviceToken) -> Response {

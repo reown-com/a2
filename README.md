@@ -6,15 +6,15 @@ HTTP/2 Apple Push Notification Service for Rust
 
 At first you need export APNs Certificate and private key from KeyChain to .p12 format. And convert to .crt, .key:
 ```shell
-openssl pkcs12 -in PushKey.p12 -nodes -out PushKey.key -nocerts
-openssl pkcs12 -in PushCert.p12 -out PushCert.pem
-openssl x509 -outform der -in PushCert.pem -out PushCert.crt
+openssl pkcs12 -in push_key.p12 -nodes -out push_key.key -nocerts
+openssl pkcs12 -in push_cert.p12 -out push_cert.pem
+openssl x509 -outform der -in push_cert.pem -out push_cert.crt
 ```
 
 ```rust
-let service = apns2::Service::new(true, "/path/to/PushCert.pem", "/path/to/PushKey.key");
+let provider = apns2::Provider::new(true, "/path/to/push_cert.pem", "/path/to/push_key.key");
 let alert = apns2::APSAlert::Plain("Message!".to_string());
 let payload = apns2::Payload::new(alert, 1, "default");
 let dev_token = apns2::DeviceToken::new("xxx...xxx");
-service.push(payload, dev_token);
+provider.push(payload, dev_token);
 ```
