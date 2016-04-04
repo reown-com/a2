@@ -46,14 +46,23 @@ impl Error for APNSError {
     fn description(&self) -> &str {
         match *self {
             PayloadEmpty => "The message payload was empty",
-            PayloadTooLarge => "The message payload was too large. The maximum payload size is 4096 bytes",
+            PayloadTooLarge => {
+                "The message payload was too large. \
+                The maximum payload size is 4096 bytes"
+            }
             BadTopic => "The apns-topic was invalid",
             TopicDisallowed => "Pushing to this topic is not allowed",
             BadMessageId => "The apns-id value is bad",
             BadExpirationDate => "The apns-expiration value is bad",
             BadPriority => "The apns-priority value is bad",
-            MissingDeviceToken => "The device token is not specified in the request :path. Verify that the :path header contains the device token",
-            BadDeviceToken => "The specified device token was bad. Verify that the request contains a valid token and that the token matches the environment",
+            MissingDeviceToken => {
+                "The device token is not specified in the request :path. Verify that the :path \
+                 header contains the device token"
+            }
+            BadDeviceToken => {
+                "The specified device token was bad. Verify that the request contains a valid \
+                 token and that the token matches the environment"
+            }
             DeviceTokenNotForTopic => "The device token does not match the specified topic",
             Unregistered => "The device token is inactive for the specified topic",
             DuplicateHeaders => "One or more headers were repeated",
@@ -67,7 +76,11 @@ impl Error for APNSError {
             Shutdown => "The server is shutting down",
             InternalServerError => "An internal server error occurred",
             ServiceUnavailable => "The service is unavailable",
-            MissingTopic => "The apns-topic header of the request was not specified and was required. The apns-topic header is mandatory when the client is connected using a certificate that supports multiple topics",
+            MissingTopic => {
+                "The apns-topic header of the request was not specified and was required. The \
+                 apns-topic header is mandatory when the client is connected using a certificate \
+                 that supports multiple topics"
+            }
         }
     }
 
@@ -80,15 +93,15 @@ impl Error for APNSError {
 
 // The HTTP status code.
 pub enum APNSStatus {
-    Success = 200,              // Success
-    BadRequest = 400,           // Bad request
-    Forbidden = 403,            // There was an error with the certificate.
-    MethodNotAllowed = 405,     // The request used a bad :method value. Only POST requests are supported.
-    Unregistered = 410,         // The device token is no longer active for the topic.
-    PayloadTooLarge = 413,      // The notification payload was too large.
-    TooManyRequests = 429,      // The server received too many requests for the same device token.
-    InternalServerError = 500,  // Internal server error
-    ServiceUnavailable = 503,   // The server is shutting down and unavailable.
+    Success = 200, // Success
+    BadRequest = 400, // Bad request
+    Forbidden = 403, // There was an error with the certificate.
+    MethodNotAllowed = 405, // The request used a bad method value. Only POST requests are support
+    Unregistered = 410, // The device token is no longer active for the topic.
+    PayloadTooLarge = 413, // The notification payload was too large.
+    TooManyRequests = 429, // The server received too many requests for the same device token.
+    InternalServerError = 500, // Internal server error
+    ServiceUnavailable = 503, // The server is shutting down and unavailable.
 }
 
 pub struct Response {
@@ -96,13 +109,16 @@ pub struct Response {
     pub status: APNSStatus,
 
     // The apns-id value from the request.
-    // If no value was included in the request, the server creates a new UUID and returns it in this header.
+    // If no value was included in the request,
+    // the server creates a new UUID and returns it in this header.
     pub apns_id: Option<String>,
 
     // The error indicating the reason for the failure.
     pub reason: Option<APNSError>,
 
-    // If the value in the :status header is 410, the value of this key is the last time at which APNs confirmed that the device token was no longer valid for the topic.
-    // Stop pushing notifications until the device registers a token with a later timestamp with your provider.
+    // If the value in the :status header is 410,the value of this key is the last time
+    // at which APNs confirmed that the device token was no longer valid for the topic.
+    // Stop pushing notifications until the device registers a token with
+    // a later timestamp with your provider.
     pub timestamp: Option<Tm>,
 }

@@ -11,6 +11,6 @@ pub mod response;
 
 pub use provider::Provider;
 pub use notification::Notification;
-pub use payload::{Payload, APS, APSAlert, APSLocalizedAlert};
+pub use payload::{APS, APSAlert, APSLocalizedAlert, Payload};
 pub use device_token::DeviceToken;
 pub use response::Response;

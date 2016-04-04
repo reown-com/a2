@@ -5,8 +5,10 @@ pub struct DeviceToken {
 }
 
 impl DeviceToken {
-    pub fn new<S>(token: S) -> DeviceToken where S: Into<String> {
-        DeviceToken {token: token.into()}
+    pub fn new<S>(token: S) -> DeviceToken
+        where S: Into<String>
+    {
+        DeviceToken { token: token.into() }
     }
 }
 

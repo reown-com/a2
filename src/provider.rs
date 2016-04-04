@@ -1,4 +1,4 @@
-use std::path::{Path};
+use std::path::Path;
 use hyper::Client;
 use hyper::header::Headers;
 use hyper::http::h2::Http2Protocol;
@@ -7,7 +7,7 @@ use notification::*;
 use response::*;
 
 static DEVELOPMENT: &'static str = "https://api.development.push.apple.com";
-static PRODUCTION:  &'static str = "https://api.push.apple.com";
+static PRODUCTION: &'static str = "https://api.push.apple.com";
 
 // Request headers
 header! { (APNSId, "apns-id") => [String] }
@@ -23,7 +23,9 @@ pub struct Provider {
 
 impl Provider {
     pub fn new(sandbox: bool, certificate_path: &str, private_key_path: &str) -> Provider {
-        let ssl = Openssl::with_cert_and_key(Path::new(certificate_path), Path::new(private_key_path)).unwrap();
+        let ssl = Openssl::with_cert_and_key(Path::new(certificate_path),
+                                             Path::new(private_key_path))
+                      .unwrap();
         let ssl_connector = HttpsConnector::new(ssl);
         let client = Client::with_protocol(Http2Protocol::with_connector(ssl_connector));
         let path = if sandbox {
@@ -32,7 +34,10 @@ impl Provider {
             format!("{}{}", PRODUCTION, "/3/device/")
         };
 
-        Provider {client: client, path: path}
+        Provider {
+            client: client,
+            path: path,
+        }
     }
 
     pub fn push(&self, notification: Notification) -> Response {
@@ -60,12 +65,19 @@ impl Provider {
         }
 
         // Send request to APNS server
-        let res = self.client.post(url_str)
-            .body(pay_str)
-            .headers(headers)
-            .send().unwrap();
+        let res = self.client
+                      .post(url_str)
+                      .body(pay_str)
+                      .headers(headers)
+                      .send()
+                      .unwrap();
         println!("{:?}", res);
 
-        Response {status: APNSStatus::Success, reason: Some(APNSError::PayloadEmpty), timestamp: None, apns_id: None}
+        Response {
+            status: APNSStatus::Success,
+            reason: Some(APNSError::PayloadEmpty),
+            timestamp: None,
+            apns_id: None,
+        }
     }
 }
