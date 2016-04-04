@@ -61,6 +61,14 @@ impl Payload {
             }
         }
     }
+
+    pub fn to_string(&self) -> String {
+        self.to_json().to_string()
+    }
+
+    pub fn len(&self) -> usize {
+        self.to_string().len()
+    }
 }
 
 impl ToJson for Payload {

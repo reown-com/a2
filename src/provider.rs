@@ -1,4 +1,3 @@
-use rustc_serialize::json::ToJson;
 use std::path::{Path};
 use hyper::Client;
 use hyper::header::Headers;
@@ -39,13 +38,13 @@ impl Provider {
     pub fn push(&self, notification: Notification) -> Response {
         let url = format!("{}{}", self.path, notification.device_token);
         let url_str: &str = url.as_str();
-        let pay = notification.payload.to_json().to_string();
+        let pay = notification.payload.to_string();
         let pay_str: &str = pay.as_str();
         println!("{}", pay_str);
 
         // Add Headers
         let mut headers = Headers::new();
-        let content_length = pay.len();
+        let content_length = notification.payload.len();
         headers.set(APNSContentLength(format!("{}", content_length)));
         if let Some(apns_id) = notification.apns_id {
             headers.set(APNSId(apns_id));
