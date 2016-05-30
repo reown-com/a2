@@ -6,7 +6,7 @@ use response::*;
 use openssl::ssl::{SslContext, SslMethod, SSL_VERIFY_NONE};
 use openssl::x509::X509;
 use openssl::crypto::pkey::PKey;
-use time::{Tm, Timespec, at};
+use time::{Tm, Timespec, at, precise_time_ns};
 use rustc_serialize::json::{Json, Object};
 use std::str;
 use std::time::{Instant, Duration};
@@ -15,13 +15,13 @@ use std::result::Result;
 use std::thread;
 use std::fs::File;
 use std::io::Read;
+use std::sync::mpsc::Receiver;
 
 static DEVELOPMENT: &'static str = "api.development.push.apple.com";
 static PRODUCTION: &'static str = "api.push.apple.com";
 
 pub struct Provider {
     pub client: Client,
-    request_timeout: Duration
 }
 
 impl Provider {
@@ -46,48 +46,14 @@ impl Provider {
         let connector = TlsConnector::with_context(host, &ctx);
         let client    = Client::with_connector(connector).unwrap();
 
-        Provider {
-            client: client,
-            request_timeout: Duration::new(2, 0),
-        }
+        Provider { client: client, }
     }
 
-    pub fn push(&self, notification: Notification) -> Result<Response, Response> {
-        if let Ok(http_response) = self.request(notification) {
-            let status        = Provider::fetch_status(http_response.status_code().ok());
-            let apns_id       = Provider::fetch_apns_id(http_response.headers);
-            let json          = str::from_utf8(&http_response.body).ok().and_then(|v| Json::from_str(v).ok());
-            let object        = json.as_ref().and_then(|v| v.as_object());
-            let reason        = Provider::fetch_reason(object);
-            let timestamp     = Provider::fetch_timestamp(object);
-
-            if status == APNSStatus::Success {
-                Ok(Response {
-                    status: status,
-                    reason: reason,
-                    timestamp: timestamp,
-                    apns_id: apns_id,
-                })
-
-            } else {
-                Err(Response {
-                    status: status,
-                    reason: reason,
-                    timestamp: timestamp,
-                    apns_id: apns_id,
-                })
-            }
-        } else {
-            Err(Response {
-                status: APNSStatus::Timeout,
-                reason: None,
-                timestamp: None,
-                apns_id: None,
-            })
-        }
+    pub fn push(&self, notification: Notification) -> AsyncResponse {
+        AsyncResponse::new(self.request(notification), precise_time_ns())
     }
 
-    fn request(&self, notification: Notification) -> Result<HttpResponse, APNSStatus> {
+    fn request(&self, notification: Notification) -> Option<Receiver<HttpResponse<'static, 'static>>> {
         let path = format!("/3/device/{}", notification.device_token).into_bytes();
         let body = notification.payload.to_string().into_bytes();
 
@@ -110,21 +76,72 @@ impl Provider {
             headers.push(Provider::create_header("apns-topic", apns_topic));
         }
 
-        let resp = self.client.post(&path, headers.as_slice(), body).unwrap();
-        let now = Instant::now();
-
-        while now.elapsed() < self.request_timeout {
-            match resp.try_recv() {
-                Ok(http_response) => return Ok(http_response),
-                _                 => thread::park_timeout(Duration::from_millis(10)),
-            }
-        }
-
-        Err(APNSStatus::Timeout)
+        self.client.post(&path, headers.as_slice(), body)
     }
 
     fn create_header<'a, T: Display>(key: &'a str, value: T) -> Header<'a, 'a> {
         Header::new(key.as_bytes(), format!("{}", value).into_bytes())
+    }
+
+}
+
+pub type ResponseChannel = Receiver<HttpResponse<'static, 'static>>;
+
+pub struct AsyncResponse {
+    rx: Option<ResponseChannel>,
+    pub requested_at: u64,
+}
+
+impl AsyncResponse {
+    pub fn new(rx: Option<ResponseChannel>, requested_at: u64) -> AsyncResponse {
+        AsyncResponse { rx: rx, requested_at: requested_at }
+    }
+
+    pub fn recv_timeout(&self, timeout: Duration) -> Result<Response, Response> {
+        if let Some(ref rx) = self.rx {
+            let now = Instant::now();
+
+            while now.elapsed() < timeout {
+                match rx.try_recv() {
+                    Ok(http_response) => {
+                        let status        = AsyncResponse::fetch_status(http_response.status_code().ok());
+                        let apns_id       = AsyncResponse::fetch_apns_id(http_response.headers);
+                        let json          = str::from_utf8(&http_response.body).ok().and_then(|v| Json::from_str(v).ok());
+                        let object        = json.as_ref().and_then(|v| v.as_object());
+                        let reason        = AsyncResponse::fetch_reason(object);
+                        let timestamp     = AsyncResponse::fetch_timestamp(object);
+
+                        let response = Response {
+                            status: status,
+                            reason: reason,
+                            timestamp: timestamp,
+                            apns_id: apns_id,
+                        };
+
+                        if response.status == APNSStatus::Success {
+                            return Ok(response);
+                        } else {
+                            return Err(response);
+                        }
+                    },
+                    _ => thread::park_timeout(Duration::from_millis(10)),
+                }
+            }
+
+            Err(Response {
+                status: APNSStatus::Timeout,
+                reason: None,
+                timestamp: None,
+                apns_id: None,
+            })
+        } else {
+            Err(Response {
+                status: APNSStatus::MissingChannel,
+                reason: None,
+                timestamp: None,
+                apns_id: None,
+            })
+        }
     }
 
     fn fetch_status(code: Option<u16>) -> APNSStatus {
