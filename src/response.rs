@@ -96,18 +96,18 @@ impl Error for APNSError {
 /// The HTTP status code.
 #[derive(Debug, PartialEq)]
 pub enum APNSStatus {
-    Success = 200,      // Success
-    BadRequest = 400,   // Bad request
-    Forbidden = 403,    // There was an error with the certificate.
-    MethodNotAllowed = 405, // The request used a bad method value. Only POST requests are support
-    Unregistered = 410,     // The device token is no longer active for the topic.
-    PayloadTooLarge = 413,  // The notification payload was too large.
-    TooManyRequests = 429,  // The server received too many requests for the same device token.
-    InternalServerError = 500,  // Internal server error
-    ServiceUnavailable = 503,   // The server is shutting down and unavailable.
-
-    Timeout = 998,      // The request timed out
-    Unknown = 999,      // Unknown error
+    Success = 200,             // Success
+    BadRequest = 400,          // Bad request
+    Forbidden = 403,           // There was an error with the certificate.
+    MethodNotAllowed = 405,    // The request used a bad method value. Only POST requests are support
+    Unregistered = 410,        // The device token is no longer active for the topic.
+    PayloadTooLarge = 413,     // The notification payload was too large.
+    TooManyRequests = 429,     // The server received too many requests for the same device token.
+    InternalServerError = 500, // Internal server error
+    ServiceUnavailable = 503,  // The server is shutting down and unavailable.
+    MissingChannel = 997,      // The response channel died before getting a response
+    Timeout = 998,             // The request timed out
+    Unknown = 999,             // Unknown error
 }
 
 /// The response of request.
@@ -130,3 +130,4 @@ pub struct Response {
     /// a later timestamp with your provider.
     pub timestamp: Option<Tm>,
 }
+
