@@ -9,6 +9,11 @@ keywords    = ["apns", "apple", "push", "notification", "http2", "http/2"]
 repository  = "https://github.com/tkabit/apns2"
 
 [dependencies]
-hyper = "~0.7"
 rustc-serialize = "~0.3"
 time = "~0.1"
+openssl = "~0.7"
+
+[dependencies.solicit]
+git = "https://github.com/pimeys/solicit"
+default-features = true
+features = ["tls"]

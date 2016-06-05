@@ -3,6 +3,7 @@ use std::fmt;
 use time::Tm;
 
 use self::APNSError::*;
+
 // The APNS reasons.
 pub enum APNSError {
     PayloadEmpty,
@@ -35,6 +36,7 @@ impl fmt::Debug for APNSError {
         f.write_str(self.description())
     }
 }
+
 
 impl fmt::Display for APNSError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -92,6 +94,7 @@ impl Error for APNSError {
 }
 
 // The HTTP status code.
+#[derive(Debug, PartialEq)]
 pub enum APNSStatus {
     Success = 200, // Success
     BadRequest = 400, // Bad request
@@ -102,8 +105,11 @@ pub enum APNSStatus {
     TooManyRequests = 429, // The server received too many requests for the same device token.
     InternalServerError = 500, // Internal server error
     ServiceUnavailable = 503, // The server is shutting down and unavailable.
+    Timeout = 998,
+    Unknown = 999,
 }
 
+#[derive(Debug)]
 pub struct Response {
     // Status codes for a response
     pub status: APNSStatus,
