@@ -14,4 +14,4 @@ pub use provider::{Provider, AsyncResponse};
 pub use notification::{Notification, NotificationOptions};
 pub use payload::{APS, APSAlert, APSLocalizedAlert, Payload};
 pub use device_token::DeviceToken;
-pub use response::Response;
+pub use response::{Response, APNSError, APNSStatus};
