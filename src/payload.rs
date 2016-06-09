@@ -30,16 +30,16 @@ pub enum APSAlert {
 pub struct APSLocalizedAlert {
     pub title: String,
     pub body: String,
-    pub title_loc_key: String,
-    pub title_loc_args: Vec<String>, // or nil
-    pub action_loc_key: String, // or nil
+    pub title_loc_key: Option<String>,
+    pub title_loc_args: Option<Vec<String>>,
+    pub action_loc_key: Option<String>,
     pub loc_key: String,
-    pub loc_args: Vec<String>, // or nil
-    pub launch_image: String,
+    pub loc_args: Vec<String>,
+    pub launch_image: Option<String>,
 }
 
 impl Payload {
-    pub fn new<S>(alert: APSAlert, badge: u32, sound: S) -> Payload
+    pub fn new<S>(alert: APSAlert, badge: u32, sound: S, category: Option<String>) -> Payload
         where S: Into<String>
     {
         Payload {
@@ -48,7 +48,7 @@ impl Payload {
                 badge: Some(badge),
                 sound: Some(sound.into()),
                 content_available: None,
-                category: None,
+                category: category,
             },
         }
     }
@@ -114,14 +114,35 @@ impl ToJson for APS {
 impl ToJson for APSLocalizedAlert {
     fn to_json(&self) -> Json {
         let mut d = BTreeMap::new();
+
         d.insert("title".to_string(), self.title.to_json());
         d.insert("body".to_string(), self.body.to_json());
-        d.insert("title-loc-key".to_string(), self.title_loc_key.to_json());
-        d.insert("title-loc-args".to_string(), self.title_loc_args.to_json());
-        d.insert("action-loc-key".to_string(), self.action_loc_key.to_json());
+
+        if let Some(ref title_loc_key) = self.title_loc_key {
+            d.insert("title-loc-key".to_string(), title_loc_key.to_json());
+        } else {
+            d.insert("title-loc-key".to_string(), Json::Null);
+        }
+
+        if let Some(ref title_loc_args) = self.title_loc_args {
+            d.insert("title-loc-args".to_string(), title_loc_args.to_json());
+        } else {
+            d.insert("title-loc-args".to_string(), Json::Null);
+        }
+
+        if let Some(ref action_loc_key) = self.action_loc_key {
+            d.insert("action-loc-key".to_string(), action_loc_key.to_json());
+        } else {
+            d.insert("action-loc-key".to_string(), Json::Null);
+        }
+
         d.insert("loc-key".to_string(), self.loc_key.to_json());
         d.insert("loc-args".to_string(), self.loc_args.to_json());
-        d.insert("launch-image".to_string(), self.launch_image.to_json());
+
+        if let Some(ref launch_image) = self.launch_image {
+            d.insert("launch-image".to_string(), launch_image.to_json());
+        }
+
         Json::Object(d)
     }
 }
