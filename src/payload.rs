@@ -33,8 +33,8 @@ pub struct APSLocalizedAlert {
     pub title_loc_key: Option<String>,
     pub title_loc_args: Option<Vec<String>>,
     pub action_loc_key: Option<String>,
-    pub loc_key: String,
-    pub loc_args: Vec<String>,
+    pub loc_key: Option<String>,
+    pub loc_args: Option<Vec<String>>,
     pub launch_image: Option<String>,
 }
 
@@ -136,8 +136,17 @@ impl ToJson for APSLocalizedAlert {
             d.insert("action-loc-key".to_string(), Json::Null);
         }
 
-        d.insert("loc-key".to_string(), self.loc_key.to_json());
-        d.insert("loc-args".to_string(), self.loc_args.to_json());
+        if let Some(ref loc_key) = self.loc_key {
+            d.insert("loc-key".to_string(), loc_key.to_json());
+        } else {
+            d.insert("loc-key".to_string(), Json::Null);
+        }
+
+        if let Some(ref loc_args) = self.loc_args {
+            d.insert("loc-args".to_string(), loc_args.to_json());
+        } else {
+            d.insert("loc-args".to_string(), Json::Null);
+        }
 
         if let Some(ref launch_image) = self.launch_image {
             d.insert("launch-image".to_string(), launch_image.to_json());
