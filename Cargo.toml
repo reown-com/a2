@@ -6,7 +6,9 @@ license = "MIT"
 readme  = "README.md"
 description = "HTTP/2 Apple Push Notification Service for Rust"
 keywords    = ["apns", "apple", "push", "notification", "http2", "http/2"]
-repository  = "https://github.com/tkabit/apns2"
+repository  = "https://github.com/tkabit/apns2.git"
+homepage    = "https://github.com/tkabit/apns2"
+documentation = "https://github.com/tkabit/apns2"
 
 [dependencies]
 rustc-serialize = "~0.3"

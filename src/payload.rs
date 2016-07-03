@@ -30,25 +30,39 @@ pub enum APSAlert {
 pub struct APSLocalizedAlert {
     pub title: String,
     pub body: String,
-    pub title_loc_key: String,
-    pub title_loc_args: Vec<String>, // or nil
-    pub action_loc_key: String, // or nil
+    pub title_loc_key: Option<String>,
+    pub title_loc_args: Option<Vec<String>>,
+    pub action_loc_key: Option<String>,
     pub loc_key: String,
-    pub loc_args: Vec<String>, // or nil
-    pub launch_image: String,
+    pub loc_args: Vec<String>,
+    pub launch_image: Option<String>,
 }
 
 impl Payload {
-    pub fn new<S>(alert: APSAlert, badge: u32, sound: S) -> Payload
+    pub fn new<S>(alert: APSAlert, badge: Option<u32>, sound: S) -> Payload
         where S: Into<String>
     {
         Payload {
             aps: APS {
                 alert: Some(alert),
-                badge: Some(badge),
+                badge: badge,
                 sound: Some(sound.into()),
                 content_available: None,
                 category: None,
+            },
+        }
+    }
+
+    pub fn new_action_notification<S>(alert: APSAlert, badge: Option<u32>, sound: S, category: S) -> Payload
+        where S: Into<String>
+    {
+        Payload {
+            aps: APS {
+                alert: Some(alert),
+                badge: badge,
+                sound: Some(sound.into()),
+                content_available: None,
+                category: Some(category.into()),
             },
         }
     }
@@ -94,18 +108,17 @@ impl ToJson for APS {
             }
             None => {}
         };
-        if self.badge.is_some() {
-            d.insert("badge".to_string(), self.badge.to_json());
+        if let Some(ref badge) = self.badge {
+            d.insert("badge".to_string(), badge.to_json());
         }
-        if self.sound.is_some() {
-            d.insert("sound".to_string(), self.sound.to_json());
+        if let Some(ref sound) = self.sound {
+            d.insert("sound".to_string(), sound.to_json());
         }
-        if self.content_available.is_some() {
-            d.insert("content-available".to_string(),
-                     self.content_available.to_json());
+        if let Some(ref content_available) = self.content_available {
+            d.insert("content-available".to_string(), content_available.to_json());
         }
-        if self.category.is_some() {
-            d.insert("category".to_string(), self.category.to_json());
+        if let Some(ref category) = self.category {
+            d.insert("category".to_string(), category.to_json());
         }
         Json::Object(d)
     }
@@ -116,12 +129,23 @@ impl ToJson for APSLocalizedAlert {
         let mut d = BTreeMap::new();
         d.insert("title".to_string(), self.title.to_json());
         d.insert("body".to_string(), self.body.to_json());
-        d.insert("title-loc-key".to_string(), self.title_loc_key.to_json());
-        d.insert("title-loc-args".to_string(), self.title_loc_args.to_json());
-        d.insert("action-loc-key".to_string(), self.action_loc_key.to_json());
+        d.insert("title-loc-key".to_string(), match self.title_loc_key {
+            Some(ref k) => k.to_json(),
+            None => Json::Null,
+        });
+        d.insert("title-loc-args".to_string(), match self.title_loc_args {
+            Some(ref a) => a.to_json(),
+            None => Json::Null,
+        });
+        d.insert("action-loc-key".to_string(), match self.action_loc_key {
+            Some(ref k) => k.to_json(),
+            None => Json::Null,
+        });
         d.insert("loc-key".to_string(), self.loc_key.to_json());
         d.insert("loc-args".to_string(), self.loc_args.to_json());
-        d.insert("launch-image".to_string(), self.launch_image.to_json());
+        if let Some(ref i) = self.launch_image {
+            d.insert("launch-image".to_string(), i.to_json());
+        }
         Json::Object(d)
     }
 }

@@ -1,6 +1,6 @@
 use solicit::http::client::tls::TlsConnector;
-use solicit::client::{Client};
 use solicit::http::{Header, Response as HttpResponse};
+use solicit::client::{Client};
 use notification::*;
 use response::*;
 use openssl::ssl::{SslContext, SslMethod, SSL_VERIFY_NONE};
@@ -32,9 +32,8 @@ impl Provider {
     }
 
     pub fn from_reader<R: Read>(sandbox: bool, certificate: &mut R, private_key: &mut R) -> Provider {
-        let host    = if sandbox { DEVELOPMENT } else { PRODUCTION };
         let mut ctx = SslContext::new(SslMethod::Sslv23).unwrap();
-
+        let host    = if sandbox { DEVELOPMENT } else { PRODUCTION };
         let x509 = X509::from_pem(certificate).unwrap();
         let pkey = PKey::private_key_from_pem(private_key).unwrap();
 
@@ -68,7 +67,6 @@ impl Provider {
                     timestamp: timestamp,
                     apns_id: apns_id,
                 })
-
             } else {
                 Err(Response {
                     status: status,
@@ -90,26 +88,20 @@ impl Provider {
     fn request(&self, notification: Notification) -> Result<HttpResponse, APNSStatus> {
         let path = format!("/3/device/{}", notification.device_token).into_bytes();
         let body = notification.payload.to_string().into_bytes();
-
         let mut headers = Vec::new();
         headers.push(Provider::create_header("content_length", notification.payload.len()));
-
         if let Some(apns_id) = notification.options.apns_id {
             headers.push(Provider::create_header("apns-id", apns_id));
         }
-
         if let Some(apns_expiration) = notification.options.apns_expiration {
             headers.push(Provider::create_header("apns-expiration", apns_expiration));
         }
-
         if let Some(apns_priority) = notification.options.apns_priority {
             headers.push(Provider::create_header("apns-priority", apns_priority));
         }
-
         if let Some(apns_topic) = notification.options.apns_topic {
             headers.push(Provider::create_header("apns-topic", apns_topic));
         }
-
         let resp = self.client.post(&path, headers.as_slice(), body).unwrap();
         let now = Instant::now();
 
@@ -119,7 +111,6 @@ impl Provider {
                 _                 => thread::park_timeout(Duration::from_millis(10)),
             }
         }
-
         Err(APNSStatus::Timeout)
     }
 
@@ -155,7 +146,6 @@ impl Provider {
 
     fn fetch_reason(js_object: Option<&Object>) -> Option<APNSError> {
         let raw_reason = js_object.and_then(|v| v.get("reason")).and_then(|v| v.as_string());
-
         match raw_reason {
             Some("PayloadEmpty")              => Some(APNSError::PayloadEmpty),
             Some("PayloadTooLarge")           => Some(APNSError::PayloadTooLarge),
@@ -186,7 +176,6 @@ impl Provider {
 
     fn fetch_timestamp(js_object: Option<&Object>) -> Option<Tm> {
         let raw_ts = js_object.and_then(|v| v.get("timestamp")).and_then(|v| v.as_i64());
-
         match raw_ts {
             Some(ts) => Some(at(Timespec::new(ts, 0))),
             None     => None,
