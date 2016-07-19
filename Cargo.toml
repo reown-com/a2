@@ -11,9 +11,13 @@ repository  = "https://github.com/tkabit/apns2"
 [dependencies]
 rustc-serialize = "~0.3"
 time = "~0.1"
-openssl = "~0.7"
 
 [dependencies.solicit]
 git = "https://github.com/pimeys/solicit"
 default-features = true
 features = ["tls"]
+
+[dependencies.openssl]
+default-features = true
+features = ["alpn"]
+version = "~0.7"
