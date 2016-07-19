@@ -36,9 +36,8 @@ impl Provider {
         ctx.set_cipher_list("DEFAULT").unwrap();
         ctx.set_certificate(&x509).unwrap();
         ctx.set_private_key(&pkey).unwrap();
-        ctx.set_options(SSL_OP_NO_COMPRESSION);
-        ctx.set_alpn_protocols(ALPN_PROTOCOLS);
-        ctx.set_npn_protocols(ALPN_PROTOCOLS);
+        ctx.set_verify(SSL_VERIFY_NONE, None);
+        ctx.set_alpn_protocols(&[b"h2"]);
 
         let connector = TlsConnector::with_context(host, &ctx);
         let client    = Client::with_connector(connector).unwrap();

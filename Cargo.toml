@@ -22,3 +22,8 @@ features = ["tlsv1_2", "npn", "alpn"]
 git = "https://github.com/aagahi/solicit"
 default-features = true
 features = ["tls"]
+
+[dependencies.openssl]
+default-features = true
+features = ["alpn"]
+version = "~0.7"
