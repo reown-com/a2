@@ -2,11 +2,9 @@ use std::borrow::Cow;
 use std::collections::BTreeMap;
 use rustc_serialize::json::{Json, ToJson};
 
-/// Each remote notification includes a payload.
-/// The payload contains information about how the system should alert the user as well
-/// as any custom data you provide.
-pub struct Payload<'a> {
-    pub aps: APS<'a>,
+pub struct Payload {
+    pub aps: APS,
+    pub custom: Option<CustomData>,
 }
 
 pub struct APS {
@@ -42,8 +40,13 @@ pub struct APSLocalizedAlert {
     pub launch_image: Option<String>,
 }
 
+pub struct CustomData {
+    pub key: String,
+    pub body: Json,
+}
+
 impl Payload {
-    pub fn new<S>(alert: APSAlert, badge: u32, sound: S, category: Option<String>) -> Payload
+    pub fn new<S>(alert: APSAlert, badge: u32, sound: S, category: Option<String>, custom_data: Option<CustomData>) -> Payload
         where S: Into<String>
     {
         Payload {
@@ -54,24 +57,11 @@ impl Payload {
                 content_available: None,
                 category: category,
             },
+            custom: custom_data,
         }
     }
 
-    pub fn new_action_notification<S>(alert: APSAlert, badge: Option<u32>, sound: S, category: S) -> Payload<'a>
-        where S: Into<Cow<'a, str>>
-    {
-        Payload {
-            aps: APS {
-                alert: Some(alert),
-                badge: badge,
-                sound: Some(sound.into()),
-                content_available: None,
-                category: Some(category.into()),
-            },
-        }
-    }
-
-    pub fn new_silent_notification() -> Payload<'a> {
+    pub fn new_silent_notification(custom_data: Option<CustomData>) -> Payload {
         Payload {
             aps: APS {
                 alert: None,
@@ -80,6 +70,7 @@ impl Payload {
                 content_available: Some(1),
                 category: None,
             },
+            custom: custom_data,
         }
     }
 
@@ -96,6 +87,11 @@ impl<'a> ToJson for Payload<'a> {
     fn to_json(&self) -> Json {
         let mut d = BTreeMap::new();
         d.insert("aps".to_string(), self.aps.to_json());
+
+        if let Some(ref custom) = self.custom {
+            d.insert(custom.key.to_string(), custom.body.clone());
+        }
+
         Json::Object(d)
     }
 }
