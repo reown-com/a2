@@ -12,6 +12,6 @@ pub mod response;
 
 pub use provider::{Provider, AsyncResponse};
 pub use notification::{Notification, NotificationOptions};
-pub use payload::{Payload, APS, APSAlert, APSLocalizedAlert};
+pub use payload::{APS, APSAlert, APSLocalizedAlert, Payload, CustomData};
 pub use device_token::DeviceToken;
 pub use response::{Response, APNSError, APNSStatus};
