@@ -3,6 +3,7 @@ use rustc_serialize::json::{Json, ToJson};
 
 pub struct Payload {
     pub aps: APS,
+    pub custom: Option<CustomData>,
 }
 
 pub struct APS {
@@ -38,8 +39,13 @@ pub struct APSLocalizedAlert {
     pub launch_image: Option<String>,
 }
 
+pub struct CustomData {
+    pub key: String,
+    pub body: Json,
+}
+
 impl Payload {
-    pub fn new<S>(alert: APSAlert, badge: u32, sound: S, category: Option<String>) -> Payload
+    pub fn new<S>(alert: APSAlert, badge: u32, sound: S, category: Option<String>, custom_data: Option<CustomData>) -> Payload
         where S: Into<String>
     {
         Payload {
@@ -50,10 +56,11 @@ impl Payload {
                 content_available: None,
                 category: category,
             },
+            custom: custom_data,
         }
     }
 
-    pub fn new_silent_notification() -> Payload {
+    pub fn new_silent_notification(custom_data: Option<CustomData>) -> Payload {
         Payload {
             aps: APS {
                 alert: None,
@@ -62,6 +69,7 @@ impl Payload {
                 content_available: Some(1),
                 category: None,
             },
+            custom: custom_data,
         }
     }
 
@@ -78,6 +86,11 @@ impl ToJson for Payload {
     fn to_json(&self) -> Json {
         let mut d = BTreeMap::new();
         d.insert("aps".to_string(), self.aps.to_json());
+
+        if let Some(ref custom) = self.custom {
+            d.insert(custom.key.to_string(), custom.body.clone());
+        }
+
         Json::Object(d)
     }
 }
