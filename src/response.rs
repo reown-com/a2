@@ -4,7 +4,7 @@ use time::Tm;
 
 use self::APNSError::*;
 
-// The APNS reasons.
+/// The APNS reasons.
 pub enum APNSError {
     PayloadEmpty,
     PayloadTooLarge,
@@ -93,7 +93,7 @@ impl Error for APNSError {
     }
 }
 
-// The HTTP status code.
+/// The HTTP status code.
 #[derive(Debug, PartialEq)]
 pub enum APNSStatus {
     Success = 200,      // Success
@@ -110,22 +110,23 @@ pub enum APNSStatus {
     Unknown = 999,      // Unknown error
 }
 
+/// The response of request.
 #[derive(Debug)]
 pub struct Response {
-    // Status codes for a response
+    /// Status codes for a response
     pub status: APNSStatus,
 
-    // The apns-id value from the request.
-    // If no value was included in the request,
-    // the server creates a new UUID and returns it in this header.
+    /// The apns-id value from the request.
+    /// If no value was included in the request,
+    /// the server creates a new UUID and returns it in this header.
     pub apns_id: Option<String>,
 
-    // The error indicating the reason for the failure.
+    /// The error indicating the reason for the failure.
     pub reason: Option<APNSError>,
 
-    // If the value in the :status header is 410,the value of this key is the last time
-    // at which APNs confirmed that the device token was no longer valid for the topic.
-    // Stop pushing notifications until the device registers a token with
-    // a later timestamp with your provider.
+    /// If the value in the :status header is 410,the value of this key is the last time
+    /// at which APNs confirmed that the device token was no longer valid for the topic.
+    /// Stop pushing notifications until the device registers a token with
+    /// a later timestamp with your provider.
     pub timestamp: Option<Tm>,
 }

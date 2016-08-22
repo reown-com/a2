@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::collections::BTreeMap;
 use rustc_serialize::json::{Json, ToJson};
 
-/// The Remote Notification Payload. Each remote notification includes a payload.
+/// Each remote notification includes a payload.
 /// The payload contains information about how the system should alert the user as well
 /// as any custom data you provide.
 pub struct Payload<'a> {
