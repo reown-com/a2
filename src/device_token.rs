@@ -1,18 +1,20 @@
 use std::fmt;
+use std::borrow::Cow;
 
-pub struct DeviceToken {
-    pub token: String,
+/// Specify the hexadecimal bytes of the device token for the target device.
+pub struct DeviceToken<'a> {
+    pub token: Cow<'a, str>,
 }
 
-impl DeviceToken {
-    pub fn new<S>(token: S) -> DeviceToken
-        where S: Into<String>
+impl<'a> DeviceToken<'a> {
+    pub fn new<S>(token: S) -> DeviceToken<'a>
+        where S: Into<Cow<'a, str>>
     {
         DeviceToken { token: token.into() }
     }
 }
 
-impl fmt::Display for DeviceToken {
+impl<'a> fmt::Display for DeviceToken<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.token)
     }
