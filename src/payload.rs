@@ -1,46 +1,17 @@
+use std::borrow::Cow;
 use std::collections::BTreeMap;
 use rustc_serialize::json::{Json, ToJson};
 
-pub struct Payload {
-    pub aps: APS,
+/// The Remote Notification Payload. Each remote notification includes a payload.
+/// The payload contains information about how the system should alert the user as well
+/// as any custom data you provide.
+pub struct Payload<'a> {
+    pub aps: APS<'a>,
 }
 
-pub struct APS {
-    pub alert: Option<APSAlert>,
-
-    // The number to display as the badge of the app icon.
-    pub badge: Option<u32>,
-
-    // The name of a sound file in the app bundle or in the Library/Sounds folder of
-    // the app’s data container.
-    pub sound: Option<String>,
-
-    // Provide this key with a value of 1 to indicate that new content is available.
-    pub content_available: Option<u32>,
-
-    // Provide this key with a string value that represents the identifier property.
-    pub category: Option<String>,
-}
-
-pub enum APSAlert {
-    Plain(String),
-    Localized(APSLocalizedAlert),
-}
-
-pub struct APSLocalizedAlert {
-    pub title: String,
-    pub body: String,
-    pub title_loc_key: Option<String>,
-    pub title_loc_args: Option<Vec<String>>,
-    pub action_loc_key: Option<String>,
-    pub loc_key: String,
-    pub loc_args: Vec<String>,
-    pub launch_image: Option<String>,
-}
-
-impl Payload {
-    pub fn new<S>(alert: APSAlert, badge: Option<u32>, sound: S) -> Payload
-        where S: Into<String>
+impl<'a> Payload<'a> {
+    pub fn new<S>(alert: APSAlert, badge: Option<u32>, sound: S) -> Payload<'a>
+        where S: Into<Cow<'a, str>>
     {
         Payload {
             aps: APS {
@@ -53,8 +24,8 @@ impl Payload {
         }
     }
 
-    pub fn new_action_notification<S>(alert: APSAlert, badge: Option<u32>, sound: S, category: S) -> Payload
-        where S: Into<String>
+    pub fn new_action_notification<S>(alert: APSAlert, badge: Option<u32>, sound: S, category: S) -> Payload<'a>
+        where S: Into<Cow<'a, str>>
     {
         Payload {
             aps: APS {
@@ -67,7 +38,7 @@ impl Payload {
         }
     }
 
-    pub fn new_silent_notification() -> Payload {
+    pub fn new_silent_notification() -> Payload<'a> {
         Payload {
             aps: APS {
                 alert: None,
@@ -88,7 +59,7 @@ impl Payload {
     }
 }
 
-impl ToJson for Payload {
+impl<'a> ToJson for Payload<'a> {
     fn to_json(&self) -> Json {
         let mut d = BTreeMap::new();
         d.insert("aps".to_string(), self.aps.to_json());
@@ -96,7 +67,30 @@ impl ToJson for Payload {
     }
 }
 
-impl ToJson for APS {
+/// The APS can contain one or more properties that specify the following user notification types:
+/// - an alert message to display to the user
+/// - a number to badge the app icon with
+/// - a sound to play
+pub struct APS<'a> {
+    /// If this property is included, the system displays a standard alert or a banner,
+    /// based on the user’s setting.
+    pub alert: Option<APSAlert>,
+
+    /// The number to display as the badge of the app icon.
+    pub badge: Option<u32>,
+
+    /// The name of a sound file in the app bundle or in the Library/Sounds folder of
+    /// the app’s data container.
+    pub sound: Option<Cow<'a, str>>,
+
+    /// Provide this key with a value of 1 to indicate that new content is available.
+    pub content_available: Option<u32>,
+
+    /// Provide this key with a string value that represents the identifier property.
+    pub category: Option<Cow<'a, str>>,
+}
+
+impl<'a> ToJson for APS<'a> {
     fn to_json(&self) -> Json {
         let mut d = BTreeMap::new();
         match self.alert {
@@ -122,6 +116,40 @@ impl ToJson for APS {
         }
         Json::Object(d)
     }
+}
+
+/// Can specify a string or a dictionary as the value of alert.
+pub enum APSAlert {
+    Plain(String),
+    Localized(APSLocalizedAlert),
+}
+
+/// Child properties of the alert property.
+pub struct APSLocalizedAlert {
+    /// A short string describing the purpose of the notification
+    pub title: String,
+
+    /// The text of the alert message.
+    pub body: String,
+
+    /// The key to a title string in the Localizable.strings file for the current localization.
+    pub title_loc_key: Option<String>,
+
+    /// Variable string values to appear in place of the format specifiers in title-loc-key.
+    pub title_loc_args: Option<Vec<String>>,
+
+    /// If a string is specified, the system displays an alert that includes the Close and View buttons.
+    pub action_loc_key: Option<String>,
+
+    /// A key to an alert-message string in a Localizable.strings file for the current localization.
+    pub loc_key: String,
+
+    /// Variable string values to appear in place of the format specifiers in loc-key.
+    pub loc_args: Vec<String>,
+
+    /// The filename of an image file in the app bundle.
+    /// The image is used as the launch image when users tap the action button or move the action slider.
+    pub launch_image: Option<String>,
 }
 
 impl ToJson for APSLocalizedAlert {
