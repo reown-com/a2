@@ -1,28 +1,40 @@
 use payload::*;
 use device_token::*;
 
+/// The Remote Notification.
 pub struct Notification<'a> {
-    // The Remote Notification Payload.
-    pub payload: Payload,
+    /// The Remote Notification Payload.
+    pub payload: Payload<'a>,
 
-    // Specify the hexadecimal string of the device token for the target device.
-    pub device_token: DeviceToken,
+    /// Specify the hexadecimal string of the device token for the target device.
+    pub device_token: DeviceToken<'a>,
 
-    // The optional settings for the notification
+    /// The optional settings for the notification
     pub options: NotificationOptions<'a>,
 }
 
+impl<'a> Notification<'a> {
+    pub fn new(payload: Payload<'a>, token: DeviceToken<'a>, options: NotificationOptions<'a>) -> Notification<'a> {
+        Notification {
+            payload: payload,
+            device_token: token,
+            options: options,
+        }
+    }
+}
+
+/// Request headers.
 pub struct NotificationOptions<'a> {
-    // A canonical UUID that identifies the notification.
+    /// A canonical UUID that identifies the notification.
     pub apns_id: Option<&'a str>,
 
-    // A UNIX epoch date expressed in seconds (UTC).
+    /// A UNIX epoch date expressed in seconds (UTC).
     pub apns_expiration: Option<i64>,
 
-    // The priority of the notification.
+    /// The priority of the notification.
     pub apns_priority: Option<u32>,
 
-    // The topic of the remote notification, which is typically the bundle ID for your app.
+    /// The topic of the remote notification, which is typically the bundle ID for your app.
     pub apns_topic: Option<&'a str>,
 }
 
@@ -33,16 +45,6 @@ impl<'a> Default for NotificationOptions<'a> {
             apns_expiration: None,
             apns_priority: None,
             apns_topic: None,
-        }
-    }
-}
-
-impl<'a> Notification<'a> {
-    pub fn new(payload: Payload, token: DeviceToken, options: NotificationOptions) -> Notification {
-        Notification {
-            payload: payload,
-            device_token: token,
-            options: options,
         }
     }
 }
