@@ -26,4 +26,4 @@ features = ["tls"]
 [dependencies.openssl]
 default-features = true
 features = ["alpn"]
-version = "~0.6"
+version = "~0.7"
