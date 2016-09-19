@@ -13,11 +13,11 @@ rustc-serialize = "~0.3"
 time = "~0.1"
 
 [dependencies.solicit]
-git = "https://github.com/pimeys/solicit"
+git = "https://github.com/mlalic/solicit"
 default-features = true
 features = ["tls"]
 
 [dependencies.openssl]
 default-features = true
 features = ["alpn"]
-version = "~0.7"
+version = "~0.6"
