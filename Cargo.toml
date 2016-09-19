@@ -19,11 +19,11 @@ version = "~0.7"
 features = ["tlsv1_2", "npn", "alpn"]
 
 [dependencies.solicit]
-git = "https://github.com/aagahi/solicit"
+git = "https://github.com/pimeys/solicit"
 default-features = true
 features = ["tls"]
 
 [dependencies.openssl]
 default-features = true
 features = ["alpn"]
-version = "~0.7"
+version = "~0.6"
