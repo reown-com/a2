@@ -1,27 +1,30 @@
-use solicit::http::client::tls::TlsConnector;
-use solicit::http::{Header, Response as HttpResponse};
-use solicit::client::{Client};
 use notification::*;
 use response::*;
-use openssl::ssl::{SslContext, SslMethod, SSL_VERIFY_NONE};
-use openssl::x509::X509;
-use openssl::crypto::pkey::PKey;
+// Time and serialization
 use time::{Tm, Timespec, at};
-use rustc_serialize::json::{Json, Object};
+use rustc_serialize::json::*;
+// Standard lib
 use std::str;
-use std::time::{Instant, Duration};
 use std::fmt::Display;
 use std::result::Result;
 use std::thread;
 use std::fs::File;
 use std::io::Read;
+// Solicit
+use solicit::http::client::tls::TlsConnector;
+use solicit::http::{Header, HttpError, Response as HttpResponse};
+use solicit::client::Client;
+use solicit::http::ALPN_PROTOCOLS;
+// Open SSL
+use openssl::ssl::*;
+use openssl::x509::X509;
+use openssl::crypto::pkey::PKey;
 
 static DEVELOPMENT: &'static str = "api.development.push.apple.com";
-static PRODUCTION: &'static str = "api.push.apple.com";
+static PRODUCTION:  &'static str = "api.push.apple.com";
 
 pub struct Provider {
     pub client: Client,
-    request_timeout: Duration
 }
 
 impl Provider {
@@ -32,34 +35,35 @@ impl Provider {
     }
 
     pub fn from_reader<R: Read>(sandbox: bool, certificate: &mut R, private_key: &mut R) -> Provider {
-        let mut ctx = SslContext::new(SslMethod::Sslv23).unwrap();
         let host    = if sandbox { DEVELOPMENT } else { PRODUCTION };
         let x509 = X509::from_pem(certificate).unwrap();
         let pkey = PKey::private_key_from_pem(private_key).unwrap();
 
+        let mut ctx = SslContext::new(SslMethod::Tlsv1_2).unwrap();
         ctx.set_cipher_list("DEFAULT").unwrap();
         ctx.set_certificate(&x509).unwrap();
         ctx.set_private_key(&pkey).unwrap();
-        ctx.set_verify(SSL_VERIFY_NONE, None);
+        ctx.set_options(SSL_OP_NO_COMPRESSION);
+        ctx.set_alpn_protocols(ALPN_PROTOCOLS);
+        ctx.set_npn_protocols(ALPN_PROTOCOLS);
 
         let connector = TlsConnector::with_context(host, &ctx);
         let client    = Client::with_connector(connector).unwrap();
 
         Provider {
             client: client,
-            request_timeout: Duration::new(2, 0),
         }
     }
 
-    pub fn push(&self, notification: Notification) -> Result<Response, Response> {
-        if let Ok(http_response) = self.request(notification) {
+    pub fn push(&self, notification: Notification) /*-> Result<Response, Response>*/ {
+        self.request(notification);
+        /*if let Ok(http_response) = self.request(notification) {
             let status        = Provider::fetch_status(http_response.status_code().ok());
             let apns_id       = Provider::fetch_apns_id(http_response.headers);
             let json          = str::from_utf8(&http_response.body).ok().and_then(|v| Json::from_str(v).ok());
             let object        = json.as_ref().and_then(|v| v.as_object());
             let reason        = Provider::fetch_reason(object);
             let timestamp     = Provider::fetch_timestamp(object);
-
             if status == APNSStatus::Success {
                 Ok(Response {
                     status: status,
@@ -82,10 +86,10 @@ impl Provider {
                 timestamp: None,
                 apns_id: None,
             })
-        }
+        }*/
     }
 
-    fn request(&self, notification: Notification) -> Result<HttpResponse, APNSStatus> {
+    fn request(&self, notification: Notification) /*-> Result<HttpResponse, APNSStatus>*/ {
         let path = format!("/3/device/{}", notification.device_token).into_bytes();
         let body = notification.payload.to_string().into_bytes();
         let mut headers = Vec::new();
@@ -102,16 +106,38 @@ impl Provider {
         if let Some(apns_topic) = notification.options.apns_topic {
             headers.push(Provider::create_header("apns-topic", apns_topic));
         }
-        let resp = self.client.post(&path, headers.as_slice(), body).unwrap();
-        let now = Instant::now();
 
-        while now.elapsed() < self.request_timeout {
-            match resp.try_recv() {
+        let this = self.client.clone();
+        thread::spawn(move || {
+            let resp = this.post(&path, headers.as_slice(), body).unwrap();
+            match resp.recv() {
+                Ok(response) => {
+                    println!("Got response ... {}", response.status_code().ok().unwrap());
+                },
+                Err(why) => println!("{:?}", why),
+            }
+            /*if let response = resp.recv() {
+                println!("Got response ... {}", response.status_code().ok().unwrap());
+                for header in response.headers.iter() {
+                    println!("  {}: {}",
+                    str::from_utf8(header.name()).unwrap(),
+                    str::from_utf8(header.value()).unwrap());
+                }
+            }
+            else {
+                println!("ERROR: !!!!");
+            }*/
+        });
+        /*let now = Instant::now();
+        let timeout = Duration::from_millis(2000);
+        println!(">>> {:?}", now);
+        while now.elapsed() < timeout {
+                match rx.try_recv() {
                 Ok(http_response) => return Ok(http_response),
                 _                 => thread::park_timeout(Duration::from_millis(10)),
             }
         }
-        Err(APNSStatus::Timeout)
+        Err(APNSStatus::Timeout)*/
     }
 
     fn create_header<'a, T: Display>(key: &'a str, value: T) -> Header<'a, 'a> {
