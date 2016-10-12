@@ -12,7 +12,7 @@ use std::fs::File;
 use std::io::Read;
 // Solicit
 use solicit::http::client::tls::TlsConnector;
-use solicit::http::{Header, HttpError, Response as HttpResponse};
+use solicit::http::Header;
 use solicit::client::Client;
 use solicit::http::ALPN_PROTOCOLS;
 // Open SSL
@@ -35,7 +35,7 @@ impl Provider {
     }
 
     pub fn from_reader<R: Read>(sandbox: bool, certificate: &mut R, private_key: &mut R) -> Provider {
-        let host    = if sandbox { DEVELOPMENT } else { PRODUCTION };
+        let host = if sandbox { DEVELOPMENT } else { PRODUCTION };
         let x509 = X509::from_pem(certificate).unwrap();
         let pkey = PKey::private_key_from_pem(private_key).unwrap();
 
@@ -55,41 +55,9 @@ impl Provider {
         }
     }
 
-    pub fn push(&self, notification: Notification) /*-> Result<Response, Response>*/ {
-        self.request(notification);
-        /*if let Ok(http_response) = self.request(notification) {
-            let status        = Provider::fetch_status(http_response.status_code().ok());
-            let apns_id       = Provider::fetch_apns_id(http_response.headers);
-            let json          = str::from_utf8(&http_response.body).ok().and_then(|v| Json::from_str(v).ok());
-            let object        = json.as_ref().and_then(|v| v.as_object());
-            let reason        = Provider::fetch_reason(object);
-            let timestamp     = Provider::fetch_timestamp(object);
-            if status == APNSStatus::Success {
-                Ok(Response {
-                    status: status,
-                    reason: reason,
-                    timestamp: timestamp,
-                    apns_id: apns_id,
-                })
-            } else {
-                Err(Response {
-                    status: status,
-                    reason: reason,
-                    timestamp: timestamp,
-                    apns_id: apns_id,
-                })
-            }
-        } else {
-            Err(Response {
-                status: APNSStatus::Timeout,
-                reason: None,
-                timestamp: None,
-                apns_id: None,
-            })
-        }*/
-    }
-
-    fn request(&self, notification: Notification) /*-> Result<HttpResponse, APNSStatus>*/ {
+    pub fn push<F>(&self, notification: Notification, handler: F)
+        where F: Send + 'static + FnOnce(Result<Response, Response>)
+    {
         let path = format!("/3/device/{}", notification.device_token).into_bytes();
         let body = notification.payload.to_string().into_bytes();
         let mut headers = Vec::new();
@@ -110,34 +78,41 @@ impl Provider {
         let this = self.client.clone();
         thread::spawn(move || {
             let resp = this.post(&path, headers.as_slice(), body).unwrap();
-            match resp.recv() {
-                Ok(response) => {
-                    println!("Got response ... {}", response.status_code().ok().unwrap());
+            let res = match resp.recv() {
+                Ok(http_response) => {
+                    let status = Provider::fetch_status(http_response.status_code().ok());
+                    let apns_id = Provider::fetch_apns_id(http_response.headers);
+                    let json = str::from_utf8(&http_response.body).ok().and_then(|v| Json::from_str(v).ok());
+                    let object = json.as_ref().and_then(|v| v.as_object());
+                    let reason = Provider::fetch_reason(object);
+                    let timestamp = Provider::fetch_timestamp(object);
+                    if status == APNSStatus::Success {
+                        Ok(Response {
+                            status: status,
+                            reason: reason,
+                            timestamp: timestamp,
+                            apns_id: apns_id,
+                        })
+                    } else {
+                        Err(Response {
+                            status: status,
+                            reason: reason,
+                            timestamp: timestamp,
+                            apns_id: apns_id,
+                        })
+                    }
                 },
-                Err(why) => println!("{:?}", why),
-            }
-            /*if let response = resp.recv() {
-                println!("Got response ... {}", response.status_code().ok().unwrap());
-                for header in response.headers.iter() {
-                    println!("  {}: {}",
-                    str::from_utf8(header.name()).unwrap(),
-                    str::from_utf8(header.value()).unwrap());
-                }
-            }
-            else {
-                println!("ERROR: !!!!");
-            }*/
+                Err(_) => {
+                    Err(Response {
+                        status: APNSStatus::Timeout,
+                        reason: None,
+                        timestamp: None,
+                        apns_id: None,
+                    })
+                },
+            };
+            handler(res);
         });
-        /*let now = Instant::now();
-        let timeout = Duration::from_millis(2000);
-        println!(">>> {:?}", now);
-        while now.elapsed() < timeout {
-                match rx.try_recv() {
-                Ok(http_response) => return Ok(http_response),
-                _                 => thread::park_timeout(Duration::from_millis(10)),
-            }
-        }
-        Err(APNSStatus::Timeout)*/
     }
 
     fn create_header<'a, T: Display>(key: &'a str, value: T) -> Header<'a, 'a> {
