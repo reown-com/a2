@@ -47,3 +47,5 @@ provider.push(notification, |result| {
 
 ## License
 [MIT License](https://github.com/tkabit/apns2/blob/master/LICENSE)
+||||||| merged common ancestors
+=======
