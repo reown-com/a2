@@ -15,15 +15,18 @@ rustc-serialize = "~0.3"
 time = "~0.1"
 
 [dependencies.openssl]
+default-features = true
 version = "~0.7"
 features = ["tlsv1_2", "npn", "alpn"]
+
+[dev-dependencies]
+argparse = "*"
 
 [dependencies.solicit]
 git = "https://github.com/pimeys/solicit"
 default-features = true
 features = ["tls"]
 
-[dependencies.openssl]
-default-features = true
-features = ["alpn"]
-version = "~0.7"
+[dependencies.btls]
+features = ["gnutls-ecdsa"]
+git = "https://gitlab.com/ilari_l/btls.git"
