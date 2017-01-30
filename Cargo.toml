@@ -12,6 +12,9 @@ repository  = "https://github.com/tkabit/apns2"
 rustc-serialize = "~0.3"
 time = "~0.1"
 
+[dev-dependencies]
+argparse = "*"
+
 [dependencies.solicit]
 git = "https://github.com/pimeys/solicit"
 default-features = true
@@ -21,3 +24,7 @@ features = ["tls"]
 default-features = true
 features = ["alpn"]
 version = "~0.7"
+
+[dependencies.btls]
+features = ["gnutls-ecdsa"]
+git = "https://gitlab.com/ilari_l/btls.git"
