@@ -6,3 +6,4 @@ mod token;
 
 pub use self::token::TokenClient;
 pub use self::certificate::CertificateClient;
+pub use self::response::{ProviderResponse, APNSStatus, APNSError};
