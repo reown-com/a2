@@ -1,7 +1,7 @@
 [package]
 name = "apns2"
-version = "0.0.1"
-authors = ["Sergey Tkachenko <seriy.tkachenko@gmail.com>"]
+version = "0.1.0"
+authors = ["Sergey Tkachenko <seriy.tkachenko@gmail.com>", "Julius de Bruijn <julius.debruijn@360dialog.com>"]
 license = "MIT"
 readme  = "README.md"
 description = "HTTP/2 Apple Push Notification Service for Rust"
