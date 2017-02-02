@@ -40,7 +40,9 @@ impl From<KeyReadError> for ApnsTokenError {
 }
 
 impl ApnsToken {
-    pub fn new<S: Into<String>, R: Read>(pk_der: &mut R, key_id: S, team_id: S) -> Result<ApnsToken, ApnsTokenError> {
+    pub fn new<S,R>(pk_der: &mut R, key_id: S, team_id: S) -> Result<ApnsToken, ApnsTokenError>
+        where S: Into<String>, R: Read {
+
         let mut token = ApnsToken {
             signature: None,
             issued_at: None,
