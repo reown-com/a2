@@ -40,7 +40,7 @@ impl From<KeyReadError> for ApnsTokenError {
 }
 
 impl ApnsToken {
-    pub fn new<S,R>(pk_der: &mut R, key_id: S, team_id: S) -> Result<ApnsToken, ApnsTokenError>
+    pub fn new<S,R>(mut pk_der: R, key_id: S, team_id: S) -> Result<ApnsToken, ApnsTokenError>
         where S: Into<String>, R: Read {
 
         let mut token = ApnsToken {
@@ -48,7 +48,7 @@ impl ApnsToken {
             issued_at: None,
             key_id: key_id.into(),
             team_id: team_id.into(),
-            secret: LocalKeyPair::new(pk_der, "apns_private_key")?,
+            secret: LocalKeyPair::new(&mut pk_der, "apns_private_key")?,
         };
 
         match token.renew() {

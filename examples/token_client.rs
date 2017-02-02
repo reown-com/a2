@@ -34,11 +34,11 @@ fn main() {
     }
 
     // Read the private key from disk
-    let mut der_file = File::open(der_file_location).unwrap();
+    let der_file = File::open(der_file_location).unwrap();
 
     // Create a new token struct with the private key, team id and key id
     // The token is valid for an hour and needs to be renewed after that
-    let apns_token = ApnsToken::new(&mut der_file, team_id.as_ref(), key_id.as_ref()).unwrap();
+    let apns_token = ApnsToken::new(der_file, team_id.as_ref(), key_id.as_ref()).unwrap();
 
     // Create a new client to APNs, giving the system CA certs
     let client = TokenClient::new(sandbox, &ca_certs).unwrap();
