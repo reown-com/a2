@@ -54,7 +54,7 @@ fn main() {
     };
 
     // Fire the request, return value is a mpsc rx channel
-    let request = client.push(Notification::new(payload, device_token, options), &apns_token);
+    let request = client.push(Notification::new(payload, device_token, options), &apns_token.signature());
 
     // Read the response and block maximum of 2000 milliseconds, throwing an exception for a timeout
     let response = request.recv_timeout(Duration::from_millis(2000));

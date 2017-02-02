@@ -6,7 +6,6 @@ use std::result::Result;
 use client::response::ProviderResponse;
 use client::headers::{default_headers, create_header};
 use client::error::ProviderError;
-use apns_token::ApnsToken;
 use notification::Notification;
 
 static DEVELOPMENT: &'static str = "api.development.push.apple.com";
@@ -30,12 +29,12 @@ impl TokenClient {
         })
     }
 
-    pub fn push(&self, notification: Notification, apns_token: &ApnsToken) -> ProviderResponse {
+    pub fn push(&self, notification: Notification, apns_token: &str) -> ProviderResponse {
         let path = format!("/3/device/{}", notification.device_token).into_bytes();
         let mut headers = default_headers(&notification);
         let body = notification.payload.to_string().into_bytes();
 
-        headers.push(create_header("authorization", format!("bearer {}", apns_token.signature())));
+        headers.push(create_header("authorization", format!("bearer {}", apns_token)));
 
         let request = self.client.post(&path, headers.as_slice(), body);
 
