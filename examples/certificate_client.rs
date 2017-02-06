@@ -32,7 +32,7 @@ fn main() {
     let mut cert_file = File::open(certificate_pem_file).unwrap();
     let mut key_file = File::open(key_pem_file).unwrap();
 
-    // Create a new client to APNs, giving the system CA certs
+    // Create a new client to APNs
     let client = CertificateClient::new(sandbox, &mut cert_file, &mut key_file).unwrap();
 
     // Create a device token struct from given token

@@ -40,6 +40,23 @@ impl From<KeyReadError> for ApnsTokenError {
 }
 
 impl ApnsToken {
+    /// Create a new ApnsToken.
+    ///
+    /// A generator for JWT tokens when using the token-based authentication in APNs.
+    /// The private key should be in DER binary format and can be provided in any
+    /// format implementing the Read trait.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # extern crate apns2;
+    /// # fn main() {
+    /// use apns2::apns_token::ApnsToken;
+    /// use std::fs::File;
+    ///
+    /// let der_file = File::open("/path/to/apns.der").unwrap();
+    /// ApnsToken::new(der_file, "TEAMID1234", "KEYID12345").unwrap();
+    /// # }
+    ///```
     pub fn new<S,R>(mut pk_der: R, key_id: S, team_id: S) -> Result<ApnsToken, ApnsTokenError>
         where S: Into<String>, R: Read {
 
@@ -57,13 +74,42 @@ impl ApnsToken {
         }
     }
 
-    pub fn signature(&self) -> String {
+    /// Generates an authentication signature.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # extern crate apns2;
+    /// # fn main() {
+    /// use apns2::apns_token::ApnsToken;
+    /// use std::fs::File;
+    ///
+    /// let der_file = File::open("/path/to/apns.der").unwrap();
+    /// let apns_token = ApnsToken::new(der_file, "TEAMID1234", "KEYID12345").unwrap();
+    /// let signature = apns_token.signature();
+    /// # }
+    ///```
+    pub fn signature(&self) -> &str {
         match self.signature {
-            Some(ref sig) => sig.to_string(),
-            None => "".to_string()
+            Some(ref sig) => sig,
+            None => ""
         }
     }
 
+    /// Sets a new timestamp for the token. APNs tokens are valid for 60 minutes until
+    /// they need to be renewed.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # extern crate apns2;
+    /// # fn main() {
+    /// use apns2::apns_token::ApnsToken;
+    /// use std::fs::File;
+    ///
+    /// let der_file = File::open("/path/to/apns.der").unwrap();
+    /// let mut apns_token = ApnsToken::new(der_file, "TEAMID1234", "KEYID12345").unwrap();
+    /// apns_token.renew().unwrap();
+    /// # }
+    ///```
     pub fn renew(&mut self) -> Result<(), ApnsTokenError> {
         let issued_at = get_time().sec;
 
@@ -88,6 +134,22 @@ impl ApnsToken {
         }
     }
 
+    /// Info about the token expiration. If older than one hour, returns true.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # extern crate apns2;
+    /// # fn main() {
+    /// use apns2::apns_token::ApnsToken;
+    /// use std::fs::File;
+    ///
+    /// let der_file = File::open("/path/to/apns.der").unwrap();
+    /// let mut apns_token = ApnsToken::new(der_file, "TEAMID1234", "KEYID12345").unwrap();
+    /// if apns_token.is_expired() {
+    ///     apns_token.renew();
+    /// }
+    /// # }
+    ///```
     pub fn is_expired(&self) -> bool {
         if let Some(issued_at) = self.issued_at {
             (get_time().sec - issued_at) > 3600

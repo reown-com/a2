@@ -8,6 +8,41 @@ use client::headers::{default_headers, create_header};
 use client::error::ProviderError;
 use notification::Notification;
 
+/// Creates a new connection to APNs using the system certificates. When sending
+/// notifications through this type of connection, one must attach a valid JWT
+/// token with every request.
+///
+/// Sends a push notification. Responds with a channel, which can be handled in the same thread or
+/// sent out to be handled elsewhere.
+///
+/// # Examples
+/// ```no_run
+/// # extern crate apns2;
+/// # fn main() {
+/// use apns2::client::TokenClient;
+/// use apns2::apns_token::ApnsToken;
+/// use apns2::device_token::DeviceToken;
+/// use apns2::payload::{Payload, APSAlert};
+/// use apns2::notification::{Notification, NotificationOptions};
+/// use std::fs::File;
+/// use std::time::Duration;
+///
+/// let der_file = File::open("/path/to/key.der").unwrap();
+/// let apns_token = ApnsToken::new(der_file, "TEAMID1234", "KEYID12345").unwrap();
+/// let client = TokenClient::new(false, "/etc/ssl/cert.pem").unwrap();
+/// let device_token = DeviceToken::new("apple_device_token");
+/// let payload = Payload::new(APSAlert::Plain("Hi there!"), 1u32, "default", None, None);
+///
+/// let options = NotificationOptions {
+///     ..Default::default()
+/// };
+///
+/// let request = client.push(Notification::new(payload, device_token, options), apns_token.signature());
+/// let response = request.recv_timeout(Duration::from_millis(2000));
+/// println!("{:?}", response);
+/// # }
+///```
+
 static DEVELOPMENT: &'static str = "api.development.push.apple.com";
 static PRODUCTION: &'static str = "api.push.apple.com";
 
