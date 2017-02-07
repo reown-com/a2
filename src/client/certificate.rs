@@ -38,7 +38,7 @@ pub struct CertificateClient {
 ///
 /// let client = CertificateClient::new(false, &mut cert_file, &mut key_file).unwrap();
 /// let alert = APSAlert::Plain(String::from("Hi there!"));
-/// let payload = Payload::new(alert, 1u32, "default", None, None);
+/// let payload = Payload::new(alert, "default", Some(1u32), None, None);
 /// let options = NotificationOptions { ..Default::default() };
 /// let request = client.push(Notification::new(payload, "apple_device_token", options));
 ///

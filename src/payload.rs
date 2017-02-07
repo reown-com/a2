@@ -1,4 +1,3 @@
-use std::borrow::Cow;
 use std::collections::BTreeMap;
 use rustc_serialize::json::{Json, ToJson};
 
@@ -10,46 +9,17 @@ pub struct Payload {
     pub custom: Option<CustomData>,
 }
 
-pub struct APS {
-    pub alert: Option<APSAlert>,
-
-    /// The number to display as the badge of the app icon.
-    pub badge: Option<u32>,
-
-    /// The name of a sound file in the app bundle or in the Library/Sounds folder of
-    /// the app’s data container.
-    pub sound: Option<String>,
-
-    /// Provide this key with a value of 1 to indicate that new content is available.
-    pub content_available: Option<u32>,
-
-    /// Provide this key with a string value that represents the identifier property.
-    pub category: Option<String>,
-}
-
-pub enum APSAlert {
-    Plain(String),
-    Localized(APSLocalizedAlert),
-}
-
-pub struct APSLocalizedAlert {
-    pub title: String,
-    pub body: String,
-    pub title_loc_key: Option<String>,
-    pub title_loc_args: Option<Vec<String>>,
-    pub action_loc_key: Option<String>,
-    pub loc_key: Option<String>,
-    pub loc_args: Option<Vec<String>>,
-    pub launch_image: Option<String>,
-}
-
 pub struct CustomData {
+    /// The JSON root key for app specific custom data.
     pub key: String,
+
+    /// The custom data.
     pub body: Json,
 }
 
 impl Payload {
-    pub fn new<S>(alert: APSAlert, badge: u32, sound: S, category: Option<String>, custom_data: Option<CustomData>) -> Payload
+    pub fn new<S>(alert: APSAlert, sound: S, badge: Option<u32>, category: Option<String>,
+                  custom_data: Option<CustomData>) -> Payload
         where S: Into<String>
     {
         Payload {
@@ -86,7 +56,7 @@ impl Payload {
     }
 }
 
-impl<'a> ToJson for Payload<'a> {
+impl ToJson for Payload {
     fn to_json(&self) -> Json {
         let mut d = BTreeMap::new();
         d.insert("aps".to_string(), self.aps.to_json());
@@ -103,7 +73,7 @@ impl<'a> ToJson for Payload<'a> {
 /// - an alert message to display to the user
 /// - a number to badge the app icon with
 /// - a sound to play
-pub struct APS<'a> {
+pub struct APS {
     /// If this property is included, the system displays a standard alert or a banner,
     /// based on the user’s setting.
     pub alert: Option<APSAlert>,
@@ -113,16 +83,16 @@ pub struct APS<'a> {
 
     /// The name of a sound file in the app bundle or in the Library/Sounds folder of
     /// the app’s data container.
-    pub sound: Option<Cow<'a, str>>,
+    pub sound: Option<String>,
 
     /// Provide this key with a value of 1 to indicate that new content is available.
     pub content_available: Option<u32>,
 
     /// Provide this key with a string value that represents the identifier property.
-    pub category: Option<Cow<'a, str>>,
+    pub category: Option<String>,
 }
 
-impl<'a> ToJson for APS<'a> {
+impl ToJson for APS {
     fn to_json(&self) -> Json {
         let mut d = BTreeMap::new();
         match self.alert {
@@ -174,10 +144,10 @@ pub struct APSLocalizedAlert {
     pub action_loc_key: Option<String>,
 
     /// A key to an alert-message string in a Localizable.strings file for the current localization.
-    pub loc_key: String,
+    pub loc_key: Option<String>,
 
     /// Variable string values to appear in place of the format specifiers in loc-key.
-    pub loc_args: Vec<String>,
+    pub loc_args: Option<Vec<String>>,
 
     /// The filename of an image file in the app bundle.
     /// The image is used as the launch image when users tap the action button or move the action slider.

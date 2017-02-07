@@ -35,7 +35,7 @@ fn main() {
     let client = CertificateClient::new(sandbox, &mut cert_file, &mut key_file).unwrap();
 
     // APNs payload
-    let payload = Payload::new(APSAlert::Plain(message), 1u32, "default", None, None);
+    let payload = Payload::new(APSAlert::Plain(message), "default", Some(1u32), None, None);
 
     let options = NotificationOptions {
         ..Default::default()

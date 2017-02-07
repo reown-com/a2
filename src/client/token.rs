@@ -40,7 +40,7 @@ pub struct TokenClient {
 /// let client = TokenClient::new(false, "/etc/ssl/certs/ca-certificates.crt").unwrap();
 ///
 /// let alert = APSAlert::Plain(String::from("Hi there!"));
-/// let payload = Payload::new(alert, 1u32, "default", None, None);
+/// let payload = Payload::new(alert, "default", Some(1u32), None, None);
 /// let options = NotificationOptions { ..Default::default() };
 /// let request = client.push(Notification::new(payload, "Hi there!", options), apns_token.signature());
 ///
