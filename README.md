@@ -20,8 +20,7 @@ openssl x509 -outform der -in push_cert.pem -out push_cert.crt
 ```
 
 The connection is now open for push notifications and should be kept open for
-multiple notifications to prevent Apple treating the traffic as DOS. The
-connection
+multiple notifications to prevent Apple treating the traffic as DOS. The connection
 is only valid for the application where the certificate was created to.
 
 ### JWT Token Authentication
@@ -37,7 +36,8 @@ The connection can be used to send push notifications into any application
 by changing the token. The token is valid for one hour until it has to be
 renewed.
 
-All responses are channels which can be blocked to receive the response. For
-better
+All responses are channels which can be blocked to receive the response. For better
 throughput it is a good idea to handle the responses in another thread.
 
+## License
+[MIT License](https://github.com/tkabit/apns2/blob/master/LICENSE)

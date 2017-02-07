@@ -3,8 +3,7 @@ extern crate argparse;
 
 use argparse::{ArgumentParser, Store, StoreTrue};
 use apns2::client::TokenClient;
-use apns2::apns_token::ApnsToken;
-use apns2::device_token::DeviceToken;
+use apns2::apns_token::APNSToken;
 use apns2::payload::{Payload, APSAlert};
 use apns2::notification::{Notification, NotificationOptions};
 use std::fs::File;
@@ -38,13 +37,10 @@ fn main() {
 
     // Create a new token struct with the private key, team id and key id
     // The token is valid for an hour and needs to be renewed after that
-    let apns_token = ApnsToken::new(der_file, team_id.as_ref(), key_id.as_ref()).unwrap();
+    let apns_token = APNSToken::new(der_file, team_id.as_ref(), key_id.as_ref()).unwrap();
 
     // Create a new client to APNs, giving the system CA certs
     let client = TokenClient::new(sandbox, &ca_certs).unwrap();
-
-    // Create a device token struct from given token
-    let device_token = DeviceToken::new(device_token.as_ref());
 
     // APNs payload
     let payload = Payload::new(APSAlert::Plain(message), 1u32, "default", None, None);
@@ -54,7 +50,7 @@ fn main() {
     };
 
     // Fire the request, return value is a mpsc rx channel
-    let request = client.push(Notification::new(payload, device_token, options), apns_token.signature());
+    let request = client.push(Notification::new(payload, &device_token, options), apns_token.signature());
 
     // Read the response and block maximum of 2000 milliseconds, throwing an exception for a timeout
     let response = request.recv_timeout(Duration::from_millis(2000));

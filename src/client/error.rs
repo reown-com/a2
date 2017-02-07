@@ -1,22 +1,30 @@
+use solicit::client::ClientConnectError;
+use solicit::http::client::tls::TlsConnectError;
 use openssl::ssl::error::SslError;
 use std::error::Error;
 use std::fmt;
 
 #[derive(Debug)]
-pub enum ProviderError<'a> {
-    ClientConnectError(&'a str),
-    SslError(&'a str)
+pub enum ProviderError {
+    ClientConnectError(String),
+    SslError(String)
 }
 
-impl<'a> From<SslError> for ProviderError<'a> {
-    fn from(_: SslError) -> ProviderError<'a> {
-        ProviderError::SslError("Error generationg SSL context")
+impl From<SslError> for ProviderError {
+    fn from(e: SslError) -> ProviderError {
+        ProviderError::SslError(format!("Error generating an SSL context: {}", e.description()))
     }
 }
 
-impl<'a> Error for ProviderError<'a> {
+impl From<ClientConnectError<TlsConnectError>> for ProviderError {
+    fn from(e: ClientConnectError<TlsConnectError>) -> ProviderError {
+        ProviderError::ClientConnectError(format!("Error connecting to the APNs servers: {}", e.description()))
+    }
+}
+
+impl Error for ProviderError {
     fn description(&self) -> &str {
-        "Error in APNs connection"
+        "APNs connection failed"
     }
 
     fn cause(&self) -> Option<&Error> {
@@ -24,7 +32,7 @@ impl<'a> Error for ProviderError<'a> {
     }
 }
 
-impl<'a> fmt::Display for ProviderError<'a> {
+impl fmt::Display for ProviderError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.description())
     }

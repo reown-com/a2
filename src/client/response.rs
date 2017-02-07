@@ -12,31 +12,89 @@ use self::APNSError::*;
 
 // The APNS reasons.
 pub enum APNSError {
+    /// The message payload was empty.
     PayloadEmpty,
+
+    /// The message payload was too large. The maximum payload size is 4096
+    /// bytes.
     PayloadTooLarge,
+
+    /// The apns-topic was invalid.
     BadTopic,
+
+    /// Pushing to this topic is not allowed.
     TopicDisallowed,
+
+    /// The apns-id value is bad.
     BadMessageId,
+
+    /// The apns-expiration value is bad.
     BadExpirationDate,
+
+    /// The apns-priority value is bad.
     BadPriority,
+
+    /// The device token is not specified in the request `path`. Verify that the
+    /// `path` header contains the device token.
     MissingDeviceToken,
+
+    /// The specified device token was bad. Verify that the request contains a
+    /// valid token and that the token matches the environment.
     BadDeviceToken,
+
+    /// The device token does not match the specified topic.
     DeviceTokenNotForTopic,
+
+    /// The device token is inactive for the specified topic.
     Unregistered,
+
+    /// One or more headers were repeated.
     DuplicateHeaders,
+
+    /// The client certificate was for the wrong environment.
     BadCertificateEnvironment,
+
+    /// The certificate was bad.
     BadCertificate,
+
+    /// The specified action is not allowed.
     Forbidden,
+
+    /// The provider token is not valid or the token signature could not be
+    /// verified.
     InvalidProviderToken,
+
+    /// No provider certificate was used to connect to APNs and Authorization
+    /// header was missing or no provider token was specified.
     MissingProviderToken,
+
+    /// The provider token is stale and a new token should be generated.
     ExpiredProviderToken,
+
+    /// The request contained a bad `path` value.
     BadPath,
+
+    /// The specified `method` was not `POST`.
     MethodNotAllowed,
+
+    /// Too many requests were made consecutively to the same device token.
     TooManyRequests,
+
+    /// Idle timeout.
     IdleTimeout,
+
+    /// The server is shutting down.
     Shutdown,
+
+    /// An internal server error occurred.
     InternalServerError,
+
+    /// The service is unavailable.
     ServiceUnavailable,
+
+    /// The apns-topic header of the request was not specified and was required.
+    /// The apns-topic header is mandatory when the client is connected using a
+    /// certificate that supports multiple topics.
     MissingTopic,
 }
 
@@ -108,37 +166,60 @@ impl Error for APNSError {
 // The HTTP status code.
 #[derive(Debug, PartialEq)]
 pub enum APNSStatus {
-    Success = 200,             // Success
-    BadRequest = 400,          // Bad request
-    Forbidden = 403,           // There was an error with the certificate.
-    MethodNotAllowed = 405,    // The request used a bad method value. Only POST requests are support
-    Unregistered = 410,        // The device token is no longer active for the topic.
-    PayloadTooLarge = 413,     // The notification payload was too large.
-    TooManyRequests = 429,     // The server received too many requests for the same device token.
-    InternalServerError = 500, // Internal server error
-    ServiceUnavailable = 503,  // The server is shutting down and unavailable.
-    MissingChannel = 997,      // The response channel died before getting a response
-    Timeout = 998,             // The request timed out
-    Unknown = 999,             // Unknown error
+    /// Success
+    Success = 200,
+
+    /// Bad request
+    BadRequest = 400,
+
+    /// There was an error with the certificate.
+    Forbidden = 403,
+
+    /// The request used a bad method value. Only POST requests are support
+    MethodNotAllowed = 405,
+
+    /// The device token is no longer active for the topic.
+    Unregistered = 410,
+
+    /// The notification payload was too large.
+    PayloadTooLarge = 413,
+
+    /// The server received too many requests for the same device token.
+    TooManyRequests = 429,
+
+    /// Internal server error
+    InternalServerError = 500,
+
+    /// The server is shutting down and unavailable.
+    ServiceUnavailable = 503,
+
+    /// The response channel died before getting a response
+    MissingChannel = 997,
+
+    /// The request timed out
+    Timeout = 998,
+
+    /// Unknown error
+    Unknown = 999,
 }
 
 #[derive(Debug)]
 pub struct Response {
-    // Status codes for a response
+    /// Status codes for a response
     pub status: APNSStatus,
 
-    // The apns-id value from the request.
-    // If no value was included in the request,
-    // the server creates a new UUID and returns it in this header.
+    /// The apns-id value from the request.
+    /// If no value was included in the request,
+    /// the server creates a new UUID and returns it in this header.
     pub apns_id: Option<String>,
 
-    // The error indicating the reason for the failure.
+    /// The error indicating the reason for the failure.
     pub reason: Option<APNSError>,
 
-    // If the value in the :status header is 410,the value of this key is the last time
-    // at which APNs confirmed that the device token was no longer valid for the topic.
-    // Stop pushing notifications until the device registers a token with
-    // a later timestamp with your provider.
+    /// If the value in the :status header is 410,the value of this key is the last time
+    /// at which APNs confirmed that the device token was no longer valid for the topic.
+    /// Stop pushing notifications until the device registers a token with
+    /// a later timestamp with your provider.
     pub timestamp: Option<Tm>,
 }
 
@@ -155,6 +236,7 @@ impl ProviderResponse {
         ProviderResponse { rx: rx, requested_at: requested_at }
     }
 
+    /// Blocks until having a response from APNS or the timeout is due.
     pub fn recv_timeout(&self, timeout: Duration) -> Result<Response, Response> {
         if let Some(ref rx) = self.rx {
             let now = Instant::now();

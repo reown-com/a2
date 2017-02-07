@@ -3,7 +3,6 @@ extern crate argparse;
 
 use argparse::{ArgumentParser, Store, StoreTrue};
 use apns2::client::CertificateClient;
-use apns2::device_token::DeviceToken;
 use apns2::payload::{Payload, APSAlert};
 use apns2::notification::{Notification, NotificationOptions};
 use std::fs::File;
@@ -35,9 +34,6 @@ fn main() {
     // Create a new client to APNs
     let client = CertificateClient::new(sandbox, &mut cert_file, &mut key_file).unwrap();
 
-    // Create a device token struct from given token
-    let device_token = DeviceToken::new(device_token);
-
     // APNs payload
     let payload = Payload::new(APSAlert::Plain(message), 1u32, "default", None, None);
 
@@ -46,7 +42,7 @@ fn main() {
     };
 
     // Fire the request, return value is a mpsc rx channel
-    let request = client.push(Notification::new(payload, device_token, options));
+    let request = client.push(Notification::new(payload, &device_token, options));
 
     // Read the response and block maximum of 2000 milliseconds, throwing an exception for a timeout
     let response = request.recv_timeout(Duration::from_millis(2000));

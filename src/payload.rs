@@ -3,24 +3,27 @@ use std::collections::BTreeMap;
 use rustc_serialize::json::{Json, ToJson};
 
 pub struct Payload {
+    /// The standard APNS payload data.
     pub aps: APS,
+
+    /// Custom data to be handled by the app.
     pub custom: Option<CustomData>,
 }
 
 pub struct APS {
     pub alert: Option<APSAlert>,
 
-    // The number to display as the badge of the app icon.
+    /// The number to display as the badge of the app icon.
     pub badge: Option<u32>,
 
-    // The name of a sound file in the app bundle or in the Library/Sounds folder of
-    // the app’s data container.
+    /// The name of a sound file in the app bundle or in the Library/Sounds folder of
+    /// the app’s data container.
     pub sound: Option<String>,
 
-    // Provide this key with a value of 1 to indicate that new content is available.
+    /// Provide this key with a value of 1 to indicate that new content is available.
     pub content_available: Option<u32>,
 
-    // Provide this key with a string value that represents the identifier property.
+    /// Provide this key with a string value that represents the identifier property.
     pub category: Option<String>,
 }
 
