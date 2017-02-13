@@ -6,9 +6,9 @@ license = "MIT"
 readme  = "README.md"
 description = "HTTP/2 Apple Push Notification Service for Rust"
 keywords    = ["apns", "apple", "push", "notification", "http2", "http/2"]
-repository  = "https://github.com/tkabit/apns2.git"
-homepage    = "https://github.com/tkabit/apns2"
-documentation = "https://github.com/tkabit/apns2"
+repository  = "https://github.com/polyitan/apns2.git"
+homepage    = "https://github.com/polyitan/apns2"
+documentation = "https://github.com/polyitan/apns2"
 
 [dependencies]
 rustc-serialize = "~0.3"
@@ -19,15 +19,10 @@ default-features = true
 version = "~0.7"
 features = ["tlsv1_2", "npn", "alpn"]
 
-[dev-dependencies]
-argparse = "*"
-
 [dependencies.solicit]
 git = "https://github.com/pimeys/solicit"
 default-features = true
 features = ["tls"]
 
-[dependencies.btls]
-git = "https://gitlab.com/ilari_l/btls.git"
-branch = "last-der-with-ring-0.7"
-features = ["gnutls-ecdsa"]
+[dev-dependencies]
+argparse = "*"

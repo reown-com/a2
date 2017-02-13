@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/polyitan/apns2.svg?branch=master)](https://travis-ci.org/polyitan/apns2)
-
 # apns2
 HTTP/2 Apple Push Notification Service for Rust
 
