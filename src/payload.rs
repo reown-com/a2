@@ -29,6 +29,24 @@ impl Payload {
                 sound: Some(sound.into()),
                 content_available: None,
                 category: category,
+                mutable_content: false,
+            },
+            custom: custom_data,
+        }
+    }
+
+    pub fn new_mutable<S>(alert: APSLocalizedAlert, sound: S, badge: Option<u32>, category: Option<String>,
+                          custom_data: Option<CustomData>) -> Payload
+        where S: Into<String>
+    {
+        Payload {
+            aps: APS {
+                alert: Some(APSAlert::Localized(alert)),
+                badge: badge,
+                sound: Some(sound.into()),
+                content_available: None,
+                category: category,
+                mutable_content: true,
             },
             custom: custom_data,
         }
@@ -42,6 +60,7 @@ impl Payload {
                 sound: None,
                 content_available: Some(1),
                 category: None,
+                mutable_content: false,
             },
             custom: custom_data,
         }
@@ -90,6 +109,9 @@ pub struct APS {
 
     /// Provide this key with a string value that represents the identifier property.
     pub category: Option<String>,
+
+    /// Can the client modify the alert before showing it to the user
+    pub mutable_content: bool,
 }
 
 impl ToJson for APS {
@@ -115,6 +137,9 @@ impl ToJson for APS {
         }
         if let Some(ref category) = self.category {
             d.insert("category".to_string(), category.to_json());
+        }
+        if self.mutable_content {
+            d.insert("mutable-content".to_string(), 1.to_json());
         }
         Json::Object(d)
     }

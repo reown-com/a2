@@ -10,7 +10,6 @@
 //! `recv_timeout`. The request is handled in another thread and the response is
 //! sent through a channel to the thread calling the method.
 
-#[macro_use]
 extern crate solicit;
 extern crate rustc_serialize;
 extern crate time;
