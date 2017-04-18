@@ -7,9 +7,8 @@ use time::precise_time_ns;
 use std::str;
 use std::result::Result;
 use std::io::Read;
-use client::response::ProviderResponse;
+use client::response::{ProviderResponse, APNSError};
 use client::headers::default_headers;
-use client::error::ProviderError;
 use notification::Notification;
 use client::{DEVELOPMENT, PRODUCTION};
 
@@ -52,7 +51,7 @@ impl CertificateClient {
     /// Create a new connection to APNs with custom certificate and key. Can be
     /// used to send notification to only one app.
     pub fn new<'a, R: Read>(sandbox: bool, certificate: &mut R, private_key: &mut R)
-                            -> Result<CertificateClient, ProviderError> {
+                            -> Result<CertificateClient, APNSError> {
         let host    = if sandbox { DEVELOPMENT } else { PRODUCTION };
         let mut ctx = SslContext::new(SslMethod::Sslv23).unwrap();
 

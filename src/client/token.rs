@@ -3,9 +3,8 @@ use solicit::client::{Client};
 use time::precise_time_ns;
 use std::result::Result;
 
-use client::response::ProviderResponse;
+use client::response::{ProviderResponse, APNSError};
 use client::headers::{default_headers, create_header};
-use client::error::ProviderError;
 use notification::Notification;
 use client::{DEVELOPMENT, PRODUCTION};
 
@@ -53,7 +52,7 @@ pub struct TokenClient {
 impl TokenClient {
     /// Create a new connection to APNs. `certificates` should point to system ca certificate
     /// file. In Ubuntu it's usually `/etc/ssl/certs/ca-certificates.crt`.
-    pub fn new<'a>(sandbox: bool, certificates: &str) -> Result<TokenClient, ProviderError> {
+    pub fn new<'a>(sandbox: bool, certificates: &str) -> Result<TokenClient, APNSError> {
         let host = if sandbox { DEVELOPMENT } else { PRODUCTION };
         let connector = TlsConnector::new(host, &certificates);
         let client = Client::with_connector(connector)?;

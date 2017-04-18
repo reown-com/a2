@@ -2,11 +2,14 @@ use rustc_serialize::json::{Json, Object};
 use std::str;
 use time::{Tm, Timespec, at};
 use solicit::http::{Header, Response as HttpResponse};
+use solicit::http::client::tls::TlsConnectError;
+use solicit::client::ClientConnectError;
 use std::time::{Duration, Instant};
 use std::error::Error;
 use std::fmt;
 use std::thread;
 use std::sync::mpsc::Receiver;
+use openssl::ssl::error::SslError;
 
 use self::APNSError::*;
 
@@ -96,6 +99,12 @@ pub enum APNSError {
     /// The apns-topic header is mandatory when the client is connected using a
     /// certificate that supports multiple topics.
     MissingTopic,
+
+    /// OpenSSL configuration failed. Check the certificates and system support for OpenSSL
+    SslError(String),
+
+    /// Couldn't connect to APNS2.
+    ClientConnectError(String)
 }
 
 impl fmt::Debug for APNSError {
@@ -108,6 +117,18 @@ impl fmt::Debug for APNSError {
 impl fmt::Display for APNSError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(self.description())
+    }
+}
+
+impl From<SslError> for APNSError {
+    fn from(e: SslError) -> APNSError {
+        APNSError::SslError(format!("Error generating an SSL context: {}", e.description()))
+    }
+}
+
+impl From<ClientConnectError<TlsConnectError>> for APNSError {
+    fn from(e: ClientConnectError<TlsConnectError>) -> APNSError {
+        APNSError::ClientConnectError(format!("Error connecting to the APNs servers: {}", e.description()))
     }
 }
 
@@ -152,7 +173,9 @@ impl Error for APNSError {
                 "The apns-topic header of the request was not specified and was required. The \
                  apns-topic header is mandatory when the client is connected using a certificate \
                  that supports multiple topics"
-            }
+            },
+            SslError(ref e) => e,
+            ClientConnectError(ref e) => e,
         }
     }
 
