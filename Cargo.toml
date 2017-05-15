@@ -29,3 +29,5 @@ features = ["tls"]
 
 [dependencies.btls]
 git = "https://gitlab.com/ilari_l/btls.git"
+branch = "last-der-with-ring-0.7"
+features = ["gnutls-ecdsa"]
