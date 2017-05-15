@@ -28,5 +28,4 @@ default-features = true
 features = ["tls"]
 
 [dependencies.btls]
-features = ["gnutls-ecdsa"]
 git = "https://gitlab.com/ilari_l/btls.git"
