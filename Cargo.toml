@@ -11,18 +11,33 @@ homepage    = "https://github.com/polyitan/apns2"
 documentation = "https://github.com/polyitan/apns2"
 
 [dependencies]
-rustc-serialize = "~0.3"
-time = "~0.1"
-
-[dependencies.openssl]
-default-features = true
-version = "~0.7"
-features = ["tlsv1_2", "npn", "alpn"]
-
-[dependencies.solicit]
-git = "https://github.com/pimeys/solicit"
-default-features = true
-features = ["tls"]
-
-[dev-dependencies]
+serde = "1.0"
+erased-serde = "0.3"
+serde_derive = "1.0"
+serde_json = "1.0"
+native-tls = "0.1"
+openssl = "0.9"
+rustls = "0.12" 
+futures = "0.1"
+tokio-core = "0.1"
+tokio-io = "0.1"
+tokio-service = "0.1"
+base64 = "0.7"
+time = "0.1"
 argparse = "*"
+webpki = "0.18.0-alpha"
+webpki-roots = "0.14.0"
+tokio-rustls = "0.5"
+crossbeam = "0.3"
+log = "0.4"
+pretty_env_logger = "0.2"
+indoc = "0.2"
+
+[dependencies.hyper]
+git = "https://github.com/pimeys/hyper"
+branch = "h2"
+features = ["http2"]
+
+[dependencies.chrono]
+version = "0.4"
+features = ["serde"]

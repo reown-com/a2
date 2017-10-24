@@ -1,59 +1,89 @@
 extern crate apns2;
 extern crate argparse;
+extern crate tokio_core;
 
-use argparse::{ArgumentParser, Store, StoreTrue};
-use apns2::client::TokenClient;
-use apns2::apns_token::APNSToken;
-use apns2::payload::{Payload, APSAlert};
-use apns2::notification::{Notification, NotificationOptions};
+use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
+use apns2::client::Client;
+use apns2::client::Endpoint;
+use apns2::request::notification::{NotificationBuilder, NotificationOptions,
+                                   PlainNotificationBuilder};
 use std::fs::File;
-use std::time::Duration;
+use tokio_core::reactor::Core;
 
 // An example client connectiong to APNs with a JWT token
 fn main() {
-    let mut der_file_location = String::new();
+    let mut key_file = String::new();
     let mut team_id = String::new();
     let mut key_id = String::new();
     let mut device_token = String::new();
     let mut message = String::from("Ch-check it out!");
-    let mut ca_certs = String::from("/etc/ssl/cert.pem");
     let mut sandbox = false;
+    let mut topic: Option<String> = None;
 
     {
         let mut ap = ArgumentParser::new();
         ap.set_description("APNs token-based push");
-        ap.refer(&mut der_file_location).add_option(&["-e", "--der"], Store, "Private key file in DER format");
-        ap.refer(&mut team_id).add_option(&["-t", "--team_id"], Store, "APNs team ID");
-        ap.refer(&mut key_id).add_option(&["-k", "--key_id"], Store, "APNs key ID");
-        ap.refer(&mut device_token).add_option(&["-d", "--device_token"], Store, "APNs device token");
-        ap.refer(&mut message).add_option(&["-m", "--message"], Store, "Notification message");
-        ap.refer(&mut sandbox).add_option(&["-s", "--sandbox"], StoreTrue, "Use the development APNs servers");
-        ap.refer(&mut ca_certs).add_option(&["-c", "--ca_certs"], Store, "The system CA certificates PEM file");
+        ap.refer(&mut key_file)
+            .add_option(&["-p", "--pkcs8"], Store, "Private key PKCS8");
+        ap.refer(&mut team_id)
+            .add_option(&["-t", "--team_id"], Store, "APNs team ID");
+        ap.refer(&mut key_id)
+            .add_option(&["-k", "--key_id"], Store, "APNs key ID");
+        ap.refer(&mut device_token).add_option(
+            &["-d", "--device_token"],
+            Store,
+            "APNs device token",
+        );
+        ap.refer(&mut message)
+            .add_option(&["-m", "--message"], Store, "Notification message");
+        ap.refer(&mut sandbox).add_option(
+            &["-s", "--sandbox"],
+            StoreTrue,
+            "Use the development APNs servers",
+        );
+        ap.refer(&mut topic)
+            .add_option(&["-o", "--topic"], StoreOption, "APNS topic");
         ap.parse_args_or_exit();
     }
 
     // Read the private key from disk
-    let der_file = File::open(der_file_location).unwrap();
+    let mut private_key = File::open(key_file).unwrap();
 
-    // Create a new token struct with the private key, team id and key id
-    // The token is valid for an hour and needs to be renewed after that
-    let apns_token = APNSToken::new(der_file, team_id.as_ref(), key_id.as_ref()).unwrap();
+    // Which service to call, test or production?
+    let endpoint = if sandbox {
+        Endpoint::Sandbox
+    } else {
+        Endpoint::Production
+    };
 
-    // Create a new client to APNs, giving the system CA certs
-    let client = TokenClient::new(sandbox, &ca_certs).unwrap();
+    // The reactor core loop
+    let mut core = Core::new().unwrap();
+    let handle = core.handle();
 
-    // APNs payload
-    let payload = Payload::new(APSAlert::Plain(message), "default", Some(1u32), None, None);
+    // Connecting to APNs
+    let client = Client::token(
+        &mut private_key,
+        key_id.as_ref(),
+        team_id.as_ref(),
+        &handle,
+        endpoint,
+    ).unwrap();
 
     let options = NotificationOptions {
+        apns_topic: topic,
         ..Default::default()
     };
 
-    // Fire the request, return value is a mpsc rx channel
-    let request = client.push(Notification::new(payload, &device_token, options), apns_token.signature());
+    // Notification payload
+    let mut builder = PlainNotificationBuilder::new(message);
+    builder.set_sound("default");
+    builder.set_badge(1u32);
 
-    // Read the response and block maximum of 2000 milliseconds, throwing an exception for a timeout
-    let response = request.recv_timeout(Duration::from_millis(2000));
+    let payload = builder.build(device_token.as_ref(), options);
 
-    println!("{:?}", response);
+    // Send the notification, parse response
+    match core.run(client.send(payload)) {
+        Ok(response) => println!("Sent: {:?}", response),
+        Err(error) => println!("Error: {:?}", error),
+    };
 }

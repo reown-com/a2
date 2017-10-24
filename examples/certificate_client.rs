@@ -1,17 +1,19 @@
 extern crate apns2;
 extern crate argparse;
+extern crate tokio_core;
 
 use argparse::{ArgumentParser, Store, StoreTrue};
-use apns2::client::CertificateClient;
-use apns2::payload::{Payload, APSAlert};
-use apns2::notification::{Notification, NotificationOptions};
+use apns2::request::notification::{NotificationBuilder, NotificationOptions,
+                                   PlainNotificationBuilder};
+use apns2::client::Client;
+use apns2::client::Endpoint;
 use std::fs::File;
-use std::time::Duration;
+use tokio_core::reactor::Core;
 
 // An example client connectiong to APNs with a certificate and key
 fn main() {
-    let mut certificate_pem_file = String::new();
-    let mut key_pem_file = String::new();
+    let mut certificate_file = String::new();
+    let mut password = String::new();
     let mut device_token = String::new();
     let mut message = String::from("Ch-check it out!");
     let mut sandbox = false;
@@ -19,33 +21,58 @@ fn main() {
     {
         let mut ap = ArgumentParser::new();
         ap.set_description("APNs certificate-based push");
-        ap.refer(&mut certificate_pem_file).add_option(&["-c", "--certificate"], Store, "Certificate PEM file location");
-        ap.refer(&mut key_pem_file).add_option(&["-k", "--key"], Store, "Private key PEM file location");
-        ap.refer(&mut device_token).add_option(&["-d", "--device_token"], Store, "APNs device token");
-        ap.refer(&mut message).add_option(&["-m", "--message"], Store, "Notification message");
-        ap.refer(&mut sandbox).add_option(&["-s", "--sandbox"], StoreTrue, "Use the development APNs servers");
+        ap.refer(&mut certificate_file).add_option(
+            &["-c", "--certificate"],
+            Store,
+            "Certificate PKCS12 file location",
+        );
+        ap.refer(&mut password)
+            .add_option(&["-p", "--password"], Store, "Certificate password");
+        ap.refer(&mut device_token).add_option(
+            &["-d", "--device_token"],
+            Store,
+            "APNs device token",
+        );
+        ap.refer(&mut message)
+            .add_option(&["-m", "--message"], Store, "Notification message");
+        ap.refer(&mut sandbox).add_option(
+            &["-s", "--sandbox"],
+            StoreTrue,
+            "Use the development APNs servers",
+        );
         ap.parse_args_or_exit();
     }
 
     // Read the private key and certificate from the disk
-    let mut cert_file = File::open(certificate_pem_file).unwrap();
-    let mut key_file = File::open(key_pem_file).unwrap();
+    let mut certificate = File::open(certificate_file).unwrap();
 
-    // Create a new client to APNs
-    let client = CertificateClient::new(sandbox, &mut cert_file, &mut key_file).unwrap();
+    // Which service to call, test or production?
+    let endpoint = if sandbox {
+        Endpoint::Sandbox
+    } else {
+        Endpoint::Production
+    };
 
-    // APNs payload
-    let payload = Payload::new(APSAlert::Plain(message), "default", Some(1u32), None, None);
+    // The reactor core loop
+    let mut core = Core::new().unwrap();
+    let handle = core.handle();
 
+    // Connecting to APNs using a client certificate
+    let client = Client::certificate(&mut certificate, &password, &handle, endpoint).unwrap();
     let options = NotificationOptions {
         ..Default::default()
     };
 
-    // Fire the request, return value is a mpsc rx channel
-    let request = client.push(Notification::new(payload, &device_token, options));
+    // Notification payload
+    let mut builder = PlainNotificationBuilder::new(message);
+    builder.set_sound("default");
+    builder.set_badge(1u32);
 
-    // Read the response and block maximum of 2000 milliseconds, throwing an exception for a timeout
-    let response = request.recv_timeout(Duration::from_millis(2000));
+    let payload = builder.build(device_token.as_ref(), options);
 
-    println!("{:?}", response);
+    // Send the notification, parse response
+    match core.run(client.send(payload)) {
+        Ok(response) => println!("Sent: {:?}", response),
+        Err(error) => println!("Error: {:?}", error),
+    };
 }
