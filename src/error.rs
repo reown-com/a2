@@ -1,5 +1,7 @@
 //! Error and result module
 
+use client::FutureResponse;
+use tokio_timer::TimeoutError;
 use std::error::Error as StdError;
 use std::io::Error as IoError;
 use serde_json::Error as SerdeError;
@@ -12,6 +14,7 @@ use response::Response;
 pub enum Error {
     SerializeError,
     ConnectionError,
+    TimeoutError,
     SignerError(String),
     ResponseError(Response),
     InvalidOptions(String),
@@ -35,11 +38,18 @@ impl<'a> StdError for Error {
             &Error::InvalidOptions(_) => "Invalid options for APNs payload",
             &Error::TlsError(_) => "Error in creating a TLS connection",
             &Error::ReadError(_) => "Error in reading a certificate file",
+            &Error::TimeoutError => "Timeout in sending a push notification",
         }
     }
 
     fn cause(&self) -> Option<&StdError> {
         None
+    }
+}
+
+impl From<TimeoutError<FutureResponse>> for Error {
+    fn from(_: TimeoutError<FutureResponse>) -> Error {
+        Error::TimeoutError
     }
 }
 

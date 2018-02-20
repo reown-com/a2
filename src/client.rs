@@ -20,6 +20,7 @@ use tokio_core::reactor::Handle;
 use tokio_service::Service;
 use openssl::pkcs12::Pkcs12;
 use std::io::Read;
+use tokio_timer::{Timer, Timeout};
 
 #[derive(Debug, Clone)]
 pub enum Endpoint {
@@ -50,6 +51,7 @@ pub struct Client {
     endpoint: Endpoint,
     signer: Option<Signer>,
     http_client: HttpClient<AlpnConnector>,
+    timer: Timer,
 }
 
 impl Client {
@@ -70,6 +72,7 @@ impl Client {
             http_client: builder.connector(connector).build(handle),
             signer: signer,
             endpoint: endpoint,
+            timer: Timer::default(),
         }
     }
 
@@ -118,6 +121,16 @@ impl Client {
     #[inline]
     pub fn send(&self, payload: Payload) -> FutureResponse {
         self.call(payload)
+    }
+
+    /// Sends a notification with a timeout. Triggers `Error::TimeoutError` if the request takes too long.
+    #[inline]
+    pub fn send_with_timeout(
+        &self,
+        message: Payload,
+        timeout: Duration,
+    ) -> Timeout<FutureResponse> {
+        self.timer.timeout(self.send(message), timeout)
     }
 }
 
