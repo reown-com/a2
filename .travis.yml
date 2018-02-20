@@ -1,8 +1,22 @@
 language: rust
-rust:
-  - stable
+matrix:
+  include:
+    - rust: beta
+    - rust: stable
 
-sudo: false
+cache:
+  apt: true
+  directories:
+    - target/debug/deps
+    - target/debug/build
 
-notifications:
-  email: false
+script:
+  - cargo build
+  - cargo test
+env:
+  global:
+    - ENCRYPTION_LABEL: "79b734ed9875"
+    - COMMIT_AUTHOR_EMAIL: "julius.debruijn@360dialog.com"
+
+after_success:
+  - '[ $TRAVIS_PULL_REQUEST = false ] && [ $TRAVIS_RUST_VERSION = stable ] && { [ "$TRAVIS_TAG" != "" ] || [ "$TRAVIS_BRANCH" == "master" ]; } && ./.travis/docs.sh'
