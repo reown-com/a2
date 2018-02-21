@@ -36,7 +36,10 @@ impl SilentNotificationBuilder {
 }
 
 impl NotificationBuilder for SilentNotificationBuilder {
-    fn build<S: Into<String>>(self, device_token: S, options: NotificationOptions) -> Payload {
+    fn build<S>(self, device_token: S, options: NotificationOptions) -> Payload
+    where
+        S: Into<String>,
+    {
         Payload {
             aps: APS {
                 alert: None,

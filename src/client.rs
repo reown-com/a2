@@ -20,7 +20,7 @@ use tokio_core::reactor::Handle;
 use tokio_service::Service;
 use openssl::pkcs12::Pkcs12;
 use std::io::Read;
-use tokio_timer::{Timer, Timeout};
+use tokio_timer::{Timeout, Timer};
 
 #[derive(Debug, Clone)]
 pub enum Endpoint {

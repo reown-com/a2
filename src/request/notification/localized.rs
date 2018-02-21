@@ -53,7 +53,10 @@ pub struct LocalizedNotificationBuilder {
 }
 
 impl LocalizedNotificationBuilder {
-    pub fn new<S: Into<String>>(title: S, body: S) -> LocalizedNotificationBuilder {
+    pub fn new<S>(title: S, body: S) -> LocalizedNotificationBuilder
+    where
+        S: Into<String>,
+    {
         LocalizedNotificationBuilder {
             alert: LocalizedAlert {
                 title: title.into(),
@@ -78,13 +81,19 @@ impl LocalizedNotificationBuilder {
     }
 
     /// File name of the custom sound to play when receiving the notification.
-    pub fn set_sound<S: Into<String>>(&mut self, sound: S) {
+    pub fn set_sound<S>(&mut self, sound: S)
+    where
+        S: Into<String>,
+    {
         self.sound = Some(sound.into());
     }
 
     /// When a notification includes the category key, the system displays the
     /// actions for that category as buttons in the banner or alert interface.
-    pub fn set_category<S: Into<String>>(&mut self, category: S) {
+    pub fn set_category<S>(&mut self, category: S)
+    where
+        S: Into<String>,
+    {
         self.category = Some(category.into());
     }
 
@@ -143,7 +152,10 @@ impl LocalizedNotificationBuilder {
 }
 
 impl NotificationBuilder for LocalizedNotificationBuilder {
-    fn build<S: Into<String>>(self, device_token: S, options: NotificationOptions) -> Payload {
+    fn build<S>(self, device_token: S, options: NotificationOptions) -> Payload
+    where
+        S: Into<String>,
+    {
         Payload {
             aps: APS {
                 alert: Some(APSAlert::Localized(self.alert)),

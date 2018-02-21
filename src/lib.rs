@@ -22,15 +22,11 @@
 //! * [SilentNotificationBuilder](request/notification/struct.SilentNotificationBuilder.html) for silent notifications with custom data.
 //! * [LocalizedNotificationBuilder](request/notification/struct.LocalizedNotificationBuilder.html) for localized rich notifications.
 //!
-//!
-//! ## Connectors
-//!
-//! * [TokenConnector](connector/token/connector/struct.TokenConnector.html) for token based authentication.
-//! * [CertificateConnector](connector/certificate/struct.CertificateConnector.html) for certificate based authentication.
-//!
 //! ## The client
 //!
-//! The [asynchronous client](client/struct.Client.html) is for sending notifications using a `Connector`.
+//! The [asynchronous client](client/struct.Client.html), works either with
+//! [certificate](client/struct.Client.html#method.certificate) or
+//! [token](client/struct.Client.html#method.token) authentication.
 //!
 //! ## Example sending a plain notification using token authentication:
 //!
