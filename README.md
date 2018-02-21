@@ -1,4 +1,7 @@
 # apns2
+
+[![Travis Build Status](https://travis-ci.org/pimeys/apns2.svg?branch=master)](https://travis-ci.org/pimeys/apns2)
+
 HTTP/2 Apple Push Notification Service for Rust using Tokio and async sending.
 
 ## Status
