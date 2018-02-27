@@ -213,7 +213,10 @@ impl Service for Client {
 
         let request_f = self.http_client
             .request(request)
-            .map_err(|_| Error::ConnectionError);
+            .map_err(|e| {
+                trace!("Request error: {}", e);
+                Error::ConnectionError
+            });
 
         trace!("Client::call requesting ({:?})", path);
         let apns_f = request_f.and_then(move |response: HttpResponse| {
@@ -232,7 +235,10 @@ impl Service for Client {
 
             response
                 .body()
-                .map_err(|_| Error::ConnectionError)
+                .map_err(|e| {
+                    trace!("Body error: {}", e);
+                    Error::ConnectionError
+                })
                 .concat2()
                 .and_then(move |body_chunk| match response_status {
                     StatusCode::Ok => ok(Response {
