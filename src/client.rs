@@ -91,7 +91,7 @@ impl Client {
         let pkcs = Pkcs12::from_der(&cert_der)?.parse(password)?;
         let connector = AlpnConnector::with_client_cert(
             &pkcs.cert.to_pem()?,
-            &pkcs.pkey.private_key_to_pem()?,
+            &pkcs.pkey.private_key_to_pem_pkcs8()?,
             handle,
         )?;
 

@@ -3,7 +3,7 @@ use std::io::Read;
 use std::sync::Arc;
 use serde_json;
 use openssl::ec::EcKey;
-use openssl::pkey::PKey;
+use openssl::pkey::{PKey, Private};
 use openssl::hash::MessageDigest;
 use openssl::sign::Signer as SslSigner;
 use base64::encode;
@@ -22,7 +22,7 @@ pub struct Signer {
     signature: ArcCell<Signature>,
     key_id: String,
     team_id: String,
-    secret: PKey,
+    secret: PKey<Private>,
     expire_after_s: i64,
 }
 
@@ -106,7 +106,7 @@ impl Signer {
     }
 
     fn create_signature(
-        secret: &PKey,
+        secret: &PKey<Private>,
         key_id: &str,
         team_id: &str,
         issued_at: i64,
