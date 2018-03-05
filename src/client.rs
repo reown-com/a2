@@ -62,7 +62,7 @@ impl Client {
         handle: &Handle,
     ) -> Client {
         let builder = HttpClient::configure()
-            .keep_alive_timeout(Some(Duration::from_secs(60)))
+            .keep_alive_timeout(Some(Duration::from_secs(600)))
             .http2_only()
             .keep_alive(true);
 
