@@ -61,10 +61,8 @@ impl Client {
         endpoint: Endpoint,
         handle: &Handle,
     ) -> Client {
-        let timeout = 15 * 60;
-
         let builder = HttpClient::configure()
-            .keep_alive_timeout(Some(Duration::from_secs(timeout)))
+            .keep_alive_timeout(Some(Duration::from_secs(600)))
             .http2_only()
             .keep_alive(true);
 
