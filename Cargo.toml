@@ -34,7 +34,7 @@ pretty_env_logger = "0.2"
 indoc = "0.2"
 
 [dependencies.hyper]
-git = "https://github.com/hyperium/hyper"
+git = "https://github.com/pimeys/hyper"
 branch = "h2"
 features = ["http2"]
 
