@@ -46,7 +46,9 @@ it is possible to send push notifications to one application.
 
 We've been pushing some millions of notifications daily through this library and are quite happy with it. Some things to know, if you're evaluating the library for production use:
 
-* The connection is meant to kept up when having constant traffic and should stop Apple's DDOS blocks. Sometimes one might experience `TimeoutError`s or `ConnectionError`s, so keeping track of connections and restarting them is a good idea.
+* For one app, six connections is more than enough. One gets along well with less connections if fail-safety is not an issue. Apple gives arbitrary limits for connections per app; you should not use hundreds of connections.
+
+* The connection is meant to kept up when having constant traffic and should stop Apple's DDOS blocks. Sometimes one might experience `TimeoutError`s or `ConnectionError`s, so keeping track of connections and when having errors, restarting them is a good idea.
 
 * It seems to be Apple doesn't like when sending tons of notifications with faulty device tokens and it might lead to `ConnectionError`s. Do not send more notifications with tokens that return `Unregistered`, `BadDeviceToken` or `DeviceTokenNotForTopic`.
 
