@@ -96,15 +96,16 @@ impl Client {
         Ok(Self::new(connector, None, endpoint, handle))
     }
 
-    pub fn token<S, R>(
+    pub fn token<S, T, R>(
         pkcs8_pem: R,
         key_id: S,
-        team_id: S,
+        team_id: T,
         handle: &Handle,
         endpoint: Endpoint,
     ) -> Result<Client, Error>
     where
         S: Into<String>,
+        T: Into<String>,
         R: Read,
     {
         let connector = AlpnConnector::new(handle);
