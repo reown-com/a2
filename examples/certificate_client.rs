@@ -1,6 +1,7 @@
 extern crate apns2;
 extern crate argparse;
 extern crate tokio_core;
+extern crate pretty_env_logger;
 
 use argparse::{ArgumentParser, Store, StoreTrue};
 use apns2::request::notification::{NotificationBuilder, NotificationOptions,
@@ -12,6 +13,8 @@ use tokio_core::reactor::Core;
 
 // An example client connectiong to APNs with a certificate and key
 fn main() {
+    pretty_env_logger::init();
+
     let mut certificate_file = String::new();
     let mut password = String::new();
     let mut device_token = String::new();

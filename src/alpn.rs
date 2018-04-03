@@ -33,20 +33,23 @@ impl AlpnConnector {
         key_pem: &[u8],
         handle: &Handle,
     ) -> Result<Self, io::Error> {
-        let parsed_keys = pemfile::pkcs8_private_keys(&mut io::BufReader::new(key_pem)).or(Err(
-            io::Error::new(io::ErrorKind::InvalidData, "private key"),
-        ))?;
+        let parsed_keys = pemfile::pkcs8_private_keys(&mut io::BufReader::new(key_pem)).or({
+            trace!("AlpnConnector::with_client_cert error reading private key");
+            Err(io::Error::new(io::ErrorKind::InvalidData, "private key"))
+        })?;
 
         if let Some(key) = parsed_keys.first() {
             let mut config = ClientConfig::new();
-            let parsed_cert = pemfile::certs(&mut io::BufReader::new(cert_pem)).or(Err(
-                io::Error::new(io::ErrorKind::InvalidData, "certificate"),
-            ))?;
+            let parsed_cert = pemfile::certs(&mut io::BufReader::new(cert_pem)).or({
+                trace!("AlpnConnector::with_client_cert error reading certificate");
+                Err(io::Error::new(io::ErrorKind::InvalidData, "certificate"))
+            })?;
 
             config.set_single_client_cert(parsed_cert, key.clone());
 
             Ok(Self::with_client_config(handle, config))
         } else {
+            trace!("AlpnConnector::with_client_cert no private keys found from the given PEM");
             Err(io::Error::new(io::ErrorKind::InvalidData, "private key"))
         }
     }
@@ -105,10 +108,16 @@ impl Service for AlpnConnector {
             .and_then(move |tcp| {
                 trace!("AlpnConnector::call got TCP, trying TLS");
                 tls.connect_async(host.as_ref(), tcp)
-                    .map_err(|e| io::Error::new(io::ErrorKind::Other, e))
+                    .map_err(|e| {
+                        trace!("AlpnConnector::call got error forming a TLS connection.");
+                        io::Error::new(io::ErrorKind::Other, e)
+                    })
             })
             .map(|tls| MaybeHttpsStream::Https(tls))
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e));
+            .map_err(|e| {
+                trace!("AlpnConnector::call got error reading a TLS stream (#{}).", e);
+                io::Error::new(io::ErrorKind::Other, e)
+            });
 
         HttpsConnecting(Box::new(connecting))
     }

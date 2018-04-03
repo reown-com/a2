@@ -1,6 +1,7 @@
 extern crate apns2;
 extern crate argparse;
 extern crate tokio_core;
+extern crate pretty_env_logger;
 
 use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
 use apns2::client::Client;
@@ -12,6 +13,8 @@ use tokio_core::reactor::Core;
 
 // An example client connectiong to APNs with a JWT token
 fn main() {
+    pretty_env_logger::init();
+
     let mut key_file = String::new();
     let mut team_id = String::new();
     let mut key_id = String::new();
