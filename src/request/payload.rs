@@ -3,6 +3,7 @@
 use request::notification::{LocalizedAlert, NotificationOptions};
 use error::Error;
 use serde_json::{self, Map, Value};
+use std::borrow::Cow;
 use std::collections::HashMap;
 use erased_serde::Serialize;
 
@@ -67,7 +68,7 @@ pub struct APS {
 
     /// The name of the sound file to play when user receives the notification.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub sound: Option<String>,
+    pub sound: Option<Cow<'static, str>>,
 
     /// Set to one for silent notifications.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -76,7 +77,7 @@ pub struct APS {
     /// When a notification includes the category key, the system displays the
     /// actions for that category as buttons in the banner or alert interface.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub category: Option<String>,
+    pub category: Option<Cow<'static, str>>,
 
     /// If set to one, the app can change the notification content before
     /// displaying it to the user.
