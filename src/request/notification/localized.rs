@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use request::notification::{NotificationBuilder, NotificationOptions};
 use request::payload::{APSAlert, Payload, APS};
 
@@ -47,8 +48,8 @@ pub struct LocalizedAlert {
 pub struct LocalizedNotificationBuilder {
     alert: LocalizedAlert,
     badge: Option<u32>,
-    sound: Option<String>,
-    category: Option<String>,
+    sound: Option<Cow<'static, str>>,
+    category: Option<Cow<'static, str>>,
     mutable_content: u8,
 }
 
@@ -81,18 +82,18 @@ impl LocalizedNotificationBuilder {
     }
 
     /// File name of the custom sound to play when receiving the notification.
-    pub fn set_sound<S>(&mut self, sound: S)
+    pub fn set_sound<C>(&mut self, sound: C)
     where
-        S: Into<String>,
+        C: Into<Cow<'static, str>>,
     {
         self.sound = Some(sound.into());
     }
 
     /// When a notification includes the category key, the system displays the
     /// actions for that category as buttons in the banner or alert interface.
-    pub fn set_category<S>(&mut self, category: S)
+    pub fn set_category<C>(&mut self, category: C)
     where
-        S: Into<String>,
+        C: Into<Cow<'static, str>>,
     {
         self.category = Some(category.into());
     }
@@ -196,12 +197,16 @@ mod tests {
         assert_eq!(expected_payload, payload);
     }
 
+    static SOUND: &'static str = "pröötprööt";
+
     #[test]
     fn test_localized_notification_with_full_data() {
         let mut builder = LocalizedNotificationBuilder::new("the title", "the body");
 
         builder.set_badge(420);
         builder.set_category("cat1");
+        builder.set_sound(SOUND);
+        builder.set_sound("prööt".to_string());
         builder.set_sound("prööt");
         builder.set_mutable_content();
         builder.set_action_loc_key("PLAY");
