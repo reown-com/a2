@@ -1,7 +1,7 @@
 use request::notification::{NotificationBuilder, NotificationOptions};
 use request::payload::{APSAlert, Payload, APS};
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "kebab-case")]
 pub struct LocalizedAlert {
     title: String,
