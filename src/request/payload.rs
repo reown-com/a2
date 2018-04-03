@@ -7,6 +7,7 @@ use std::collections::HashMap;
 use erased_serde::Serialize;
 
 /// The data and options for a push notification.
+#[derive(Debug, Clone)]
 pub struct Payload {
     /// Send options
     pub options: NotificationOptions,
@@ -54,7 +55,7 @@ impl Payload {
 }
 
 /// The pre-defined notification data.
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "kebab-case")]
 pub struct APS {
     /// The notification content. Can be empty for silent notifications.
@@ -85,7 +86,7 @@ pub struct APS {
 }
 
 /// Different notification content types.
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum APSAlert {
     /// Text-only notification.

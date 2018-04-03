@@ -1,6 +1,7 @@
 use error::Error;
 use std::fmt;
 
+#[derive(Debug, Clone)]
 pub struct CollapseId {
     pub value: String,
 }
@@ -20,6 +21,7 @@ impl CollapseId {
 }
 
 /// Headers to specify options to the notification.
+#[derive(Debug, Clone)]
 pub struct NotificationOptions {
     /// A canonical UUID that identifies the notification. If there is an error
     /// sending the notification, APNs uses this value to identify the
@@ -74,6 +76,7 @@ impl Default for NotificationOptions {
 }
 
 /// The importance how fast to bring the notification for the user..
+#[derive(Debug, Clone)]
 pub enum Priority {
     /// Send the push message immediately. Notifications with this priority must
     /// trigger an alert, sound, or badge on the target device. Cannot be used
