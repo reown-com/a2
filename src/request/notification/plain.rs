@@ -61,10 +61,7 @@ impl PlainNotificationBuilder {
 }
 
 impl NotificationBuilder for PlainNotificationBuilder {
-    fn build<S>(self, device_token: S, options: NotificationOptions) -> Payload
-    where
-        S: Into<String>,
-    {
+    fn build<'a>(self, device_token: &'a str, options: NotificationOptions) -> Payload<'a> {
         Payload {
             aps: APS {
                 alert: Some(APSAlert::Plain(self.body)),
@@ -74,7 +71,7 @@ impl NotificationBuilder for PlainNotificationBuilder {
                 category: self.category,
                 mutable_content: None,
             },
-            device_token: device_token.into(),
+            device_token: device_token,
             options: options,
             custom_data: None,
         }
@@ -108,8 +105,10 @@ mod tests {
         builder.set_category("cat1");
         builder.set_sound("prööt");
 
+        let device_token = "device-token".to_string();
+
         let payload = builder
-            .build("device-token", Default::default())
+            .build(&device_token, Default::default())
             .to_json_string()
             .unwrap();
 

@@ -152,10 +152,7 @@ impl LocalizedNotificationBuilder {
 }
 
 impl NotificationBuilder for LocalizedNotificationBuilder {
-    fn build<S>(self, device_token: S, options: NotificationOptions) -> Payload
-    where
-        S: Into<String>,
-    {
+    fn build<'a>(self, device_token: &'a str, options: NotificationOptions) -> Payload<'a> {
         Payload {
             aps: APS {
                 alert: Some(APSAlert::Localized(self.alert)),
@@ -165,7 +162,7 @@ impl NotificationBuilder for LocalizedNotificationBuilder {
                 category: self.category,
                 mutable_content: Some(self.mutable_content),
             },
-            device_token: device_token.into(),
+            device_token: device_token,
             options: options,
             custom_data: None,
         }

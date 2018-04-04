@@ -36,10 +36,7 @@ impl SilentNotificationBuilder {
 }
 
 impl NotificationBuilder for SilentNotificationBuilder {
-    fn build<S>(self, device_token: S, options: NotificationOptions) -> Payload
-    where
-        S: Into<String>,
-    {
+    fn build<'a>(self, device_token: &'a str, options: NotificationOptions) -> Payload<'a> {
         Payload {
             aps: APS {
                 alert: None,
@@ -49,7 +46,7 @@ impl NotificationBuilder for SilentNotificationBuilder {
                 category: None,
                 mutable_content: None,
             },
-            device_token: device_token.into(),
+            device_token: device_token,
             options: options,
             custom_data: None,
         }
