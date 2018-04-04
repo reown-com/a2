@@ -8,7 +8,7 @@ use serde_json::Error as SerdeError;
 use openssl::error::ErrorStack;
 use std::fmt;
 use std::convert::From;
-use response::Response;
+use response::{Response, ErrorBody};
 
 #[derive(Debug)]
 pub enum Error {
@@ -24,7 +24,12 @@ pub enum Error {
 
 impl<'a> fmt::Display for Error {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        write!(fmt, "{}", self.description())
+        match self {
+            &Error::ResponseError(Response { error: Some(ErrorBody { ref reason, .. }), .. }) => {
+                write!(fmt, "{} (reason: {:?})", self.description(), reason)
+            },
+            _ => write!(fmt, "{}", self.description()),
+        }
     }
 }
 
