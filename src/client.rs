@@ -103,9 +103,9 @@ impl<'a> Client<'a> {
         pkcs8_pem: R,
         key_id: S,
         team_id: T,
-        handle: &Handle,
+        handle: &'a Handle,
         endpoint: Endpoint,
-    ) -> Result<Client, Error>
+    ) -> Result<Client<'a>, Error>
     where
         S: Into<String>,
         T: Into<String>,
