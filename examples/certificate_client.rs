@@ -3,7 +3,7 @@ extern crate argparse;
 extern crate tokio_core;
 extern crate pretty_env_logger;
 
-use argparse::{ArgumentParser, Store, StoreTrue};
+use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
 use apns2::request::notification::{NotificationBuilder, NotificationOptions,
                                    PlainNotificationBuilder};
 use apns2::client::Client;
@@ -20,6 +20,7 @@ fn main() {
     let mut device_token = String::new();
     let mut message = String::from("Ch-check it out!");
     let mut sandbox = false;
+    let mut topic: Option<String> = None;
 
     {
         let mut ap = ArgumentParser::new();
@@ -43,6 +44,8 @@ fn main() {
             StoreTrue,
             "Use the development APNs servers",
         );
+        ap.refer(&mut topic)
+            .add_option(&["-o", "--topic"], StoreOption, "APNS topic");
         ap.parse_args_or_exit();
     }
 
@@ -62,7 +65,9 @@ fn main() {
 
     // Connecting to APNs using a client certificate
     let client = Client::certificate(&mut certificate, &password, &handle, endpoint).unwrap();
+
     let options = NotificationOptions {
+        apns_topic: topic,
         ..Default::default()
     };
 
