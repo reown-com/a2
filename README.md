@@ -13,6 +13,21 @@ quite stable and passes h2spec 100%. Regarding the status of Hyper and its h2
 integration not yet even merged to the master branch, consider this crate to be
 alpha and breaking in every possible way.
 
+## Features
+
+* Fast asynchronous sending, based on [h2](https://github.com/carllerche/h2) and
+  [hyper](https://github.com/hyperium/hyper) crates.
+* Payload serialization/deserialization with
+  [serde](https://github.com/serde-rs/serde).
+* Provides a type-safe way of constructing different types of payloads. Custom
+  data through `Serialize`, allowing use of structs or dynamic hashmaps.
+* Supports `.p12` certificate databases to connect using a custom certificate.
+* Supports `.p8` private keys to connect using authentication tokens.
+* If using authentication tokens, handles automatic renewing and signature
+  caching for maximum performance.
+* Been running on a production service with millions of daily notifications
+  since January 2018.
+
 ## Usage
 
 Add this to `Cargo.toml`:
