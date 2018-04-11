@@ -23,10 +23,8 @@ alpha and breaking in every possible way.
   data through `Serialize`, allowing use of structs or dynamic hashmaps.
 * Supports `.p12` certificate databases to connect using a custom certificate.
 * Supports `.p8` private keys to connect using authentication tokens.
-* If using authentication tokens, handles automatic renewing and signature
-  caching for maximum performance.
-* Been running on a production service with millions of daily notifications
-  since January 2018.
+* If using authentication tokens, handles signature renewing and caching
+  for maximum performance.
 
 ## Usage
 
