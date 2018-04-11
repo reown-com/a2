@@ -10,14 +10,15 @@ use request::payload::{Payload, APS};
 /// ```rust
 /// # extern crate a2;
 /// # use std::collections::HashMap;
-/// # use a2::request::notification::{NotificationBuilder, SilentNotificationBuilder};
+/// # use a2::request::notification::{NotificationOptions, NotificationBuilder, SilentNotificationBuilder};
 /// # fn main() {
 /// let mut test_data = HashMap::new();
 /// test_data.insert("a", "value");
 /// test_data.insert("another", "value");
 ///
+/// let options = NotificationOptions::default();
 /// let mut payload = SilentNotificationBuilder::new()
-///    .build("device_id", Default::default());
+///    .build("device_id", &options);
 ///
 /// payload.add_custom_data("custom", &test_data);
 /// payload.to_json_string().unwrap();
@@ -36,7 +37,11 @@ impl SilentNotificationBuilder {
 }
 
 impl NotificationBuilder for SilentNotificationBuilder {
-    fn build<'a>(self, device_token: &'a str, options: NotificationOptions) -> Payload<'a> {
+    fn build<'a, 'b>(
+        self,
+        device_token: &'a str,
+        options: &'b NotificationOptions,
+    ) -> Payload<'a, 'b> {
         Payload {
             aps: APS {
                 alert: None,
@@ -60,8 +65,9 @@ mod tests {
 
     #[test]
     fn test_silent_notification_with_no_content() {
+        let options = NotificationOptions::default();
         let payload = SilentNotificationBuilder::new()
-            .build("device-token", Default::default())
+            .build("device-token", &options)
             .to_json_string()
             .unwrap();
 
@@ -96,8 +102,9 @@ mod tests {
             key_struct: SubData { nothing: "here" },
         };
 
+        let options = NotificationOptions::default();
         let mut payload =
-            SilentNotificationBuilder::new().build("device-token", Default::default());
+            SilentNotificationBuilder::new().build("device-token", &options);
 
         payload.add_custom_data("custom", &test_data).unwrap();
 
@@ -124,8 +131,9 @@ mod tests {
         test_data.insert("key_str", "foo");
         test_data.insert("key_str2", "bar");
 
+        let options = NotificationOptions::default();
         let mut payload =
-            SilentNotificationBuilder::new().build("device-token", Default::default());
+            SilentNotificationBuilder::new().build("device-token", &options);
 
         payload.add_custom_data("custom", &test_data).unwrap();
 

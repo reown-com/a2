@@ -14,5 +14,9 @@ use request::payload::Payload;
 
 pub trait NotificationBuilder {
     /// Generates the request payload to be send with the `Client`.
-    fn build<'a>(self, device_token: &'a str, options: NotificationOptions) -> Payload<'a>;
+    fn build<'a, 'b>(
+        self,
+        device_token: &'a str,
+        options: &'b NotificationOptions,
+    ) -> Payload<'a, 'b>;
 }

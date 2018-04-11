@@ -8,9 +8,9 @@ use erased_serde::Serialize;
 
 /// The data and options for a push notification.
 #[derive(Debug, Clone)]
-pub struct Payload<'a> {
+pub struct Payload<'a, 'b> {
     /// Send options
-    pub options: NotificationOptions,
+    pub options: &'b NotificationOptions,
     /// The token for the receiving device
     pub device_token: &'a str,
     /// The pre-defined notification payload
@@ -19,7 +19,7 @@ pub struct Payload<'a> {
     pub custom_data: Option<HashMap<String, Value>>,
 }
 
-impl<'a> Payload<'a> {
+impl<'a, 'b> Payload<'a, 'b> {
     /// Client-specific custom data to be added in the payload.
     pub fn add_custom_data<S: Into<String>>(
         &mut self,

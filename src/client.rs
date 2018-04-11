@@ -48,21 +48,21 @@ impl fmt::Display for Endpoint {
 /// the notification and responds with a status OK. In any other case the future
 /// fails. If APNs gives a reason for the failure, the returned `Err`
 /// holds the response for handling.
-pub struct Client<'a> {
+pub struct Client<'a, 'b> {
     endpoint: Endpoint,
     signer: Option<Signer>,
     http_client: HttpClient<AlpnConnector>,
     timer: Timer,
-    _marker: PhantomData<Payload<'a>>,
+    _marker: PhantomData<Payload<'a, 'b>>,
 }
 
-impl<'a> Client<'a> {
+impl<'a, 'b> Client<'a, 'b> {
     fn new(
         connector: AlpnConnector,
         signer: Option<Signer>,
         endpoint: Endpoint,
         handle: &Handle,
-    ) -> Client<'a> {
+    ) -> Client<'a, 'b> {
         let builder = HttpClient::configure()
             .keep_alive_timeout(Some(Duration::from_secs(600)))
             .http2_only()
@@ -82,7 +82,7 @@ impl<'a> Client<'a> {
         password: &str,
         handle: &Handle,
         endpoint: Endpoint,
-    ) -> Result<Client<'a>, Error>
+    ) -> Result<Client<'a, 'b>, Error>
     where
         R: Read,
     {
@@ -103,9 +103,9 @@ impl<'a> Client<'a> {
         pkcs8_pem: R,
         key_id: S,
         team_id: T,
-        handle: &'a Handle,
+        handle: &Handle,
         endpoint: Endpoint,
-    ) -> Result<Client<'a>, Error>
+    ) -> Result<Client<'a, 'b>, Error>
     where
         S: Into<String>,
         T: Into<String>,
@@ -153,8 +153,8 @@ impl Future for FutureResponse {
     }
 }
 
-impl<'a> Service for Client<'a> {
-    type Request = Payload<'a>;
+impl<'a, 'b> Service for Client<'a, 'b> {
+    type Request = Payload<'a, 'b>;
     type Response = Response;
     type Error = Error;
     type Future = FutureResponse;
