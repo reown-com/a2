@@ -1,14 +1,14 @@
 [package]
-name = "apns2"
+name = "a2"
 version = "0.1.0"
 authors = ["Sergey Tkachenko <seriy.tkachenko@gmail.com>", "Julius de Bruijn <julius.debruijn@360dialog.com>"]
 license = "MIT"
 readme  = "README.md"
 description = "HTTP/2 Apple Push Notification Service for Rust"
 keywords    = ["apns", "apple", "push", "notification", "http2", "http/2"]
-repository  = "https://github.com/polyitan/apns2.git"
-homepage    = "https://github.com/polyitan/apns2"
-documentation = "https://github.com/polyitan/apns2"
+repository  = "https://github.com/pimeys/a2.git"
+homepage    = "https://github.com/pimeys/a2"
+documentation = "https://github.com/pimeys/a2"
 
 [dependencies]
 serde = "1.0"

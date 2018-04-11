@@ -25,8 +25,8 @@ pub struct LocalizedAlert {
 /// # Example
 ///
 /// ```rust
-/// # extern crate apns2;
-/// # use apns2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
+/// # extern crate a2;
+/// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
 /// # fn main() {
 /// let mut builder = LocalizedNotificationBuilder::new("Hi there", "What's up?");
 /// builder.set_badge(420);

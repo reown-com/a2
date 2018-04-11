@@ -1,6 +1,6 @@
-//! # Apns2
+//! # A2
 //!
-//! Apns2 is an asynchronous client to Apple push notification service. It
+//! A2 is an asynchronous client to Apple push notification service. It
 //! provides a typesafe way to generate correct requests and maps responses into
 //! corresponding types. It supports both, the certificate and token based
 //! authentication.
@@ -32,10 +32,10 @@
 //!
 //! ```no_run
 //! extern crate tokio_core;
-//! extern crate apns2;
+//! extern crate a2;
 //!
-//! use apns2::request::notification::{PlainNotificationBuilder, NotificationBuilder};
-//! use apns2::client::{Client, Endpoint};
+//! use a2::request::notification::{PlainNotificationBuilder, NotificationBuilder};
+//! use a2::client::{Client, Endpoint};
 //! use std::fs::File;
 //!
 //! fn main() {
@@ -66,10 +66,10 @@
 //! #[macro_use] extern crate serde_derive;
 //! extern crate serde;
 //! extern crate tokio_core;
-//! extern crate apns2;
+//! extern crate a2;
 //!
-//! use apns2::request::notification::{SilentNotificationBuilder, NotificationBuilder};
-//! use apns2::client::{Client, Endpoint};
+//! use a2::request::notification::{SilentNotificationBuilder, NotificationBuilder};
+//! use a2::client::{Client, Endpoint};
 //! use std::fs::File;
 //!
 //! #[derive(Serialize, Debug)]

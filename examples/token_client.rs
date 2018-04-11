@@ -1,13 +1,13 @@
-extern crate apns2;
+extern crate a2;
 extern crate argparse;
 extern crate tokio_core;
 extern crate pretty_env_logger;
 
 use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
-use apns2::client::Client;
-use apns2::client::Endpoint;
-use apns2::request::notification::{NotificationBuilder, NotificationOptions,
-                                   PlainNotificationBuilder};
+use a2::client::Client;
+use a2::client::Endpoint;
+use a2::request::notification::{NotificationBuilder, NotificationOptions,
+                                PlainNotificationBuilder};
 use std::fs::File;
 use tokio_core::reactor::Core;
 

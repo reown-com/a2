@@ -6,8 +6,8 @@ use request::payload::{APSAlert, Payload, APS};
 /// # Example
 ///
 /// ```rust
-/// # extern crate apns2;
-/// # use apns2::request::notification::{NotificationBuilder, PlainNotificationBuilder};
+/// # extern crate a2;
+/// # use a2::request::notification::{NotificationBuilder, PlainNotificationBuilder};
 /// # fn main() {
 /// let mut builder = PlainNotificationBuilder::new("Hi there");
 /// builder.set_badge(420);

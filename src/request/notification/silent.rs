@@ -8,9 +8,9 @@ use request::payload::{Payload, APS};
 /// # Example
 ///
 /// ```rust
-/// # extern crate apns2;
+/// # extern crate a2;
 /// # use std::collections::HashMap;
-/// # use apns2::request::notification::{NotificationBuilder, SilentNotificationBuilder};
+/// # use a2::request::notification::{NotificationBuilder, SilentNotificationBuilder};
 /// # fn main() {
 /// let mut test_data = HashMap::new();
 /// test_data.insert("a", "value");
