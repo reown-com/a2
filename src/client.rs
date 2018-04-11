@@ -21,6 +21,7 @@ use tokio_service::Service;
 use openssl::pkcs12::Pkcs12;
 use std::io::Read;
 use tokio_timer::{Timeout, Timer};
+use std::marker::PhantomData;
 
 #[derive(Debug, Clone)]
 pub enum Endpoint {
@@ -47,20 +48,21 @@ impl fmt::Display for Endpoint {
 /// the notification and responds with a status OK. In any other case the future
 /// fails. If APNs gives a reason for the failure, the returned `Err`
 /// holds the response for handling.
-pub struct Client {
+pub struct Client<'a, 'b> {
     endpoint: Endpoint,
     signer: Option<Signer>,
     http_client: HttpClient<AlpnConnector>,
     timer: Timer,
+    _marker: PhantomData<Payload<'a, 'b>>,
 }
 
-impl Client {
+impl<'a, 'b> Client<'a, 'b> {
     fn new(
         connector: AlpnConnector,
         signer: Option<Signer>,
         endpoint: Endpoint,
         handle: &Handle,
-    ) -> Client {
+    ) -> Client<'a, 'b> {
         let builder = HttpClient::configure()
             .keep_alive_timeout(Some(Duration::from_secs(600)))
             .http2_only()
@@ -71,6 +73,7 @@ impl Client {
             signer: signer,
             endpoint: endpoint,
             timer: Timer::default(),
+            _marker: PhantomData,
         }
     }
 
@@ -79,7 +82,7 @@ impl Client {
         password: &str,
         handle: &Handle,
         endpoint: Endpoint,
-    ) -> Result<Client, Error>
+    ) -> Result<Client<'a, 'b>, Error>
     where
         R: Read,
     {
@@ -102,7 +105,7 @@ impl Client {
         team_id: T,
         handle: &Handle,
         endpoint: Endpoint,
-    ) -> Result<Client, Error>
+    ) -> Result<Client<'a, 'b>, Error>
     where
         S: Into<String>,
         T: Into<String>,
@@ -150,8 +153,8 @@ impl Future for FutureResponse {
     }
 }
 
-impl Service for Client {
-    type Request = Payload;
+impl<'a, 'b> Service for Client<'a, 'b> {
+    type Request = Payload<'a, 'b>;
     type Response = Response;
     type Error = Error;
     type Future = FutureResponse;

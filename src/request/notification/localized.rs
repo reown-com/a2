@@ -26,7 +26,7 @@ pub struct LocalizedAlert {
 ///
 /// ```rust
 /// # extern crate a2;
-/// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
+/// # use a2::request::notification::{NotificationOptions, LocalizedNotificationBuilder, NotificationBuilder};
 /// # fn main() {
 /// let mut builder = LocalizedNotificationBuilder::new("Hi there", "What's up?");
 /// builder.set_badge(420);
@@ -40,7 +40,8 @@ pub struct LocalizedAlert {
 /// builder.set_title_loc_args(vec!["herp", "derp"]);
 /// builder.set_loc_key("PAUSE");
 /// builder.set_loc_args(vec!["narf", "derp"]);
-/// let payload = builder.build("device_id", Default::default())
+/// let options = NotificationOptions::default();
+/// let payload = builder.build("device_id", &options)
 ///   .to_json_string().unwrap();
 /// # }
 /// ```
@@ -152,10 +153,11 @@ impl LocalizedNotificationBuilder {
 }
 
 impl NotificationBuilder for LocalizedNotificationBuilder {
-    fn build<S>(self, device_token: S, options: NotificationOptions) -> Payload
-    where
-        S: Into<String>,
-    {
+    fn build<'a, 'b>(
+        self,
+        device_token: &'a str,
+        options: &'b NotificationOptions,
+    ) -> Payload<'a, 'b> {
         Payload {
             aps: APS {
                 alert: Some(APSAlert::Localized(self.alert)),
@@ -165,7 +167,7 @@ impl NotificationBuilder for LocalizedNotificationBuilder {
                 category: self.category,
                 mutable_content: Some(self.mutable_content),
             },
-            device_token: device_token.into(),
+            device_token: device_token,
             options: options,
             custom_data: None,
         }
@@ -178,8 +180,9 @@ mod tests {
 
     #[test]
     fn test_localized_notification_with_minimal_required_values() {
+        let options = NotificationOptions::default();
         let payload = LocalizedNotificationBuilder::new("the title", "the body")
-            .build("device-token", Default::default())
+            .build("device-token", &options)
             .to_json_string()
             .unwrap();
 
@@ -212,8 +215,9 @@ mod tests {
         builder.set_loc_key("PAUSE");
         builder.set_loc_args(vec!["narf", "derp"]);
 
+        let options = NotificationOptions::default();
         let payload = builder
-            .build("device-token", Default::default())
+            .build("device-token", &options)
             .to_json_string()
             .unwrap();
 
@@ -261,8 +265,9 @@ mod tests {
             key_struct: SubData { nothing: "here" },
         };
 
+        let options = NotificationOptions::default();
         let mut payload = LocalizedNotificationBuilder::new("the title", "the body")
-            .build("device-token", Default::default());
+            .build("device-token", &options);
 
         payload.add_custom_data("custom", &test_data).unwrap();
 

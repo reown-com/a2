@@ -34,7 +34,7 @@
 //! extern crate tokio_core;
 //! extern crate a2;
 //!
-//! use a2::request::notification::{PlainNotificationBuilder, NotificationBuilder};
+//! use a2::request::notification::{NotificationOptions, PlainNotificationBuilder, NotificationBuilder};
 //! use a2::client::{Client, Endpoint};
 //! use std::fs::File;
 //!
@@ -46,7 +46,8 @@
 //!     builder.set_badge(420);
 //!     builder.set_category("cat1");
 //!     builder.set_sound("ping.flac");
-//!     let payload = builder.build("device-token-from-the-user", Default::default());
+//!     let options = NotificationOptions::default();
+//!     let payload = builder.build("device-token-from-the-user", &options);
 //!
 //!     let mut file = File::open("/path/to/private_key.p8").unwrap();
 //!
@@ -68,7 +69,7 @@
 //! extern crate tokio_core;
 //! extern crate a2;
 //!
-//! use a2::request::notification::{SilentNotificationBuilder, NotificationBuilder};
+//! use a2::request::notification::{NotificationOptions, SilentNotificationBuilder, NotificationBuilder};
 //! use a2::client::{Client, Endpoint};
 //! use std::fs::File;
 //!
@@ -87,8 +88,9 @@
 //!         is_paying_user: false,
 //!     };
 //!
+//!     let options = NotificationOptions::default();
 //!     let mut payload = SilentNotificationBuilder::new()
-//!         .build("device-token-from-the-user", Default::default());
+//!         .build("device-token-from-the-user", &options);
 //!
 //!     payload.add_custom_data("apns_gmbh", &tracking_data).unwrap();
 //!

@@ -7,13 +7,14 @@ use request::payload::{APSAlert, Payload, APS};
 ///
 /// ```rust
 /// # extern crate a2;
-/// # use a2::request::notification::{NotificationBuilder, PlainNotificationBuilder};
+/// # use a2::request::notification::{NotificationOptions, NotificationBuilder, PlainNotificationBuilder};
 /// # fn main() {
 /// let mut builder = PlainNotificationBuilder::new("Hi there");
 /// builder.set_badge(420);
 /// builder.set_category("cat1");
 /// builder.set_sound("prööt");
-/// let payload = builder.build("device_id", Default::default())
+/// let options = NotificationOptions::default();
+/// let payload = builder.build("device_id", &options)
 ///    .to_json_string().unwrap();
 /// # }
 /// ```
@@ -61,10 +62,11 @@ impl PlainNotificationBuilder {
 }
 
 impl NotificationBuilder for PlainNotificationBuilder {
-    fn build<S>(self, device_token: S, options: NotificationOptions) -> Payload
-    where
-        S: Into<String>,
-    {
+    fn build<'a, 'b>(
+        self,
+        device_token: &'a str,
+        options: &'b NotificationOptions,
+    ) -> Payload<'a, 'b> {
         Payload {
             aps: APS {
                 alert: Some(APSAlert::Plain(self.body)),
@@ -74,7 +76,7 @@ impl NotificationBuilder for PlainNotificationBuilder {
                 category: self.category,
                 mutable_content: None,
             },
-            device_token: device_token.into(),
+            device_token: device_token,
             options: options,
             custom_data: None,
         }
@@ -87,8 +89,9 @@ mod tests {
 
     #[test]
     fn test_plain_notification_with_text_only() {
+        let options = NotificationOptions::default();
         let payload = PlainNotificationBuilder::new("kulli")
-            .build("device-token", Default::default())
+            .build("device-token", &options)
             .to_json_string()
             .unwrap();
 
@@ -108,8 +111,11 @@ mod tests {
         builder.set_category("cat1");
         builder.set_sound("prööt");
 
+        let device_token = "device-token".to_string();
+
+        let options = NotificationOptions::default();
         let payload = builder
-            .build("device-token", Default::default())
+            .build(&device_token, &options)
             .to_json_string()
             .unwrap();
 
@@ -147,8 +153,9 @@ mod tests {
             key_struct: SubData { nothing: "here" },
         };
 
+        let options = NotificationOptions::default();
         let mut payload =
-            PlainNotificationBuilder::new("kulli").build("device-token", Default::default());
+            PlainNotificationBuilder::new("kulli").build("device-token", &options);
 
         payload.add_custom_data("custom", &test_data).unwrap();
 

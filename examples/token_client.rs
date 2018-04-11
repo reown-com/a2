@@ -82,7 +82,7 @@ fn main() {
     builder.set_sound("default");
     builder.set_badge(1u32);
 
-    let payload = builder.build(device_token.as_ref(), options);
+    let payload = builder.build(device_token.as_ref(), &options);
 
     // Send the notification, parse response
     match core.run(client.send(payload)) {
