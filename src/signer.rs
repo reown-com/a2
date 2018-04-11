@@ -85,7 +85,7 @@ impl Signer {
     }
 
     /// Take a signature out for usage. Automatically renews the signature
-    /// if it's older than one minute.
+    /// if it's older than the expiration time.
     pub fn with_signature<F>(&self, f: F) -> Result<(), Error>
     where
         F: FnOnce(&str) -> (),
