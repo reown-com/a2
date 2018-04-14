@@ -6,12 +6,11 @@ HTTP/2 Apple Push Notification Service for Rust using Tokio and async sending.
 
 ## Status
 
-The library is based on an experimental version of
+The library is based on master branch of
 [Hyper](https://github.com/hyperium/hyper) that includes support for Http2
 protocol. The [h2 crate](https://github.com/carllerche/h2) underneath is already
-quite stable and passes h2spec 100%. Regarding the status of Hyper and its h2
-integration not yet even merged to the master branch, consider this crate to be
-alpha and breaking in every possible way.
+quite stable and passes h2spec 100%. Please consider this library highly
+experimental until it's released to crates.io and breaking every possible way.
 
 ## Features
 

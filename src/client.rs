@@ -7,24 +7,29 @@ use error::Error::ResponseError;
 use futures::{Future, Poll};
 use futures::future::{err, ok};
 use futures::stream::Stream;
-use hyper::{Client as HttpClient, HttpVersion};
-use hyper::{Post, StatusCode};
-use hyper::client::{Request, Response as HttpResponse};
-use hyper::header::{Authorization, Bearer, ContentLength, ContentType};
+use hyper::{
+    Client as HttpClient,
+    Request as HttpRequest,
+    StatusCode,
+    Body
+};
+use http::header::{AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE};
 use request::payload::Payload;
 use response::Response;
 use serde_json;
 use std::{fmt, str};
 use std::time::Duration;
-use tokio_core::reactor::Handle;
 use tokio_service::Service;
 use openssl::pkcs12::Pkcs12;
 use std::io::Read;
 use tokio_timer::{Timeout, Timer};
 
+/// The APNs service endpoint to connect.
 #[derive(Debug, Clone)]
 pub enum Endpoint {
+    /// The production environment (api.push.apple.com)
     Production,
+    /// The development/test environment (api.development.push.apple.com)
     Sandbox,
 }
 
@@ -59,25 +64,26 @@ impl Client {
         connector: AlpnConnector,
         signer: Option<Signer>,
         endpoint: Endpoint,
-        handle: &Handle,
     ) -> Client {
-        let builder = HttpClient::configure()
-            .keep_alive_timeout(Some(Duration::from_secs(600)))
-            .http2_only()
-            .keep_alive(true);
+        let mut builder = HttpClient::builder();
+        builder.keep_alive_timeout(Some(Duration::from_secs(600)));
+        builder.http2_only(true);
+        builder.keep_alive(true);
 
         Client {
-            http_client: builder.connector(connector).build(handle),
+            http_client: builder.build(connector),
             signer: signer,
             endpoint: endpoint,
             timer: Timer::default(),
         }
     }
 
+    /// Create a connection to APNs using the provider client certificate which
+    /// you obtain from your [Apple developer
+    /// account](https://developer.apple.com/account/).
     pub fn certificate<R>(
         certificate: &mut R,
         password: &str,
-        handle: &Handle,
         endpoint: Endpoint,
     ) -> Result<Client, Error>
     where
@@ -90,17 +96,19 @@ impl Client {
         let connector = AlpnConnector::with_client_cert(
             &pkcs.cert.to_pem()?,
             &pkcs.pkey.private_key_to_pem_pkcs8()?,
-            handle,
         )?;
 
-        Ok(Self::new(connector, None, endpoint, handle))
+        Ok(Self::new(connector, None, endpoint))
     }
 
+    /// Create a connection to APNs using system certificates, signing every
+    /// request with a signature using a private key, key id and team id
+    /// provisioned from your [Apple developer
+    /// account](https://developer.apple.com/account/).
     pub fn token<S, T, R>(
         pkcs8_pem: R,
         key_id: S,
         team_id: T,
-        handle: &Handle,
         endpoint: Endpoint,
     ) -> Result<Client, Error>
     where
@@ -108,11 +116,11 @@ impl Client {
         T: Into<String>,
         R: Read,
     {
-        let connector = AlpnConnector::new(handle);
+        let connector = AlpnConnector::new();
         let signature_ttl = 60 * 45; // seconds
         let signer = Signer::new(pkcs8_pem, key_id, team_id, signature_ttl)?;
 
-        Ok(Self::new(connector, Some(signer), endpoint, handle))
+        Ok(Self::new(connector, Some(signer), endpoint))
     }
 
     /// Send a notification payload. Returns a future that needs to be given to
@@ -133,7 +141,7 @@ impl Client {
     }
 }
 
-pub struct FutureResponse(Box<Future<Item = Response, Error = Error> + 'static>);
+pub struct FutureResponse(Box<Future<Item = Response, Error = Error> + Send + 'static>);
 
 impl fmt::Debug for FutureResponse {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -161,54 +169,37 @@ impl Service for Client {
             "https://{}/3/device/{}",
             self.endpoint, payload.device_token
         );
+
         let payload_json = payload.to_json_string().unwrap();
-        let mut request = Request::new(Post, path.parse().unwrap());
 
-        request.set_version(HttpVersion::Http2);
-        request.headers_mut().set(ContentType::json());
+        let mut builder = HttpRequest::builder();
 
-        request
-            .headers_mut()
-            .set(ContentLength(payload_json.len() as u64));
-
-        request.headers_mut().set_raw(
-            "apns-priority",
-            format!("{}", payload.options.apns_priority),
-        );
+        builder.uri(&path);
+        builder.method("POST");
+        builder.header(CONTENT_TYPE, "application/json");
+        builder.header(CONTENT_LENGTH, format!("{}", payload_json.len()).as_bytes());
+        builder.header("apns-priority", format!("{}", payload.options.apns_priority).as_bytes());
 
         if let Some(ref apns_id) = payload.options.apns_id {
-            request
-                .headers_mut()
-                .set_raw("apns-id", format!("{}", apns_id));
+            builder.header("apns-id", apns_id.as_bytes());
         }
         if let Some(ref apns_expiration) = payload.options.apns_expiration {
-            request
-                .headers_mut()
-                .set_raw("apns-expiration", format!("{}", apns_expiration));
+            builder.header("apns-expiration", format!("{}", apns_expiration).as_bytes());
         }
         if let Some(ref apns_collapse_id) = payload.options.apns_collapse_id {
-            request
-                .headers_mut()
-                .set_raw("apns-collapse-id", format!("{}", apns_collapse_id.value))
+            builder.header("apns-collapse-id", format!("{}", apns_collapse_id.value).as_bytes());
         }
-
         if let Some(ref apns_topic) = payload.options.apns_topic {
-            request
-                .headers_mut()
-                .set_raw("apns-topic", apns_topic.as_bytes());
+            builder.header("apns-topic", apns_topic.as_bytes());
         }
         if let Some(ref signer) = self.signer {
-            signer
-                .with_signature(|signature| {
-                    request.headers_mut().set(Authorization(Bearer {
-                        token: signature.to_owned(),
-                    }));
-                })
-                .unwrap();
+            signer.with_signature(|signature| {
+                builder.header(AUTHORIZATION, format!("Bearer {}", signature).as_bytes());
+            }).unwrap();
         }
 
-        let request_body = payload.to_json_string().unwrap();
-        request.set_body(request_body.into_bytes());
+        let request_body = Body::from(payload.to_json_string().unwrap());
+        let request = builder.body(request_body).unwrap();
 
         let request_f = self.http_client
             .request(request)
@@ -218,7 +209,7 @@ impl Service for Client {
             });
 
         trace!("Client::call requesting ({:?})", path);
-        let apns_f = request_f.and_then(move |response: HttpResponse| {
+        let apns_f = request_f.and_then(move |response| {
             let response_status = response.status().clone();
 
             trace!(
@@ -227,20 +218,20 @@ impl Service for Client {
                 path
             );
 
-            let apns_id = match response.headers().get_raw("apns-id").and_then(|h| h.one()) {
-                Some(apns_id) => String::from_utf8(apns_id.to_vec()).ok(),
-                None => None,
-            };
+            let apns_id = response.headers()
+                .get("apns-id")
+                .and_then(|s| s.to_str().ok())
+                .map(|s| String::from(s));
 
             response
-                .body()
+                .into_body()
                 .map_err(|e| {
                     trace!("Body error: {}", e);
                     Error::ConnectionError
                 })
                 .concat2()
                 .and_then(move |body_chunk| match response_status {
-                    StatusCode::Ok => ok(Response {
+                    StatusCode::OK => ok(Response {
                         apns_id: apns_id,
                         error: None,
                         code: response_status.as_u16(),
