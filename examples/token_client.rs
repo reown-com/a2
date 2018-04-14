@@ -1,7 +1,8 @@
 extern crate a2;
 extern crate argparse;
-extern crate tokio_core;
+extern crate tokio;
 extern crate pretty_env_logger;
+extern crate futures;
 
 use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
 use a2::client::Client;
@@ -9,7 +10,8 @@ use a2::client::Endpoint;
 use a2::request::notification::{NotificationBuilder, NotificationOptions,
                                 PlainNotificationBuilder};
 use std::fs::File;
-use tokio_core::reactor::Core;
+use futures::future::lazy;
+use futures::Future;
 
 // An example client connectiong to APNs with a JWT token
 fn main() {
@@ -59,16 +61,11 @@ fn main() {
         Endpoint::Production
     };
 
-    // The reactor core loop
-    let mut core = Core::new().unwrap();
-    let handle = core.handle();
-
     // Connecting to APNs
     let client = Client::token(
         &mut private_key,
         key_id.as_ref(),
         team_id.as_ref(),
-        &handle,
         endpoint,
     ).unwrap();
 
@@ -85,8 +82,14 @@ fn main() {
     let payload = builder.build(device_token.as_ref(), options);
 
     // Send the notification, parse response
-    match core.run(client.send(payload)) {
-        Ok(response) => println!("Sent: {:?}", response),
-        Err(error) => println!("Error: {:?}", error),
-    };
+    tokio::run(lazy(move || {
+        client
+            .send(payload)
+            .map(|response| {
+                println!("Sent: {:?}", response);
+            })
+            .map_err(|error| {
+                println!("Error: {:?}", error);
+            })
+    }));
 }

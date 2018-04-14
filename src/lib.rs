@@ -31,17 +31,17 @@
 //! ## Example sending a plain notification using token authentication:
 //!
 //! ```no_run
-//! extern crate tokio_core;
+//! extern crate tokio;
 //! extern crate a2;
+//! extern crate futures;
 //!
 //! use a2::request::notification::{PlainNotificationBuilder, NotificationBuilder};
 //! use a2::client::{Client, Endpoint};
 //! use std::fs::File;
+//! use futures::future::lazy;
+//! use futures::Future;
 //!
 //! fn main() {
-//!     let mut core = tokio_core::reactor::Core::new().unwrap();
-//!     let handle = core.handle();
-//!
 //!     let mut builder = PlainNotificationBuilder::new("Hi there");
 //!     builder.set_badge(420);
 //!     builder.set_category("cat1");
@@ -50,13 +50,18 @@
 //!
 //!     let mut file = File::open("/path/to/private_key.p8").unwrap();
 //!
-//!     let client = Client::token(&mut file, "KEY_ID", "TEAM_ID", &handle, Endpoint::Production).unwrap();
-//!     let work = client.send(payload);
+//!     let client = Client::token(&mut file, "KEY_ID", "TEAM_ID", Endpoint::Production).unwrap();
 //!
-//!     match core.run(work) {
-//!         Ok(response) => println!("Success: {:?}", response),
-//!         Err(error) => println!("Error: {:?}", error),
-//!     };
+//!     tokio::run(lazy(move || {
+//!         client
+//!             .send(payload)
+//!             .map(|response| {
+//!                 println!("Sent: {:?}", response);
+//!             })
+//!             .map_err(|error| {
+//!                 println!("Error: {:?}", error);
+//!            })
+//!     }));
 //! }
 //! ```
 //!
@@ -65,12 +70,15 @@
 //! ```no_run
 //! #[macro_use] extern crate serde_derive;
 //! extern crate serde;
-//! extern crate tokio_core;
+//! extern crate tokio;
 //! extern crate a2;
+//! extern crate futures;
 //!
 //! use a2::request::notification::{SilentNotificationBuilder, NotificationBuilder};
 //! use a2::client::{Client, Endpoint};
 //! use std::fs::File;
+//! use futures::future::lazy;
+//! use futures::Future;
 //!
 //! #[derive(Serialize, Debug)]
 //! struct CorporateData {
@@ -79,9 +87,6 @@
 //! }
 //!
 //! fn main() {
-//!     let mut core = tokio_core::reactor::Core::new().unwrap();
-//!     let handle = core.handle();
-//!
 //!     let tracking_data = CorporateData {
 //!         tracking_code: "999-212-UF-NSA",
 //!         is_paying_user: false,
@@ -97,17 +102,34 @@
 //!     let client = Client::certificate(
 //!         &mut file,
 //!         "Correct Horse Battery Stable",
-//!         &handle,
 //!         Endpoint::Production).unwrap();
 //!
-//!     let work = client.send(payload);
-//!
-//!     match core.run(work) {
-//!         Ok(response) => println!("Success: {:?}", response),
-//!         Err(error) => println!("Error: {:?}", error),
-//!     };
+//!     tokio::run(lazy(move || {
+//!         client
+//!             .send(payload)
+//!             .map(|response| {
+//!                 println!("Sent: {:?}", response);
+//!             })
+//!             .map_err(|error| {
+//!                 println!("Error: {:?}", error);
+//!            })
+//!     }));
 //! }
 //! ```
+
+#[macro_use]
+extern crate serde_derive;
+
+#[allow(unused_imports)]
+#[macro_use]
+extern crate serde_json;
+
+#[allow(unused_imports)]
+#[macro_use]
+extern crate indoc;
+
+#[macro_use]
+extern crate log;
 
 extern crate base64;
 extern crate chrono;
@@ -115,21 +137,12 @@ extern crate crossbeam;
 extern crate erased_serde;
 extern crate futures;
 extern crate hyper;
-#[allow(unused_imports)]
-#[macro_use]
-extern crate indoc;
-#[macro_use]
-extern crate log;
 extern crate openssl;
 extern crate rustls;
 extern crate serde;
-#[macro_use]
-extern crate serde_derive;
-#[allow(unused_imports)]
-#[macro_use]
-extern crate serde_json;
+extern crate http;
 extern crate time;
-extern crate tokio_core;
+extern crate tokio;
 extern crate tokio_io;
 extern crate tokio_rustls;
 extern crate tokio_service;
@@ -142,5 +155,4 @@ pub mod error;
 pub mod response;
 pub mod client;
 mod signer;
-mod stream;
 mod alpn;

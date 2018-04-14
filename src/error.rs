@@ -12,13 +12,25 @@ use response::{Response, ErrorBody};
 
 #[derive(Debug)]
 pub enum Error {
+    /// User request or Apple response JSON data was faulty.
     SerializeError,
+    /// A problem connecting to APNs servers.
     ConnectionError,
+    /// APNs couldn't response in a timely manner, if using
+    /// [send_with_timeout](/a2/client/struct.Client.html#method.send_with_timeout)
     TimeoutError,
+    /// Couldn't generate an APNs token with the given key.
     SignerError(String),
+    /// APNs couldn't accept the notification. Contains
+    /// [Response](/a2/response/struct.Response.html) with additional
+    /// information.
     ResponseError(Response),
+    /// Invalid option values given in
+    /// [NotificationOptions](/a2/request/notification/struct.NotificationOptions.html)
     InvalidOptions(String),
+    /// TLS connection failed
     TlsError(String),
+    /// Error reading the certificate or private key.
     ReadError(String),
 }
 
