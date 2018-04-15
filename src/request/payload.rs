@@ -21,6 +21,45 @@ pub struct Payload {
 
 impl Payload {
     /// Client-specific custom data to be added in the payload.
+    /// The `root_key` defines the JSON key in the root of the request
+    /// data, and `data` the object containing custom data. The `data`
+    /// should implement `Serialize`, which allows using of any Rust
+    /// collection or if needing more strict type definitions, any struct
+    /// that has `#[derive(Serialize)]` from [Serde](https://serde.rs).
+    ///
+    /// Using a `HashMap`:
+    ///
+    /// ```rust
+    /// # extern crate a2;
+    /// # extern crate serde;
+    /// # use a2::request::notification::{SilentNotificationBuilder, NotificationBuilder};
+    /// # use std::collections::HashMap;
+    /// # fn main() {
+    /// let mut payload = SilentNotificationBuilder::new().build("token", Default::default());
+    /// let mut custom_data = HashMap::new();
+    /// custom_data.insert("foo", "bar");
+    /// payload.add_custom_data("foo_data", &custom_data).unwrap();
+    /// # }
+    /// ```
+    ///
+    /// Using a custom struct:
+    ///
+    /// ```rust
+    /// # extern crate a2;
+    /// # extern crate serde;
+    /// # #[macro_use] extern crate serde_derive;
+    /// # use a2::request::notification::{SilentNotificationBuilder, NotificationBuilder};
+    /// # fn main() {
+    /// #[derive(Serialize)]
+    /// struct CompanyData {
+    ///     foo: &'static str,
+    /// }
+    ///
+    /// let mut payload = SilentNotificationBuilder::new().build("token", Default::default());
+    /// let mut custom_data = CompanyData { foo: "bar" };
+    /// payload.add_custom_data("foo_data", &custom_data).unwrap();
+    /// # }
+    /// ```
     pub fn add_custom_data<S: Into<String>>(
         &mut self,
         root_key: S,
