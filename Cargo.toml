@@ -29,7 +29,6 @@ tokio-timer = "0.1"
 http = "0.1"
 base64 = "0.9"
 time = "0.1"
-argparse = "*"
 webpki = "0.18.0-alpha"
 webpki-roots = "0.14"
 crossbeam = "0.3"
@@ -41,3 +40,6 @@ hyper = "0.12"
 [dependencies.chrono]
 version = "0.4"
 features = ["serde"]
+
+[dev-dependencies]
+argparse = "0.2"
