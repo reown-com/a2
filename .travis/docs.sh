@@ -39,10 +39,10 @@ ENCRYPTED_IV_VAR="encrypted_${ENCRYPTION_LABEL}_iv"
 ENCRYPTED_KEY=${!ENCRYPTED_KEY_VAR}
 ENCRYPTED_IV=${!ENCRYPTED_IV_VAR}
 
-openssl aes-256-cbc -K $ENCRYPTED_KEY -iv $ENCRYPTED_IV -in ../github_travis_ecdsa.enc -out github_travis_ecdsa -d
-chmod 600 github_travis_ecdsa
+openssl aes-256-cbc -K $ENCRYPTED_KEY -iv $ENCRYPTED_IV -in ../a2_travis.enc -out a2_travis -d
+chmod 600 a2_travis
 eval `ssh-agent -s`
-ssh-add github_travis_ecdsa
+ssh-add a2_travis
 
 echo
 echo "Pushing docs..."
