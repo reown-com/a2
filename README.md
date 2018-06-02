@@ -1,6 +1,8 @@
 # a2
 
 [![Travis Build Status](https://travis-ci.org/pimeys/a2.svg?branch=master)](https://travis-ci.org/pimeys/a2)
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![crates.io](http://meritbadge.herokuapp.com/a2)](https://crates.io/crates/a2)
 
 HTTP/2 Apple Push Notification Service for Rust using Tokio and async sending.
 
@@ -64,9 +66,6 @@ for production use:
   faulty device tokens and it might lead to `ConnectionError`s. Do not send more
   notifications with tokens that return `Unregistered`, `BadDeviceToken` or
   `DeviceTokenNotForTopic`.
-
-* Hyper, h2 and tokio are going through big changes, so expect the API of this
-  library to change before it gets released to https://crates.io
 
 ## Tests
 

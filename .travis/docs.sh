@@ -19,15 +19,15 @@ git config user.email "julius.debruijn@360dialog.com"
 if [ "$TRAVIS_TAG" = "" ]; then
     rm -rf master
     mv ../target/doc ./master
-    echo "<meta http-equiv=refresh content=0;url=apns2/index.html>" > ./master/index.html
+    echo "<meta http-equiv=refresh content=0;url=a2/index.html>" > ./master/index.html
 else
     rm -rf $TRAVIS_TAG
     mv ../target/doc ./$TRAVIS_TAG
-    echo "<meta http-equiv=refresh content=0;url=apns2/index.html>" > ./$TRAVIS_TAG/index.html
+    echo "<meta http-equiv=refresh content=0;url=a2/index.html>" > ./$TRAVIS_TAG/index.html
 
     latest=$(echo * | tr " " "\n" | sort -V -r | head -n1)
     if [ "$TRAVIS_TAG" = "$latest" ]; then
-        echo "<meta http-equiv=refresh content=0;url=$latest/apns2/index.html>" > index.html
+        echo "<meta http-equiv=refresh content=0;url=$latest/a2/index.html>" > index.html
     fi
 fi
 

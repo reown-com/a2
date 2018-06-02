@@ -15,7 +15,7 @@ script:
   - cargo test
 env:
   global:
-    - ENCRYPTION_LABEL: "79b734ed9875"
+    - ENCRYPTION_LABEL: "927b4e4f8874"
     - COMMIT_AUTHOR_EMAIL: "julius.debruijn@360dialog.com"
 
 after_success:
