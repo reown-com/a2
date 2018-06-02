@@ -165,7 +165,6 @@ mod signer;
 mod alpn;
 
 pub use request::{
-    payload::{Payload, APSAlert},
     notification::{
         NotificationBuilder,
         LocalizedNotificationBuilder,

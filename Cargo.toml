@@ -1,6 +1,6 @@
 [package]
 name = "a2"
-version = "0.2.2"
+version = "0.2.3"
 authors = [
   "Julius de Bruijn <julius.debruijn@360dialog.com>",
   "Sergey Tkachenko <seriy.tkachenko@gmail.com>", 
