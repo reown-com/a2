@@ -3,9 +3,13 @@
 [![Travis Build Status](https://travis-ci.org/pimeys/a2.svg?branch=master)](https://travis-ci.org/pimeys/a2)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![crates.io](http://meritbadge.herokuapp.com/a2)](https://crates.io/crates/a2)
-[![Master API docs](https://img.shields.io/badge/docs-master-green.svg)](https://pimeys.github.io/a2/master/)
 
 HTTP/2 Apple Push Notification Service for Rust using Tokio and async sending.
+
+## Documentation
+
+* [Released](https://pimeys.github.io/a2/)
+* [Master](https://pimeys.github.io/a2/master/)
 
 ## Features
 
