@@ -1,6 +1,6 @@
 [package]
 name = "a2"
-version = "0.2.0"
+version = "0.2.1"
 authors = [
   "Julius de Bruijn <julius.debruijn@360dialog.com>",
   "Sergey Tkachenko <seriy.tkachenko@gmail.com>", 
@@ -11,7 +11,7 @@ description = "A native, asynchronous Apple push notification client"
 keywords    = ["apns", "apple", "push", "async", "http2"]
 repository  = "https://github.com/pimeys/a2.git"
 homepage    = "https://github.com/pimeys/a2"
-documentation = "https://github.com/pimeys/a2"
+documentation = "https://pimeys.github.io/a2/"
 
 [dependencies]
 serde = "1.0"
