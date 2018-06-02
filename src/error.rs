@@ -17,16 +17,16 @@ pub enum Error {
     /// A problem connecting to APNs servers.
     ConnectionError,
     /// APNs couldn't response in a timely manner, if using
-    /// [send_with_timeout](/a2/client/struct.Client.html#method.send_with_timeout)
+    /// [send_with_timeout](client/struct.Client.html#method.send_with_timeout)
     TimeoutError,
     /// Couldn't generate an APNs token with the given key.
     SignerError(String),
     /// APNs couldn't accept the notification. Contains
-    /// [Response](/a2/response/struct.Response.html) with additional
+    /// [Response](response/struct.Response.html) with additional
     /// information.
     ResponseError(Response),
     /// Invalid option values given in
-    /// [NotificationOptions](/a2/request/notification/struct.NotificationOptions.html)
+    /// [NotificationOptions](request/notification/struct.NotificationOptions.html)
     InvalidOptions(String),
     /// TLS connection failed
     TlsError(String),

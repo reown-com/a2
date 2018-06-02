@@ -5,13 +5,18 @@ extern crate pretty_env_logger;
 extern crate futures;
 
 use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
-use a2::request::notification::{NotificationBuilder, NotificationOptions,
-                                PlainNotificationBuilder};
-use a2::client::Client;
-use a2::client::Endpoint;
 use std::fs::File;
-use futures::future::lazy;
-use futures::Future;
+use a2::{
+    NotificationBuilder,
+    NotificationOptions,
+    PlainNotificationBuilder,
+    Client,
+    Endpoint,
+};
+use futures::{
+    future::lazy,
+    Future,
+};
 
 // An example client connectiong to APNs with a certificate and key
 fn main() {

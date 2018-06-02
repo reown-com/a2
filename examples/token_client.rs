@@ -5,13 +5,21 @@ extern crate pretty_env_logger;
 extern crate futures;
 
 use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
-use a2::client::Client;
-use a2::client::Endpoint;
-use a2::request::notification::{NotificationBuilder, NotificationOptions,
-                                PlainNotificationBuilder};
+
+use a2::{
+    Client,
+    Endpoint,
+    NotificationBuilder,
+    NotificationOptions,
+    PlainNotificationBuilder,
+};
+
+use futures::{
+    future::lazy,
+    Future,
+};
+
 use std::fs::File;
-use futures::future::lazy;
-use futures::Future;
 
 // An example client connectiong to APNs with a JWT token
 fn main() {
