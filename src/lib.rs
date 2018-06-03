@@ -111,9 +111,10 @@
 //!         "Correct Horse Battery Stable",
 //!         Endpoint::Production).unwrap();
 //!
+//!     let sending = client.send(payload);
+//!
 //!     tokio::run(lazy(move || {
-//!         client
-//!             .send(payload)
+//!         sending
 //!             .map(|response| {
 //!                 println!("Sent: {:?}", response);
 //!             })

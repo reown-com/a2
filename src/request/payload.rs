@@ -2,24 +2,24 @@
 
 use request::notification::{LocalizedAlert, NotificationOptions};
 use error::Error;
-use serde_json::{self, Map, Value};
-use std::collections::HashMap;
+use serde_json::{self, Value};
+use std::collections::BTreeMap;
 use erased_serde::Serialize;
 
 /// The data and options for a push notification.
 #[derive(Debug, Clone)]
-pub struct Payload {
+pub struct Payload<'a> {
     /// Send options
-    pub options: NotificationOptions,
+    pub options: NotificationOptions<'a>,
     /// The token for the receiving device
-    pub device_token: String,
+    pub device_token: &'a str,
     /// The pre-defined notification payload
-    pub aps: APS,
+    pub aps: APS<'a>,
     /// Application specific payload
-    pub custom_data: Option<HashMap<String, Value>>,
+    pub data: BTreeMap<&'a str, Value>,
 }
 
-impl Payload {
+impl<'a> Payload<'a> {
     /// Client-specific custom data to be added in the payload.
     /// The `root_key` defines the JSON key in the root of the request
     /// data, and `data` the object containing custom data. The `data`
@@ -35,10 +35,17 @@ impl Payload {
     /// # use a2::request::notification::{SilentNotificationBuilder, NotificationBuilder};
     /// # use std::collections::HashMap;
     /// # fn main() {
-    /// let mut payload = SilentNotificationBuilder::new().build("token", Default::default());
+    /// let mut payload = SilentNotificationBuilder::new()
+    ///     .build("token", Default::default());
     /// let mut custom_data = HashMap::new();
+    ///
     /// custom_data.insert("foo", "bar");
     /// payload.add_custom_data("foo_data", &custom_data).unwrap();
+    ///
+    /// assert_eq!(
+    ///     "{\"aps\":{\"content-available\":1},\"foo_data\":{\"foo\":\"bar\"}}",
+    ///     &payload.to_json_string().unwrap()
+    /// );
     /// # }
     /// ```
     ///
@@ -57,49 +64,45 @@ impl Payload {
     ///
     /// let mut payload = SilentNotificationBuilder::new().build("token", Default::default());
     /// let mut custom_data = CompanyData { foo: "bar" };
+    ///
     /// payload.add_custom_data("foo_data", &custom_data).unwrap();
+    ///
+    /// assert_eq!(
+    ///     "{\"aps\":{\"content-available\":1},\"foo_data\":{\"foo\":\"bar\"}}",
+    ///     &payload.to_json_string().unwrap()
+    /// );
     /// # }
     /// ```
-    pub fn add_custom_data<S: Into<String>>(
+    pub fn add_custom_data(
         &mut self,
-        root_key: S,
+        root_key: &'a str,
         data: &Serialize,
-    ) -> Result<(), Error> {
-        if let Some(ref mut map) = self.custom_data {
-            map.insert(root_key.into(), serde_json::to_value(data)?);
-        } else {
-            let mut map = HashMap::new();
-            map.insert(root_key.into(), serde_json::to_value(data)?);
-            self.custom_data = Some(map);
-        }
+    ) -> Result<&mut Self, Error>
+    where
+    {
+        self.data.insert(root_key, serde_json::to_value(data)?);
 
-        Ok(())
+        Ok(self)
     }
 
     /// Combine the APS payload and the custom data to a final payload JSON.
     /// Returns an error if serialization fails.
-    pub fn to_json_string(&self) -> Result<String, Error> {
-        let mut payload = Map::new();
+    pub fn to_json_string(mut self) -> Result<String, Error> {
+        let aps_data = serde_json::to_value(&self.aps)?;
 
-        if let Some(ref data) = self.custom_data {
-            for (key, value) in data {
-                payload.insert(key.clone(), value.clone());
-            }
-        }
+        self.data.insert("aps", aps_data);
 
-        payload.insert(String::from("aps"), serde_json::to_value(&self.aps)?);
-
-        Ok(serde_json::to_string(&payload)?)
+        Ok(serde_json::to_string(&self.data)?)
     }
 }
 
 /// The pre-defined notification data.
 #[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "kebab-case")]
-pub struct APS {
+pub struct APS<'a> {
     /// The notification content. Can be empty for silent notifications.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub alert: Option<APSAlert>,
+    pub alert: Option<APSAlert<'a>>,
 
     /// A number shown on top of the app icon.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -107,7 +110,7 @@ pub struct APS {
 
     /// The name of the sound file to play when user receives the notification.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub sound: Option<String>,
+    pub sound: Option<&'a str>,
 
     /// Set to one for silent notifications.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -116,7 +119,7 @@ pub struct APS {
     /// When a notification includes the category key, the system displays the
     /// actions for that category as buttons in the banner or alert interface.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub category: Option<String>,
+    pub category: Option<&'a str>,
 
     /// If set to one, the app can change the notification content before
     /// displaying it to the user.
@@ -127,9 +130,9 @@ pub struct APS {
 /// Different notification content types.
 #[derive(Serialize, Debug, Clone)]
 #[serde(untagged)]
-pub enum APSAlert {
+pub enum APSAlert<'a> {
     /// Text-only notification.
-    Plain(String),
+    Plain(&'a str),
     /// A rich localized notification.
-    Localized(LocalizedAlert),
+    Localized(LocalizedAlert<'a>),
 }

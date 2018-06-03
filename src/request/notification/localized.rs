@@ -1,23 +1,34 @@
 use request::notification::{NotificationBuilder, NotificationOptions};
 use request::payload::{APSAlert, Payload, APS};
 
+use std::{
+    collections::BTreeMap,
+    borrow::Cow,
+};
+
 #[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "kebab-case")]
-pub struct LocalizedAlert {
-    title: String,
-    body: String,
+pub struct LocalizedAlert<'a> {
+    title: &'a str,
+    body: &'a str,
 
-    #[serde(skip_serializing_if = "Option::is_none")] title_loc_key: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    title_loc_key: Option<&'a str>,
 
-    #[serde(skip_serializing_if = "Option::is_none")] title_loc_args: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    title_loc_args: Option<Vec<Cow<'a, str>>>,
 
-    #[serde(skip_serializing_if = "Option::is_none")] action_loc_key: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    action_loc_key: Option<&'a str>,
 
-    #[serde(skip_serializing_if = "Option::is_none")] loc_key: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    loc_key: Option<&'a str>,
 
-    #[serde(skip_serializing_if = "Option::is_none")] loc_args: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    loc_args: Option<Vec<Cow<'a, str>>>,
 
-    #[serde(skip_serializing_if = "Option::is_none")] launch_image: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    launch_image: Option<&'a str>,
 }
 
 /// A builder to create a localized APNs payload.
@@ -35,32 +46,33 @@ pub struct LocalizedAlert {
 /// builder.set_mutable_content();
 /// builder.set_action_loc_key("PLAY");
 /// builder.set_launch_image("foo.jpg");
-/// builder.set_loc_args(vec!["argh", "narf"]);
+/// builder.set_loc_args(&["argh", "narf"]);
 /// builder.set_title_loc_key("STOP");
-/// builder.set_title_loc_args(vec!["herp", "derp"]);
+/// builder.set_title_loc_args(&["herp", "derp"]);
 /// builder.set_loc_key("PAUSE");
-/// builder.set_loc_args(vec!["narf", "derp"]);
+/// builder.set_loc_args(&["narf", "derp"]);
 /// let payload = builder.build("device_id", Default::default())
 ///   .to_json_string().unwrap();
 /// # }
 /// ```
-pub struct LocalizedNotificationBuilder {
-    alert: LocalizedAlert,
+pub struct LocalizedNotificationBuilder<'a> {
+    alert: LocalizedAlert<'a>,
     badge: Option<u32>,
-    sound: Option<String>,
-    category: Option<String>,
+    sound: Option<&'a str>,
+    category: Option<&'a str>,
     mutable_content: u8,
 }
 
-impl LocalizedNotificationBuilder {
-    pub fn new<S>(title: S, body: S) -> LocalizedNotificationBuilder
-    where
-        S: Into<String>,
+impl<'a> LocalizedNotificationBuilder<'a> {
+    pub fn new(
+        title: &'a str,
+        body: &'a str
+    ) -> LocalizedNotificationBuilder<'a>
     {
         LocalizedNotificationBuilder {
             alert: LocalizedAlert {
-                title: title.into(),
-                body: body.into(),
+                title: title,
+                body: body,
                 title_loc_key: None,
                 title_loc_args: None,
                 action_loc_key: None,
@@ -76,85 +88,99 @@ impl LocalizedNotificationBuilder {
     }
 
     /// A number to show on a badge on top of the app icon.
-    pub fn set_badge(&mut self, badge: u32) {
+    pub fn set_badge(&mut self, badge: u32) -> &mut Self
+    {
         self.badge = Some(badge);
+        self
     }
 
     /// File name of the custom sound to play when receiving the notification.
-    pub fn set_sound<S>(&mut self, sound: S)
-    where
-        S: Into<String>,
+    pub fn set_sound(&mut self, sound: &'a str) -> &mut Self
     {
-        self.sound = Some(sound.into());
+        self.sound = Some(sound);
+        self
     }
 
     /// When a notification includes the category key, the system displays the
     /// actions for that category as buttons in the banner or alert interface.
-    pub fn set_category<S>(&mut self, category: S)
-    where
-        S: Into<String>,
+    pub fn set_category(&mut self, category: &'a str) -> &mut Self
     {
         self.category = Some(category.into());
+        self
     }
 
     /// The localization key for the notification title.
-    pub fn set_title_loc_key<S>(&mut self, key: S)
-    where
-        S: Into<String>,
+    pub fn set_title_loc_key(&mut self, key: &'a str) -> &mut Self
     {
-        self.alert.title_loc_key = Some(key.into());
+        self.alert.title_loc_key = Some(key);
+        self
     }
 
     /// Arguments for the title localization.
-    pub fn set_title_loc_args<S>(&mut self, args: Vec<S>)
+    pub fn set_title_loc_args<S>(
+        &mut self,
+        args: &'a [S]
+    ) -> &mut Self
     where
-        S: Into<String>,
+        S: Into<Cow<'a, str>> + AsRef<str>
     {
-        self.alert.title_loc_args = Some(args.into_iter().map(|a| a.into()).collect());
+        let converted = args
+            .iter()
+            .map(|a| a.as_ref().into())
+            .collect();
+
+        self.alert.title_loc_args = Some(converted);
+        self
     }
 
     /// The localization key for the action.
-    pub fn set_action_loc_key<S>(&mut self, key: S)
-    where
-        S: Into<String>,
+    pub fn set_action_loc_key(&mut self, key: &'a str) -> &mut Self
     {
-        self.alert.action_loc_key = Some(key.into());
+        self.alert.action_loc_key = Some(key);
+        self
     }
 
     /// The localization key for the push message body.
-    pub fn set_loc_key<S>(&mut self, key: S)
-    where
-        S: Into<String>,
+    pub fn set_loc_key(&mut self, key: &'a str) -> &mut Self
     {
-        self.alert.loc_key = Some(key.into());
+        self.alert.loc_key = Some(key);
+        self
     }
 
     /// Arguments for the content localization.
-    pub fn set_loc_args<S>(&mut self, args: Vec<S>)
+    pub fn set_loc_args<S>(
+        &mut self,
+        args: &'a [S]
+    ) -> &mut Self
     where
-        S: Into<String>,
+        S: Into<Cow<'a, str>> + AsRef<str>
     {
-        self.alert.loc_args = Some(args.into_iter().map(|a| a.into()).collect());
+        let converted = args
+            .iter()
+            .map(|a| a.as_ref().into())
+            .collect();
+
+        self.alert.loc_args = Some(converted);
+        self
     }
 
     /// Image to display in the rich notification.
-    pub fn set_launch_image<S>(&mut self, image: S)
-    where
-        S: Into<String>,
+    pub fn set_launch_image(&mut self, image: &'a str) -> &mut Self
     {
-        self.alert.launch_image = Some(image.into());
+        self.alert.launch_image = Some(image);
+        self
     }
 
     /// Allow client to modify push content before displaying.
-    pub fn set_mutable_content(&mut self) {
+    pub fn set_mutable_content(&mut self) -> &mut Self
+    {
         self.mutable_content = 1;
+        self
     }
 }
 
-impl NotificationBuilder for LocalizedNotificationBuilder {
-    fn build<S>(self, device_token: S, options: NotificationOptions) -> Payload
-    where
-        S: Into<String>,
+impl<'a> NotificationBuilder<'a> for LocalizedNotificationBuilder<'a> {
+    fn build(self, device_token: &'a str, options: NotificationOptions<'a>) -> Payload<'a>
     {
         Payload {
             aps: APS {
@@ -165,9 +191,9 @@ impl NotificationBuilder for LocalizedNotificationBuilder {
                 category: self.category,
                 mutable_content: Some(self.mutable_content),
             },
-            device_token: device_token.into(),
+            device_token: device_token,
             options: options,
-            custom_data: None,
+            data: BTreeMap::new(),
         }
     }
 }
@@ -206,11 +232,11 @@ mod tests {
         builder.set_mutable_content();
         builder.set_action_loc_key("PLAY");
         builder.set_launch_image("foo.jpg");
-        builder.set_loc_args(vec!["argh", "narf"]);
+        builder.set_loc_args(&["argh", "narf"]);
         builder.set_title_loc_key("STOP");
-        builder.set_title_loc_args(vec!["herp", "derp"]);
+        builder.set_title_loc_args(&["herp", "derp"]);
         builder.set_loc_key("PAUSE");
-        builder.set_loc_args(vec!["narf", "derp"]);
+        builder.set_loc_args(&["narf", "derp"]);
 
         let payload = builder
             .build("device-token", Default::default())
@@ -267,13 +293,6 @@ mod tests {
         payload.add_custom_data("custom", &test_data).unwrap();
 
         let expected_payload = json!({
-            "aps": {
-                "alert": {
-                    "title": "the title",
-                    "body": "the body",
-                },
-                "mutable-content": 0
-            },
             "custom": {
                 "key_str": "foo",
                 "key_num": 42,
@@ -281,7 +300,14 @@ mod tests {
                 "key_struct": {
                     "nothing": "here"
                 }
-            }
+            },
+            "aps": {
+                "alert": {
+                    "title": "the title",
+                    "body": "the body",
+                },
+                "mutable-content": 0
+            },
         }).to_string();
 
         assert_eq!(expected_payload, payload.to_json_string().unwrap());
