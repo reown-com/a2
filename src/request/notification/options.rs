@@ -2,31 +2,30 @@ use error::Error;
 use std::fmt;
 
 #[derive(Debug, Clone)]
-pub struct CollapseId {
-    pub value: String,
+pub struct CollapseId<'a> {
+    pub value: &'a str,
 }
 
 /// A collapse-id container. Will not allow bigger id's than 64 bytes.
-impl CollapseId {
-    pub fn new<S: Into<String>>(value: S) -> Result<CollapseId, Error> {
-        let s = value.into();
-        if s.len() > 64 {
+impl<'a> CollapseId<'a> {
+    pub fn new(value: &'a str) -> Result<CollapseId<'a>, Error> {
+        if value.len() > 64 {
             Err(Error::InvalidOptions(String::from(
                 "The collapse-id is too big. Maximum 64 bytes.",
             )))
         } else {
-            Ok(CollapseId { value: s })
+            Ok(CollapseId { value: value })
         }
     }
 }
 
 /// Headers to specify options to the notification.
 #[derive(Debug, Clone)]
-pub struct NotificationOptions {
+pub struct NotificationOptions<'a> {
     /// A canonical UUID that identifies the notification. If there is an error
     /// sending the notification, APNs uses this value to identify the
     /// notification to your server.
-    pub apns_id: Option<String>,
+    pub apns_id: Option<&'a str>,
 
     /// A UNIX epoch date expressed in seconds (UTC). This header identifies the
     /// date when the notification is no longer valid and can be discarded.
@@ -55,16 +54,16 @@ pub struct NotificationOptions {
     /// If you are using a provider token instead of a certificate, you must
     /// specify a value for this request header. The topic you provide should be
     /// provisioned for the your team named in your developer account.
-    pub apns_topic: Option<String>,
+    pub apns_topic: Option<&'a str>,
 
     /// Multiple notifications with the same collapse identifier are displayed to the
     /// user as a single notification. The value of this key must not exceed 64
     /// bytes.
-    pub apns_collapse_id: Option<CollapseId>,
+    pub apns_collapse_id: Option<CollapseId<'a>>,
 }
 
-impl Default for NotificationOptions {
-    fn default() -> NotificationOptions {
+impl<'a> Default for NotificationOptions<'a> {
+    fn default() -> NotificationOptions<'a> {
         NotificationOptions {
             apns_id: None,
             apns_expiration: None,
@@ -109,7 +108,7 @@ mod tests {
     #[test]
     fn test_collapse_id_under_64_chars() {
         let collapse_id = CollapseId::new("foo").unwrap();
-        assert_eq!(String::from("foo"), collapse_id.value);
+        assert_eq!("foo", collapse_id.value);
     }
 
     #[test]

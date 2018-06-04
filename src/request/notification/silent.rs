@@ -1,5 +1,6 @@
 use request::notification::{NotificationBuilder, NotificationOptions};
 use request::payload::{Payload, APS};
+use std::collections::BTreeMap;
 
 /// A builder to create an APNs silent notification payload which can be used to
 /// send custom data to the user's phone if the user hasn't been running the app
@@ -35,10 +36,8 @@ impl SilentNotificationBuilder {
     }
 }
 
-impl NotificationBuilder for SilentNotificationBuilder {
-    fn build<S>(self, device_token: S, options: NotificationOptions) -> Payload
-    where
-        S: Into<String>,
+impl<'a> NotificationBuilder<'a> for SilentNotificationBuilder {
+    fn build(self, device_token: &'a str, options: NotificationOptions<'a>) -> Payload<'a>
     {
         Payload {
             aps: APS {
@@ -49,9 +48,9 @@ impl NotificationBuilder for SilentNotificationBuilder {
                 category: None,
                 mutable_content: None,
             },
-            device_token: device_token.into(),
+            device_token: device_token,
             options: options,
-            custom_data: None,
+            data: BTreeMap::new(),
         }
     }
 }
@@ -59,7 +58,7 @@ impl NotificationBuilder for SilentNotificationBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::HashMap;
+    use std::collections::BTreeMap;
 
     #[test]
     fn test_silent_notification_with_no_content() {
@@ -123,7 +122,7 @@ mod tests {
 
     #[test]
     fn test_silent_notification_with_custom_hashmap() {
-        let mut test_data = HashMap::new();
+        let mut test_data = BTreeMap::new();
         test_data.insert("key_str", "foo");
         test_data.insert("key_str2", "bar");
 

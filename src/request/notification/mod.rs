@@ -12,7 +12,7 @@ pub use self::options::{CollapseId, NotificationOptions, Priority};
 
 use request::payload::Payload;
 
-pub trait NotificationBuilder {
+pub trait NotificationBuilder<'a> {
     /// Generates the request payload to be send with the `Client`.
-    fn build<S: Into<String>>(self, device_token: S, options: NotificationOptions) -> Payload;
+    fn build(self, device_token: &'a str, options: NotificationOptions<'a>) -> Payload<'a>;
 }

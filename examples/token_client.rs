@@ -78,21 +78,21 @@ fn main() {
     ).unwrap();
 
     let options = NotificationOptions {
-        apns_topic: topic,
+        apns_topic: topic.as_ref().map(|s| &**s),
         ..Default::default()
     };
 
     // Notification payload
-    let mut builder = PlainNotificationBuilder::new(message);
+    let mut builder = PlainNotificationBuilder::new(message.as_ref());
     builder.set_sound("default");
     builder.set_badge(1u32);
 
     let payload = builder.build(device_token.as_ref(), options);
+    let sending = client.send(payload);
 
     // Send the notification, parse response
     tokio::run(lazy(move || {
-        client
-            .send(payload)
+        sending
             .map(|response| {
                 println!("Sent: {:?}", response);
             })

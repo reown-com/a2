@@ -111,9 +111,10 @@
 //!         "Correct Horse Battery Stable",
 //!         Endpoint::Production).unwrap();
 //!
+//!     let sending = client.send(payload);
+//!
 //!     tokio::run(lazy(move || {
-//!         client
-//!             .send(payload)
+//!         sending
 //!             .map(|response| {
 //!                 println!("Sent: {:?}", response);
 //!             })
@@ -152,7 +153,6 @@ extern crate time;
 extern crate tokio;
 extern crate tokio_io;
 extern crate tokio_rustls;
-extern crate tokio_service;
 extern crate tokio_timer;
 extern crate webpki;
 extern crate webpki_roots;

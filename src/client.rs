@@ -19,7 +19,6 @@ use response::Response;
 use serde_json;
 use std::{fmt, str};
 use std::time::Duration;
-use tokio_service::Service;
 use openssl::pkcs12::Pkcs12;
 use std::io::Read;
 use tokio_timer::{Timeout, Timer};
@@ -126,83 +125,8 @@ impl Client {
     /// Send a notification payload. Returns a future that needs to be given to
     /// an executor.
     #[inline]
-    pub fn send(&self, payload: Payload) -> FutureResponse {
-        self.call(payload)
-    }
-
-    /// Sends a notification with a timeout. Triggers `Error::TimeoutError` if the request takes too long.
-    #[inline]
-    pub fn send_with_timeout(
-        &self,
-        message: Payload,
-        timeout: Duration,
-    ) -> Timeout<FutureResponse> {
-        self.timer.timeout(self.send(message), timeout)
-    }
-
-    fn build_request(&self, payload: &Payload) -> HttpRequest<Body> {
-        let path = format!(
-            "https://{}/3/device/{}",
-            self.endpoint, payload.device_token
-        );
-        let payload_json = payload.to_json_string().unwrap();
-
-        let mut builder = HttpRequest::builder();
-
-        builder.uri(&path);
-        builder.method("POST");
-        builder.header(CONTENT_TYPE, "application/json");
-        builder.header(CONTENT_LENGTH, format!("{}", payload_json.len()).as_bytes());
-        builder.header("apns-priority", format!("{}", payload.options.apns_priority).as_bytes());
-
-        if let Some(ref apns_id) = payload.options.apns_id {
-            builder.header("apns-id", apns_id.as_bytes());
-        }
-        if let Some(ref apns_expiration) = payload.options.apns_expiration {
-            builder.header("apns-expiration", format!("{}", apns_expiration).as_bytes());
-        }
-        if let Some(ref apns_collapse_id) = payload.options.apns_collapse_id {
-            builder.header("apns-collapse-id", format!("{}", apns_collapse_id.value).as_bytes());
-        }
-        if let Some(ref apns_topic) = payload.options.apns_topic {
-            builder.header("apns-topic", apns_topic.as_bytes());
-        }
-        if let Some(ref signer) = self.signer {
-            signer.with_signature(|signature| {
-                builder.header(AUTHORIZATION, format!("Bearer {}", signature).as_bytes());
-            }).unwrap();
-        }
-
-        let request_body = Body::from(payload.to_json_string().unwrap());
-        builder.body(request_body).unwrap()
-    }
-}
-
-pub struct FutureResponse(Box<Future<Item = Response, Error = Error> + Send + 'static>);
-
-impl fmt::Debug for FutureResponse {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.pad("Future<Response>")
-    }
-}
-
-impl Future for FutureResponse {
-    type Item = Response;
-    type Error = Error;
-
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        self.0.poll()
-    }
-}
-
-impl Service for Client {
-    type Request = Payload;
-    type Response = Response;
-    type Error = Error;
-    type Future = FutureResponse;
-
-    fn call(&self, payload: Self::Request) -> Self::Future {
-        let request = self.build_request(&payload);
+    pub fn send<'a>(&self, payload: Payload<'a>) -> FutureResponse {
+        let request = self.build_request(payload);
         let path = format!("{}", request.uri());
 
         let send_request = self.http_client
@@ -235,11 +159,12 @@ impl Service for Client {
                 })
                 .concat2()
                 .and_then(move |body_chunk| match response_status {
-                    StatusCode::OK => ok(Response {
-                        apns_id: apns_id,
-                        error: None,
-                        code: response_status.as_u16(),
-                    }),
+                    StatusCode::OK =>
+                        ok(Response {
+                            apns_id: apns_id,
+                            error: None,
+                            code: response_status.as_u16(),
+                        }),
                     _ => {
                         if let Ok(body) = str::from_utf8(&body_chunk.to_vec()) {
                             err(ResponseError(Response {
@@ -259,6 +184,72 @@ impl Service for Client {
         });
 
         FutureResponse(Box::new(send_request_and_parse_response))
+    }
+
+    /// Sends a notification with a timeout. Triggers `Error::TimeoutError` if
+    /// the request takes too long.
+    #[inline]
+    pub fn send_with_timeout<'a>(
+        &self,
+        message: Payload<'a>,
+        timeout: Duration,
+    ) -> Timeout<FutureResponse> {
+        self.timer.timeout(self.send(message), timeout)
+    }
+
+    fn build_request(&self, payload: Payload) -> HttpRequest<Body> {
+        let path = format!(
+            "https://{}/3/device/{}",
+            self.endpoint, payload.device_token
+        );
+
+        let mut builder = HttpRequest::builder();
+
+        builder.uri(&path);
+        builder.method("POST");
+        builder.header(CONTENT_TYPE, "application/json");
+        builder.header("apns-priority", format!("{}", payload.options.apns_priority).as_bytes());
+
+        if let Some(ref apns_id) = payload.options.apns_id {
+            builder.header("apns-id", apns_id.as_bytes());
+        }
+        if let Some(ref apns_expiration) = payload.options.apns_expiration {
+            builder.header("apns-expiration", format!("{}", apns_expiration).as_bytes());
+        }
+        if let Some(ref apns_collapse_id) = payload.options.apns_collapse_id {
+            builder.header("apns-collapse-id", format!("{}", apns_collapse_id.value).as_bytes());
+        }
+        if let Some(ref apns_topic) = payload.options.apns_topic {
+            builder.header("apns-topic", apns_topic.as_bytes());
+        }
+        if let Some(ref signer) = self.signer {
+            signer.with_signature(|signature| {
+                builder.header(AUTHORIZATION, format!("Bearer {}", signature).as_bytes());
+            }).unwrap();
+        }
+
+        let payload_json = payload.to_json_string().unwrap();
+        builder.header(CONTENT_LENGTH, format!("{}", payload_json.len()).as_bytes());
+
+        let request_body = Body::from(payload_json);
+        builder.body(request_body).unwrap()
+    }
+}
+
+pub struct FutureResponse(Box<Future<Item = Response, Error = Error> + Send + 'static>);
+
+impl fmt::Debug for FutureResponse {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.pad("Future<Response>")
+    }
+}
+
+impl Future for FutureResponse {
+    type Item = Response;
+    type Error = Error;
+
+    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
+        self.0.poll()
     }
 }
 
@@ -286,7 +277,7 @@ mod tests {
         let builder = PlainNotificationBuilder::new("test");
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(&payload);
+        let request = client.build_request(payload);
         let uri = format!("{}", request.uri());
 
         assert_eq!("https://api.push.apple.com/3/device/a_test_id", &uri);
@@ -297,7 +288,7 @@ mod tests {
         let builder = PlainNotificationBuilder::new("test");
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Sandbox);
-        let request = client.build_request(&payload);
+        let request = client.build_request(payload);
         let uri = format!("{}", request.uri());
 
         assert_eq!("https://api.development.push.apple.com/3/device/a_test_id", &uri);
@@ -308,7 +299,7 @@ mod tests {
         let builder = PlainNotificationBuilder::new("test");
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(&payload);
+        let request = client.build_request(payload);
 
         assert_eq!(&Method::POST, request.method());
     }
@@ -318,7 +309,7 @@ mod tests {
         let builder = PlainNotificationBuilder::new("test");
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(&payload);
+        let request = client.build_request(payload);
 
         assert_eq!("application/json", request.headers().get(CONTENT_TYPE).unwrap());
     }
@@ -328,7 +319,7 @@ mod tests {
         let builder = PlainNotificationBuilder::new("test");
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(&payload);
+        let request = client.build_request(payload.clone());
         let payload_json = payload.to_json_string().unwrap();
         let content_length = request.headers().get(CONTENT_LENGTH).unwrap().to_str().unwrap();
 
@@ -343,7 +334,7 @@ mod tests {
         let builder = PlainNotificationBuilder::new("test");
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(&payload);
+        let request = client.build_request(payload);
 
         assert_eq!(None, request.headers().get(AUTHORIZATION));
     }
@@ -354,7 +345,7 @@ mod tests {
         let builder = PlainNotificationBuilder::new("test");
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), Some(signer), Endpoint::Production);
-        let request = client.build_request(&payload);
+        let request = client.build_request(payload);
 
         assert_ne!(None, request.headers().get(AUTHORIZATION));
     }
@@ -364,7 +355,7 @@ mod tests {
         let builder = PlainNotificationBuilder::new("test");
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(&payload);
+        let request = client.build_request(payload);
         let apns_priority = request.headers().get("apns-priority").unwrap();
 
         assert_eq!("5", apns_priority);
@@ -383,7 +374,7 @@ mod tests {
         );
 
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(&payload);
+        let request = client.build_request(payload);
         let apns_priority = request.headers().get("apns-priority").unwrap();
 
         assert_eq!("10", apns_priority);
@@ -399,7 +390,7 @@ mod tests {
         );
 
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(&payload);
+        let request = client.build_request(payload);
         let apns_id = request.headers().get("apns-id");
 
         assert_eq!(None, apns_id);
@@ -412,13 +403,13 @@ mod tests {
         let payload = builder.build(
             "a_test_id",
             NotificationOptions {
-                apns_id: Some("a-test-apns-id".to_string()),
+                apns_id: Some("a-test-apns-id"),
                 ..Default::default()
             },
         );
 
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(&payload);
+        let request = client.build_request(payload);
         let apns_id = request.headers().get("apns-id").unwrap();
 
         assert_eq!("a-test-apns-id", apns_id);
@@ -434,7 +425,7 @@ mod tests {
         );
 
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(&payload);
+        let request = client.build_request(payload);
         let apns_expiration = request.headers().get("apns-expiration");
 
         assert_eq!(None, apns_expiration);
@@ -453,7 +444,7 @@ mod tests {
         );
 
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(&payload);
+        let request = client.build_request(payload);
         let apns_expiration = request.headers().get("apns-expiration").unwrap();
 
         assert_eq!("420", apns_expiration);
@@ -469,7 +460,7 @@ mod tests {
         );
 
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(&payload);
+        let request = client.build_request(payload);
         let apns_collapse_id = request.headers().get("apns-collapse-id");
 
         assert_eq!(None, apns_collapse_id);
@@ -488,7 +479,7 @@ mod tests {
         );
 
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(&payload);
+        let request = client.build_request(payload);
         let apns_collapse_id = request.headers().get("apns-collapse-id").unwrap();
 
         assert_eq!("a_collapse_id", apns_collapse_id);
@@ -504,7 +495,7 @@ mod tests {
         );
 
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(&payload);
+        let request = client.build_request(payload);
         let apns_topic = request.headers().get("apns-topic");
 
         assert_eq!(None, apns_topic);
@@ -517,13 +508,13 @@ mod tests {
         let payload = builder.build(
             "a_test_id",
             NotificationOptions {
-                apns_topic: Some(String::from("a_topic")),
+                apns_topic: Some("a_topic"),
                 ..Default::default()
             },
         );
 
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(&payload);
+        let request = client.build_request(payload);
         let apns_topic = request.headers().get("apns-topic").unwrap();
 
         assert_eq!("a_topic", apns_topic);
@@ -534,7 +525,7 @@ mod tests {
         let builder = PlainNotificationBuilder::new("test");
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(&payload);
+        let request = client.build_request(payload.clone());
         let body_chunk = request.into_body().concat2().wait().unwrap();
         let body_str = String::from_utf8(body_chunk.to_vec()).unwrap();
 
