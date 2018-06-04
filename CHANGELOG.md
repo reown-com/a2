@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.1
+
+- Bunch of examples to the builder documentation
+
 ## v0.3.0
 
 - Convert the API to not clone the input data, using references until
