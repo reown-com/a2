@@ -26,6 +26,22 @@ pub struct PlainNotificationBuilder<'a> {
 }
 
 impl<'a> PlainNotificationBuilder<'a> {
+    /// Creates a new builder with the minimum amount of content.
+    ///
+    /// ```rust
+    /// # extern crate a2;
+    /// # extern crate serde;
+    /// # use a2::request::notification::{PlainNotificationBuilder, NotificationBuilder};
+    /// # fn main() {
+    /// let payload = PlainNotificationBuilder::new("a body")
+    ///     .build("token", Default::default());
+    ///
+    /// assert_eq!(
+    ///     "{\"aps\":{\"alert\":\"a body\"}}",
+    ///     &payload.to_json_string().unwrap()
+    /// );
+    /// # }
+    /// ```
     pub fn new(body: &'a str) -> PlainNotificationBuilder<'a>
     {
         PlainNotificationBuilder {
@@ -37,6 +53,22 @@ impl<'a> PlainNotificationBuilder<'a> {
     }
 
     /// A number to show on a badge on top of the app icon.
+    ///
+    /// ```rust
+    /// # extern crate a2;
+    /// # extern crate serde;
+    /// # use a2::request::notification::{PlainNotificationBuilder, NotificationBuilder};
+    /// # fn main() {
+    /// let mut builder = PlainNotificationBuilder::new("a body");
+    /// builder.set_badge(4);
+    /// let payload = builder.build("token", Default::default());
+    ///
+    /// assert_eq!(
+    ///     "{\"aps\":{\"alert\":\"a body\",\"badge\":4}}",
+    ///     &payload.to_json_string().unwrap()
+    /// );
+    /// # }
+    /// ```
     pub fn set_badge(&mut self, badge: u32) -> &mut Self
     {
         self.badge = Some(badge);
@@ -44,6 +76,22 @@ impl<'a> PlainNotificationBuilder<'a> {
     }
 
     /// File name of the custom sound to play when receiving the notification.
+    ///
+    /// ```rust
+    /// # extern crate a2;
+    /// # extern crate serde;
+    /// # use a2::request::notification::{PlainNotificationBuilder, NotificationBuilder};
+    /// # fn main() {
+    /// let mut builder = PlainNotificationBuilder::new("a body");
+    /// builder.set_sound("meow");
+    /// let payload = builder.build("token", Default::default());
+    ///
+    /// assert_eq!(
+    ///     "{\"aps\":{\"alert\":\"a body\",\"sound\":\"meow\"}}",
+    ///     &payload.to_json_string().unwrap()
+    /// );
+    /// # }
+    /// ```
     pub fn set_sound(&mut self, sound: &'a str) -> &mut Self
     {
         self.sound = Some(sound.into());
@@ -52,6 +100,22 @@ impl<'a> PlainNotificationBuilder<'a> {
 
     /// When a notification includes the category key, the system displays the
     /// actions for that category as buttons in the banner or alert interface.
+    ///
+    /// ```rust
+    /// # extern crate a2;
+    /// # extern crate serde;
+    /// # use a2::request::notification::{PlainNotificationBuilder, NotificationBuilder};
+    /// # fn main() {
+    /// let mut builder = PlainNotificationBuilder::new("a body");
+    /// builder.set_category("cat1");
+    /// let payload = builder.build("token", Default::default());
+    ///
+    /// assert_eq!(
+    ///     "{\"aps\":{\"alert\":\"a body\",\"category\":\"cat1\"}}",
+    ///     &payload.to_json_string().unwrap()
+    /// );
+    /// # }
+    /// ```
     pub fn set_category(&mut self, category: &'a str) -> &mut Self
     {
         self.category = Some(category);

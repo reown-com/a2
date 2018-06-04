@@ -64,6 +64,22 @@ pub struct LocalizedNotificationBuilder<'a> {
 }
 
 impl<'a> LocalizedNotificationBuilder<'a> {
+    /// Creates a new builder with the minimum amount of content.
+    ///
+    /// ```rust
+    /// # extern crate a2;
+    /// # extern crate serde;
+    /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
+    /// # fn main() {
+    /// let payload = LocalizedNotificationBuilder::new("a title", "a body")
+    ///     .build("token", Default::default());
+    ///
+    /// assert_eq!(
+    ///     "{\"aps\":{\"alert\":{\"body\":\"a body\",\"title\":\"a title\"},\"mutable-content\":0}}",
+    ///     &payload.to_json_string().unwrap()
+    /// );
+    /// # }
+    /// ```
     pub fn new(
         title: &'a str,
         body: &'a str
@@ -88,6 +104,22 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     }
 
     /// A number to show on a badge on top of the app icon.
+    ///
+    /// ```rust
+    /// # extern crate a2;
+    /// # extern crate serde;
+    /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
+    /// # fn main() {
+    /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
+    /// builder.set_badge(4);
+    /// let payload = builder.build("token", Default::default());
+    ///
+    /// assert_eq!(
+    ///     "{\"aps\":{\"alert\":{\"body\":\"a body\",\"title\":\"a title\"},\"badge\":4,\"mutable-content\":0}}",
+    ///     &payload.to_json_string().unwrap()
+    /// );
+    /// # }
+    /// ```
     pub fn set_badge(&mut self, badge: u32) -> &mut Self
     {
         self.badge = Some(badge);
@@ -95,6 +127,22 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     }
 
     /// File name of the custom sound to play when receiving the notification.
+    ///
+    /// ```rust
+    /// # extern crate a2;
+    /// # extern crate serde;
+    /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
+    /// # fn main() {
+    /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
+    /// builder.set_sound("ping");
+    /// let payload = builder.build("token", Default::default());
+    ///
+    /// assert_eq!(
+    ///     "{\"aps\":{\"alert\":{\"body\":\"a body\",\"title\":\"a title\"},\"mutable-content\":0,\"sound\":\"ping\"}}",
+    ///     &payload.to_json_string().unwrap()
+    /// );
+    /// # }
+    /// ```
     pub fn set_sound(&mut self, sound: &'a str) -> &mut Self
     {
         self.sound = Some(sound);
@@ -103,6 +151,22 @@ impl<'a> LocalizedNotificationBuilder<'a> {
 
     /// When a notification includes the category key, the system displays the
     /// actions for that category as buttons in the banner or alert interface.
+    ///
+    /// ```rust
+    /// # extern crate a2;
+    /// # extern crate serde;
+    /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
+    /// # fn main() {
+    /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
+    /// builder.set_category("cat1");
+    /// let payload = builder.build("token", Default::default());
+    ///
+    /// assert_eq!(
+    ///     "{\"aps\":{\"alert\":{\"body\":\"a body\",\"title\":\"a title\"},\"category\":\"cat1\",\"mutable-content\":0}}",
+    ///     &payload.to_json_string().unwrap()
+    /// );
+    /// # }
+    /// ```
     pub fn set_category(&mut self, category: &'a str) -> &mut Self
     {
         self.category = Some(category.into());
@@ -110,6 +174,22 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     }
 
     /// The localization key for the notification title.
+    ///
+    /// ```rust
+    /// # extern crate a2;
+    /// # extern crate serde;
+    /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
+    /// # fn main() {
+    /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
+    /// builder.set_title_loc_key("play");
+    /// let payload = builder.build("token", Default::default());
+    ///
+    /// assert_eq!(
+    ///     "{\"aps\":{\"alert\":{\"body\":\"a body\",\"title\":\"a title\",\"title-loc-key\":\"play\"},\"mutable-content\":0}}",
+    ///     &payload.to_json_string().unwrap()
+    /// );
+    /// # }
+    /// ```
     pub fn set_title_loc_key(&mut self, key: &'a str) -> &mut Self
     {
         self.alert.title_loc_key = Some(key);
@@ -117,6 +197,22 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     }
 
     /// Arguments for the title localization.
+    ///
+    /// ```rust
+    /// # extern crate a2;
+    /// # extern crate serde;
+    /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
+    /// # fn main() {
+    /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
+    /// builder.set_title_loc_args(&["foo", "bar"]);
+    /// let payload = builder.build("token", Default::default());
+    ///
+    /// assert_eq!(
+    ///     "{\"aps\":{\"alert\":{\"body\":\"a body\",\"title\":\"a title\",\"title-loc-args\":[\"foo\",\"bar\"]},\"mutable-content\":0}}",
+    ///     &payload.to_json_string().unwrap()
+    /// );
+    /// # }
+    /// ```
     pub fn set_title_loc_args<S>(
         &mut self,
         args: &'a [S]
@@ -134,6 +230,22 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     }
 
     /// The localization key for the action.
+    ///
+    /// ```rust
+    /// # extern crate a2;
+    /// # extern crate serde;
+    /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
+    /// # fn main() {
+    /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
+    /// builder.set_action_loc_key("stop");
+    /// let payload = builder.build("token", Default::default());
+    ///
+    /// assert_eq!(
+    ///     "{\"aps\":{\"alert\":{\"action-loc-key\":\"stop\",\"body\":\"a body\",\"title\":\"a title\"},\"mutable-content\":0}}",
+    ///     &payload.to_json_string().unwrap()
+    /// );
+    /// # }
+    /// ```
     pub fn set_action_loc_key(&mut self, key: &'a str) -> &mut Self
     {
         self.alert.action_loc_key = Some(key);
@@ -141,6 +253,22 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     }
 
     /// The localization key for the push message body.
+    ///
+    /// ```rust
+    /// # extern crate a2;
+    /// # extern crate serde;
+    /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
+    /// # fn main() {
+    /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
+    /// builder.set_loc_key("lol");
+    /// let payload = builder.build("token", Default::default());
+    ///
+    /// assert_eq!(
+    ///     "{\"aps\":{\"alert\":{\"body\":\"a body\",\"loc-key\":\"lol\",\"title\":\"a title\"},\"mutable-content\":0}}",
+    ///     &payload.to_json_string().unwrap()
+    /// );
+    /// # }
+    /// ```
     pub fn set_loc_key(&mut self, key: &'a str) -> &mut Self
     {
         self.alert.loc_key = Some(key);
@@ -148,6 +276,22 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     }
 
     /// Arguments for the content localization.
+    ///
+    /// ```rust
+    /// # extern crate a2;
+    /// # extern crate serde;
+    /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
+    /// # fn main() {
+    /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
+    /// builder.set_loc_args(&["omg", "foo"]);
+    /// let payload = builder.build("token", Default::default());
+    ///
+    /// assert_eq!(
+    ///     "{\"aps\":{\"alert\":{\"body\":\"a body\",\"loc-args\":[\"omg\",\"foo\"],\"title\":\"a title\"},\"mutable-content\":0}}",
+    ///     &payload.to_json_string().unwrap()
+    /// );
+    /// # }
+    /// ```
     pub fn set_loc_args<S>(
         &mut self,
         args: &'a [S]
@@ -165,6 +309,22 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     }
 
     /// Image to display in the rich notification.
+    ///
+    /// ```rust
+    /// # extern crate a2;
+    /// # extern crate serde;
+    /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
+    /// # fn main() {
+    /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
+    /// builder.set_launch_image("cat.png");
+    /// let payload = builder.build("token", Default::default());
+    ///
+    /// assert_eq!(
+    ///     "{\"aps\":{\"alert\":{\"body\":\"a body\",\"launch-image\":\"cat.png\",\"title\":\"a title\"},\"mutable-content\":0}}",
+    ///     &payload.to_json_string().unwrap()
+    /// );
+    /// # }
+    /// ```
     pub fn set_launch_image(&mut self, image: &'a str) -> &mut Self
     {
         self.alert.launch_image = Some(image);
@@ -172,6 +332,22 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     }
 
     /// Allow client to modify push content before displaying.
+    ///
+    /// ```rust
+    /// # extern crate a2;
+    /// # extern crate serde;
+    /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
+    /// # fn main() {
+    /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
+    /// builder.set_mutable_content();
+    /// let payload = builder.build("token", Default::default());
+    ///
+    /// assert_eq!(
+    ///     "{\"aps\":{\"alert\":{\"body\":\"a body\",\"title\":\"a title\"},\"mutable-content\":1}}",
+    ///     &payload.to_json_string().unwrap()
+    /// );
+    /// # }
+    /// ```
     pub fn set_mutable_content(&mut self) -> &mut Self
     {
         self.mutable_content = 1;

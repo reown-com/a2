@@ -15,13 +15,16 @@ use std::collections::BTreeMap;
 /// # fn main() {
 /// let mut test_data = HashMap::new();
 /// test_data.insert("a", "value");
-/// test_data.insert("another", "value");
 ///
 /// let mut payload = SilentNotificationBuilder::new()
 ///    .build("device_id", Default::default());
 ///
 /// payload.add_custom_data("custom", &test_data);
-/// payload.to_json_string().unwrap();
+///
+/// assert_eq!(
+///     "{\"aps\":{\"content-available\":1},\"custom\":{\"a\":\"value\"}}",
+///     &payload.to_json_string().unwrap()
+/// );
 /// # }
 /// ```
 pub struct SilentNotificationBuilder {
@@ -29,6 +32,22 @@ pub struct SilentNotificationBuilder {
 }
 
 impl SilentNotificationBuilder {
+    /// Creates a new builder.
+    ///
+    /// ```rust
+    /// # extern crate a2;
+    /// # extern crate serde;
+    /// # use a2::request::notification::{SilentNotificationBuilder, NotificationBuilder};
+    /// # fn main() {
+    /// let payload = SilentNotificationBuilder::new()
+    ///     .build("token", Default::default());
+    ///
+    /// assert_eq!(
+    ///     "{\"aps\":{\"content-available\":1}}",
+    ///     &payload.to_json_string().unwrap()
+    /// );
+    /// # }
+    /// ```
     pub fn new() -> SilentNotificationBuilder {
         SilentNotificationBuilder {
             content_available: 1,
