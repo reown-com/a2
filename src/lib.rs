@@ -153,7 +153,6 @@ extern crate time;
 extern crate tokio;
 extern crate tokio_io;
 extern crate tokio_rustls;
-extern crate tokio_service;
 extern crate tokio_timer;
 extern crate webpki;
 extern crate webpki_roots;

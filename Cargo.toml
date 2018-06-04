@@ -1,6 +1,6 @@
 [package]
 name = "a2"
-version = "0.2.3"
+version = "0.3.0"
 authors = [
   "Julius de Bruijn <julius.debruijn@360dialog.com>",
   "Sergey Tkachenko <seriy.tkachenko@gmail.com>", 
@@ -23,7 +23,6 @@ rustls = "0.12"
 futures = "0.1"
 tokio = "0.1"
 tokio-io = "0.1"
-tokio-service = "0.1"
 tokio-rustls = "0.5"
 tokio-timer = "0.1"
 http = "0.1"
