@@ -30,7 +30,7 @@ Add this to `Cargo.toml`:
 
 ```
 [dependencies]
-a2 = "0.2"
+a2 = "0.3"
 tokio = "0.1"
 futures = "0.1"
 ```
