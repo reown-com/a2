@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.2
+
+- OK responses don't have a body, so we don't need to handle it and gain a bit
+  more performance
+
 ## v0.3.1
 
 - Bunch of examples to the builder documentation
