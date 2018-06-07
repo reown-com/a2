@@ -13,9 +13,8 @@ use futures::{
 };
 
 use hyper::{
-    Chunk,
+    self,
     Client as HttpClient,
-    Request as HttpRequest,
     StatusCode,
     Body
 };
@@ -143,8 +142,12 @@ impl Client {
                 Error::ConnectionError
             });
 
-        trace!("Client::call requesting ({:?})", path);
-        let send_request_and_parse_response = send_request.and_then(move |response| {
+        trace!(
+            "Client::call requesting ({:?})",
+            path
+        );
+
+        let requesting = send_request.and_then(move |response| {
             trace!(
                 "Client::call got response status {} from ({:?})",
                 response.status(),
@@ -165,28 +168,17 @@ impl Client {
                     }))
                 },
                 _ => {
-                    let response_status = response.status().clone();
-
-                    let get_body = response
-                        .into_body()
-                        .map_err(|e| {
-                            trace!("Body error: {}", e);
-                            Error::ConnectionError
-                        })
-                        .concat2();
-
-                    Either::B(get_body.and_then(move |body_chunk| {
+                    Either::B(
                         Self::handle_body(
-                            response_status.as_u16(),
                             apns_id,
-                            body_chunk
+                            response
                         )
-                    }))
+                    )
                 }
             }
         });
 
-        FutureResponse(Box::new(send_request_and_parse_response))
+        FutureResponse(Box::new(requesting))
     }
 
     /// Sends a notification with a timeout. Triggers `Error::TimeoutError` if
@@ -201,33 +193,44 @@ impl Client {
     }
 
     fn handle_body(
-        response_status: u16,
         apns_id: Option<String>,
-        body_chunk: Chunk,
+        response: hyper::Response<Body>,
     ) -> impl Future<Item=Response, Error=Error> + 'static + Send
     {
-        if let Ok(body) = str::from_utf8(&body_chunk.to_vec()) {
-            err(ResponseError(Response {
-                apns_id: apns_id,
-                error: serde_json::from_str(body).ok(),
-                code: response_status,
-            }))
-        } else {
-            err(ResponseError(Response {
-                apns_id: None,
-                error: None,
-                code: response_status,
-            }))
-        }
+        let response_status = response.status().clone();
+
+        let get_body = response
+            .into_body()
+            .map_err(|e| {
+                trace!("Body error: {}", e);
+                Error::ConnectionError
+            })
+            .concat2();
+
+        get_body.and_then(move |body_chunk| {
+            if let Ok(body) = str::from_utf8(&body_chunk.to_vec()) {
+                err(ResponseError(Response {
+                    apns_id: apns_id,
+                    error: serde_json::from_str(body).ok(),
+                    code: response_status.as_u16(),
+                }))
+            } else {
+                err(ResponseError(Response {
+                    apns_id: None,
+                    error: None,
+                    code: response_status.as_u16(),
+                }))
+            }
+        })
     }
 
-    fn build_request(&self, payload: Payload) -> HttpRequest<Body> {
+    fn build_request(&self, payload: Payload) -> hyper::Request<Body> {
         let path = format!(
             "https://{}/3/device/{}",
             self.endpoint, payload.device_token
         );
 
-        let mut builder = HttpRequest::builder();
+        let mut builder = hyper::Request::builder();
 
         builder.uri(&path);
         builder.method("POST");
