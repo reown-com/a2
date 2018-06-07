@@ -4,15 +4,22 @@ use signer::Signer;
 use alpn::AlpnConnector;
 use error::Error;
 use error::Error::ResponseError;
-use futures::{Future, Poll};
-use futures::future::{err, ok};
-use futures::stream::Stream;
+
+use futures::{
+    Future,
+    Poll,
+    future::{err, ok, Either},
+    stream::Stream,
+};
+
 use hyper::{
+    Chunk,
     Client as HttpClient,
     Request as HttpRequest,
     StatusCode,
     Body
 };
+
 use http::header::{AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE};
 use request::payload::Payload;
 use response::Response;
@@ -138,49 +145,45 @@ impl Client {
 
         trace!("Client::call requesting ({:?})", path);
         let send_request_and_parse_response = send_request.and_then(move |response| {
-            let response_status = response.status().clone();
-
             trace!(
                 "Client::call got response status {} from ({:?})",
-                response_status,
+                response.status(),
                 path
             );
 
             let apns_id = response.headers()
                 .get("apns-id")
                 .and_then(|s| s.to_str().ok())
-                .map(|s| String::from(s));
+                .map(|id| String::from(id));
 
-            response
-                .into_body()
-                .map_err(|e| {
-                    trace!("Body error: {}", e);
-                    Error::ConnectionError
-                })
-                .concat2()
-                .and_then(move |body_chunk| match response_status {
-                    StatusCode::OK =>
-                        ok(Response {
-                            apns_id: apns_id,
-                            error: None,
-                            code: response_status.as_u16(),
-                        }),
-                    _ => {
-                        if let Ok(body) = str::from_utf8(&body_chunk.to_vec()) {
-                            err(ResponseError(Response {
-                                apns_id: apns_id,
-                                error: serde_json::from_str(body).ok(),
-                                code: response_status.as_u16(),
-                            }))
-                        } else {
-                            err(ResponseError(Response {
-                                apns_id: None,
-                                error: None,
-                                code: response_status.as_u16(),
-                            }))
-                        }
-                    }
-                })
+            match response.status() {
+                StatusCode::OK => {
+                    Either::A(ok(Response {
+                        apns_id: apns_id,
+                        error: None,
+                        code: response.status().as_u16(),
+                    }))
+                },
+                _ => {
+                    let response_status = response.status().clone();
+
+                    let get_body = response
+                        .into_body()
+                        .map_err(|e| {
+                            trace!("Body error: {}", e);
+                            Error::ConnectionError
+                        })
+                        .concat2();
+
+                    Either::B(get_body.and_then(move |body_chunk| {
+                        Self::handle_body(
+                            response_status.as_u16(),
+                            apns_id,
+                            body_chunk
+                        )
+                    }))
+                }
+            }
         });
 
         FutureResponse(Box::new(send_request_and_parse_response))
@@ -195,6 +198,27 @@ impl Client {
         timeout: Duration,
     ) -> Timeout<FutureResponse> {
         self.timer.timeout(self.send(message), timeout)
+    }
+
+    fn handle_body(
+        response_status: u16,
+        apns_id: Option<String>,
+        body_chunk: Chunk,
+    ) -> impl Future<Item=Response, Error=Error> + 'static + Send
+    {
+        if let Ok(body) = str::from_utf8(&body_chunk.to_vec()) {
+            err(ResponseError(Response {
+                apns_id: apns_id,
+                error: serde_json::from_str(body).ok(),
+                code: response_status,
+            }))
+        } else {
+            err(ResponseError(Response {
+                apns_id: None,
+                error: None,
+                code: response_status,
+            }))
+        }
     }
 
     fn build_request(&self, payload: Payload) -> HttpRequest<Body> {
