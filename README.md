@@ -75,3 +75,7 @@ for production use:
 ## Tests
 
 `cargo test`
+
+## Contact
+
+oh_lawd @ IRC (Freenode, Mozilla)
