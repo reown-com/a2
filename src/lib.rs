@@ -145,24 +145,20 @@ extern crate crossbeam;
 extern crate erased_serde;
 extern crate futures;
 extern crate hyper;
+extern crate hyper_alpn;
 extern crate openssl;
-extern crate rustls;
 extern crate serde;
 extern crate http;
 extern crate time;
 extern crate tokio;
 extern crate tokio_io;
-extern crate tokio_rustls;
 extern crate tokio_timer;
-extern crate webpki;
-extern crate webpki_roots;
 
 pub mod request;
 pub mod error;
 pub mod response;
 pub mod client;
 mod signer;
-mod alpn;
 
 pub use request::{
     notification::{

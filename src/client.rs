@@ -1,7 +1,7 @@
 //! The client module for sending requests and parsing responses
 
 use signer::Signer;
-use alpn::AlpnConnector;
+use hyper_alpn::AlpnConnector;
 use error::Error;
 use error::Error::ResponseError;
 
@@ -286,7 +286,7 @@ mod tests {
     use request::notification::PlainNotificationBuilder;
     use request::notification::NotificationBuilder;
     use request::notification::{NotificationOptions, Priority, CollapseId};
-    use alpn::AlpnConnector;
+    use hyper_alpn::AlpnConnector;
     use hyper::Method;
     use http::header::{AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE};
     use signer::Signer;
