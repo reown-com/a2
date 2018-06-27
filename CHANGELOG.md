@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.3
+
+- Taking the alpn connector out to its own crate, using tokio-dns for resolving
+
 ## v0.3.2
 
 - OK responses don't have a body, so we don't need to handle it and gain a bit
