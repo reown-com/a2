@@ -31,7 +31,7 @@ log = "0.4"
 pretty_env_logger = "0.2"
 indoc = "0.2"
 hyper = "0.12"
-hyper-alpn = "0.1.1"
+hyper-alpn = "0.1"
 
 [dependencies.chrono]
 version = "0.4"
