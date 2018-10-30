@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.3.5
+
+- Implement `fmt::Display` for `ErrorReason` (#28)
+
+## v0.3.4
+
+- Changing the author email due to company breakdown to the private one.
+
 ## v0.3.3
 
 - Taking the alpn connector out to its own crate, using tokio-dns for resolving
