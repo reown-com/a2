@@ -53,6 +53,10 @@ key](https://github.com/pimeys/a2/blob/master/examples/token_client.rs) with
 a team id and key id. Both are available from your Apple account and with both
 it is possible to send push notifications to one application.
 
+To see it used in a real project, take a look to the [XORC
+Notifications](https://github.com/xray-tech/xorc-notifications), which is a
+full-fledged consumer for sending push notifications.
+
 ## Gotchas
 
 We've been pushing some millions of notifications daily through this library and
