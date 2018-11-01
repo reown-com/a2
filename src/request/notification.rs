@@ -10,7 +10,7 @@ pub use self::plain::PlainNotificationBuilder;
 pub use self::silent::SilentNotificationBuilder;
 pub use self::options::{CollapseId, NotificationOptions, Priority};
 
-use request::payload::Payload;
+use crate::request::payload::Payload;
 
 pub trait NotificationBuilder<'a> {
     /// Generates the request payload to be send with the `Client`.

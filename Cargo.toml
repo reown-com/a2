@@ -12,6 +12,7 @@ keywords    = ["apns", "apple", "push", "async", "http2"]
 repository  = "https://github.com/pimeys/a2.git"
 homepage    = "https://github.com/pimeys/a2"
 documentation = "https://pimeys.github.io/a2/"
+edition = "2018"
 
 [dependencies]
 serde = "1.0"

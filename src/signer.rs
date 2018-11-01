@@ -7,7 +7,7 @@ use openssl::pkey::{PKey, Private};
 use openssl::hash::MessageDigest;
 use openssl::sign::Signer as SslSigner;
 use base64::encode;
-use error::Error;
+use crate::error::Error;
 use crossbeam::atomic::ArcCell;
 
 #[derive(Debug)]

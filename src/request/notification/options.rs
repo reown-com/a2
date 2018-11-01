@@ -1,4 +1,4 @@
-use error::Error;
+use crate::error::Error;
 use std::fmt;
 
 #[derive(Debug, Clone)]
@@ -90,10 +90,10 @@ pub enum Priority {
 }
 
 impl fmt::Display for Priority {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let priority = match self {
-            &Priority::High => "10",
-            &Priority::Normal => "5",
+            Priority::High => "10",
+            Priority::Normal => "5",
         };
 
         write!(f, "{}", priority)

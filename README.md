@@ -30,17 +30,9 @@ Add this to `Cargo.toml`:
 
 ```
 [dependencies]
-a2 = "0.3"
+a2 = "0.4"
 tokio = "0.1"
 futures = "0.1"
-```
-
-then add to your crate root:
-
-```rust
-extern crate a2;
-extern crate tokio;
-extern crate futures;
 ```
 
 ## Examples

@@ -1,7 +1,7 @@
 //! Payload with `aps` and custom data
 
-use request::notification::{LocalizedAlert, NotificationOptions};
-use error::Error;
+use crate::request::notification::{LocalizedAlert, NotificationOptions};
+use crate::error::Error;
 use serde_json::{self, Value};
 use std::collections::BTreeMap;
 use erased_serde::Serialize;
@@ -30,8 +30,6 @@ impl<'a> Payload<'a> {
     /// Using a `HashMap`:
     ///
     /// ```rust
-    /// # extern crate a2;
-    /// # extern crate serde;
     /// # use a2::request::notification::{SilentNotificationBuilder, NotificationBuilder};
     /// # use std::collections::HashMap;
     /// # fn main() {
@@ -52,8 +50,6 @@ impl<'a> Payload<'a> {
     /// Using a custom struct:
     ///
     /// ```rust
-    /// # extern crate a2;
-    /// # extern crate serde;
     /// # #[macro_use] extern crate serde_derive;
     /// # use a2::request::notification::{SilentNotificationBuilder, NotificationBuilder};
     /// # fn main() {
@@ -76,7 +72,7 @@ impl<'a> Payload<'a> {
     pub fn add_custom_data(
         &mut self,
         root_key: &'a str,
-        data: &Serialize,
+        data: &dyn Serialize,
     ) -> Result<&mut Self, Error>
     where
     {
