@@ -8,7 +8,7 @@ use openssl::hash::MessageDigest;
 use openssl::sign::Signer as SslSigner;
 use base64::encode;
 use error::Error;
-use crossbeam::sync::ArcCell;
+use crossbeam::atomic::ArcCell;
 
 #[derive(Debug)]
 struct Signature {
