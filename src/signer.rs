@@ -1,14 +1,16 @@
 use time::get_time;
 use std::io::Read;
-use std::sync::Arc;
 use serde_json;
-use openssl::ec::EcKey;
-use openssl::pkey::{PKey, Private};
-use openssl::hash::MessageDigest;
-use openssl::sign::Signer as SslSigner;
 use base64::encode;
 use crate::error::Error;
-use crossbeam::atomic::ArcCell;
+use parking_lot::RwLock;
+
+use openssl::{
+    ec::EcKey,
+    pkey::{PKey, Private},
+    hash::MessageDigest,
+    sign::Signer as SslSigner,
+};
 
 #[derive(Debug)]
 struct Signature {
@@ -19,7 +21,7 @@ struct Signature {
 /// For signing requests when using token-based authentication. Re-uses the same
 /// signature for a certain amount of time.
 pub struct Signer {
-    signature: ArcCell<Signature>,
+    signature: RwLock<Signature>,
     key_id: String,
     team_id: String,
     secret: PKey<Private>,
@@ -68,10 +70,10 @@ impl Signer {
         let issued_at = get_time().sec;
         let secret = PKey::from_ec_key(ec_key)?;
 
-        let signature = ArcCell::new(Arc::new(Signature {
+        let signature = RwLock::new(Signature {
             key: Self::create_signature(&secret, &key_id, &team_id, issued_at)?,
             issued_at: issued_at,
-        }));
+        });
 
         let signer = Signer {
             signature: signature,
@@ -94,7 +96,7 @@ impl Signer {
             self.renew()?;
         }
 
-        let signature = self.signature.get();
+        let signature = self.signature.read();
 
         trace!(
             "Signer::with_signature found signature for {}/{} valid for {}s",
@@ -145,16 +147,18 @@ impl Signer {
             self.expire_after_s,
         );
 
-        self.signature.set(Arc::new(Signature {
+        let mut signature = self.signature.write();
+
+        *signature = Signature {
             key: Self::create_signature(&self.secret, &self.key_id, &self.team_id, issued_at)?,
             issued_at: issued_at,
-        }));
+        };
 
         Ok(())
     }
 
     fn is_expired(&self) -> bool {
-        let sig = self.signature.get();
+        let sig = self.signature.read();
         let expiry = get_time().sec - sig.issued_at;
         expiry >= self.expire_after_s
     }
@@ -176,29 +180,25 @@ mod tests {
     fn test_signature_caching() {
         let signer = Signer::new(PRIVATE_KEY.as_bytes(), "89AFRD1X22", "ASDFQWERTY", 100).unwrap();
 
-        signer
-            .with_signature(|sig1| {
-                signer
-                    .with_signature(|sig2| {
-                        assert_eq!(sig1, sig2);
-                    })
-                    .unwrap();
-            })
-            .unwrap();
+        let mut sig1 = String::new();
+        signer.with_signature(|sig| sig1.push_str(sig)).unwrap();
+
+        let mut sig2 = String::new();
+        signer.with_signature(|sig| sig2.push_str(sig)).unwrap();
+
+        assert_eq!(sig1, sig2);
     }
 
     #[test]
     fn test_signature_without_caching() {
         let signer = Signer::new(PRIVATE_KEY.as_bytes(), "89AFRD1X22", "ASDFQWERTY", 0).unwrap();
 
-        signer
-            .with_signature(|sig1| {
-                signer
-                    .with_signature(|sig2| {
-                        assert_ne!(sig1, sig2);
-                    })
-                    .unwrap();
-            })
-            .unwrap();
+        let mut sig1 = String::new();
+        signer.with_signature(|sig| sig1.push_str(sig)).unwrap();
+
+        let mut sig2 = String::new();
+        signer.with_signature(|sig| sig2.push_str(sig)).unwrap();
+
+        assert_ne!(sig1, sig2);
     }
 }
