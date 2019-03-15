@@ -37,10 +37,6 @@
 //! ## Example sending a plain notification using token authentication:
 //!
 //! ```no_run
-//! extern crate tokio;
-//! extern crate a2;
-//! extern crate futures;
-//!
 //! use a2::{PlainNotificationBuilder, NotificationBuilder, Client, Endpoint};
 //! use std::fs::File;
 //! use futures::future::lazy;
@@ -78,10 +74,6 @@
 //!
 //! ```no_run
 //! #[macro_use] extern crate serde_derive;
-//! extern crate serde;
-//! extern crate tokio;
-//! extern crate a2;
-//! extern crate futures;
 //!
 //! use a2::{Client, Endpoint, SilentNotificationBuilder, NotificationBuilder};
 //! use std::fs::File;
@@ -139,28 +131,13 @@ extern crate indoc;
 #[macro_use]
 extern crate log;
 
-extern crate base64;
-extern crate chrono;
-extern crate crossbeam;
-extern crate erased_serde;
-extern crate futures;
-extern crate hyper;
-extern crate hyper_alpn;
-extern crate openssl;
-extern crate serde;
-extern crate http;
-extern crate time;
-extern crate tokio;
-extern crate tokio_io;
-extern crate tokio_timer;
-
 pub mod request;
 pub mod error;
 pub mod response;
 pub mod client;
 mod signer;
 
-pub use request::{
+pub use crate::request::{
     notification::{
         NotificationBuilder,
         LocalizedNotificationBuilder,
@@ -172,16 +149,16 @@ pub use request::{
     }
 };
 
-pub use response::{
+pub use crate::response::{
     Response,
     ErrorBody,
     ErrorReason,
 };
 
-pub use client::{
+pub use crate::client::{
     Endpoint,
     Client,
     FutureResponse,
 };
 
-pub use error::Error;
+pub use crate::error::Error;

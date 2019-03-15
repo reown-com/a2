@@ -1,5 +1,5 @@
-use request::notification::{NotificationBuilder, NotificationOptions};
-use request::payload::{Payload, APS};
+use crate::request::notification::{NotificationBuilder, NotificationOptions};
+use crate::request::payload::{Payload, APS};
 use std::collections::BTreeMap;
 
 /// A builder to create an APNs silent notification payload which can be used to
@@ -9,7 +9,6 @@ use std::collections::BTreeMap;
 /// # Example
 ///
 /// ```rust
-/// # extern crate a2;
 /// # use std::collections::HashMap;
 /// # use a2::request::notification::{NotificationBuilder, SilentNotificationBuilder};
 /// # fn main() {
@@ -35,8 +34,6 @@ impl SilentNotificationBuilder {
     /// Creates a new builder.
     ///
     /// ```rust
-    /// # extern crate a2;
-    /// # extern crate serde;
     /// # use a2::request::notification::{SilentNotificationBuilder, NotificationBuilder};
     /// # fn main() {
     /// let payload = SilentNotificationBuilder::new()

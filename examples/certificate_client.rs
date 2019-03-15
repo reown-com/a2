@@ -1,9 +1,5 @@
-extern crate a2;
-extern crate argparse;
-extern crate tokio;
-extern crate pretty_env_logger;
-extern crate futures;
-
+use tokio;
+use pretty_env_logger;
 use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
 use std::fs::File;
 use a2::{

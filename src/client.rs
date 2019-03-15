@@ -1,9 +1,9 @@
 //! The client module for sending requests and parsing responses
 
-use signer::Signer;
+use crate::signer::Signer;
 use hyper_alpn::AlpnConnector;
-use error::Error;
-use error::Error::ResponseError;
+use crate::error::Error;
+use crate::error::Error::ResponseError;
 
 use futures::{
     Future,
@@ -20,8 +20,8 @@ use hyper::{
 };
 
 use http::header::{AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE};
-use request::payload::Payload;
-use response::Response;
+use crate::request::payload::Payload;
+use crate::response::Response;
 use serde_json;
 use std::{fmt, str};
 use std::time::Duration;
@@ -39,10 +39,10 @@ pub enum Endpoint {
 }
 
 impl fmt::Display for Endpoint {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let host = match self {
-            &Endpoint::Production => "api.push.apple.com",
-            &Endpoint::Sandbox => "api.development.push.apple.com",
+            Endpoint::Production => "api.push.apple.com",
+            Endpoint::Sandbox => "api.development.push.apple.com",
         };
 
         write!(f, "{}", host)
@@ -224,7 +224,7 @@ impl Client {
         })
     }
 
-    fn build_request(&self, payload: Payload) -> hyper::Request<Body> {
+    fn build_request(&self, payload: Payload<'_>) -> hyper::Request<Body> {
         let path = format!(
             "https://{}/3/device/{}",
             self.endpoint, payload.device_token
@@ -263,10 +263,10 @@ impl Client {
     }
 }
 
-pub struct FutureResponse(Box<Future<Item = Response, Error = Error> + Send + 'static>);
+pub struct FutureResponse(Box<dyn Future<Item = Response, Error = Error> + Send + 'static>);
 
 impl fmt::Debug for FutureResponse {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.pad("Future<Response>")
     }
 }
@@ -283,13 +283,13 @@ impl Future for FutureResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use request::notification::PlainNotificationBuilder;
-    use request::notification::NotificationBuilder;
-    use request::notification::{NotificationOptions, Priority, CollapseId};
+    use crate::request::notification::PlainNotificationBuilder;
+    use crate::request::notification::NotificationBuilder;
+    use crate::request::notification::{NotificationOptions, Priority, CollapseId};
     use hyper_alpn::AlpnConnector;
     use hyper::Method;
     use http::header::{AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE};
-    use signer::Signer;
+    use crate::signer::Signer;
 
     const PRIVATE_KEY: &'static str = indoc!(
         "-----BEGIN PRIVATE KEY-----

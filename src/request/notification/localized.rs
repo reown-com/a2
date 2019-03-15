@@ -1,5 +1,5 @@
-use request::notification::{NotificationBuilder, NotificationOptions};
-use request::payload::{APSAlert, Payload, APS};
+use crate::request::notification::{NotificationBuilder, NotificationOptions};
+use crate::request::payload::{APSAlert, Payload, APS};
 
 use std::{
     collections::BTreeMap,
@@ -36,7 +36,6 @@ pub struct LocalizedAlert<'a> {
 /// # Example
 ///
 /// ```rust
-/// # extern crate a2;
 /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
 /// # fn main() {
 /// let mut builder = LocalizedNotificationBuilder::new("Hi there", "What's up?");
@@ -67,8 +66,6 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     /// Creates a new builder with the minimum amount of content.
     ///
     /// ```rust
-    /// # extern crate a2;
-    /// # extern crate serde;
     /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
     /// # fn main() {
     /// let payload = LocalizedNotificationBuilder::new("a title", "a body")
@@ -106,8 +103,6 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     /// A number to show on a badge on top of the app icon.
     ///
     /// ```rust
-    /// # extern crate a2;
-    /// # extern crate serde;
     /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
     /// # fn main() {
     /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
@@ -129,8 +124,6 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     /// File name of the custom sound to play when receiving the notification.
     ///
     /// ```rust
-    /// # extern crate a2;
-    /// # extern crate serde;
     /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
     /// # fn main() {
     /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
@@ -153,8 +146,6 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     /// actions for that category as buttons in the banner or alert interface.
     ///
     /// ```rust
-    /// # extern crate a2;
-    /// # extern crate serde;
     /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
     /// # fn main() {
     /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
@@ -176,8 +167,6 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     /// The localization key for the notification title.
     ///
     /// ```rust
-    /// # extern crate a2;
-    /// # extern crate serde;
     /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
     /// # fn main() {
     /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
@@ -199,8 +188,6 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     /// Arguments for the title localization.
     ///
     /// ```rust
-    /// # extern crate a2;
-    /// # extern crate serde;
     /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
     /// # fn main() {
     /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
@@ -232,8 +219,6 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     /// The localization key for the action.
     ///
     /// ```rust
-    /// # extern crate a2;
-    /// # extern crate serde;
     /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
     /// # fn main() {
     /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
@@ -255,8 +240,6 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     /// The localization key for the push message body.
     ///
     /// ```rust
-    /// # extern crate a2;
-    /// # extern crate serde;
     /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
     /// # fn main() {
     /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
@@ -278,8 +261,6 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     /// Arguments for the content localization.
     ///
     /// ```rust
-    /// # extern crate a2;
-    /// # extern crate serde;
     /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
     /// # fn main() {
     /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
@@ -311,8 +292,6 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     /// Image to display in the rich notification.
     ///
     /// ```rust
-    /// # extern crate a2;
-    /// # extern crate serde;
     /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
     /// # fn main() {
     /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
@@ -334,8 +313,6 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     /// Allow client to modify push content before displaying.
     ///
     /// ```rust
-    /// # extern crate a2;
-    /// # extern crate serde;
     /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
     /// # fn main() {
     /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");

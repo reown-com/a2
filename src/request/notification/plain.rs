@@ -1,5 +1,5 @@
-use request::notification::{NotificationBuilder, NotificationOptions};
-use request::payload::{APSAlert, Payload, APS};
+use crate::request::notification::{NotificationBuilder, NotificationOptions};
+use crate::request::payload::{APSAlert, Payload, APS};
 use std::collections::BTreeMap;
 
 /// A builder to create a simple APNs notification payload.
@@ -7,7 +7,6 @@ use std::collections::BTreeMap;
 /// # Example
 ///
 /// ```rust
-/// # extern crate a2;
 /// # use a2::request::notification::{NotificationBuilder, PlainNotificationBuilder};
 /// # fn main() {
 /// let mut builder = PlainNotificationBuilder::new("Hi there");
@@ -29,8 +28,6 @@ impl<'a> PlainNotificationBuilder<'a> {
     /// Creates a new builder with the minimum amount of content.
     ///
     /// ```rust
-    /// # extern crate a2;
-    /// # extern crate serde;
     /// # use a2::request::notification::{PlainNotificationBuilder, NotificationBuilder};
     /// # fn main() {
     /// let payload = PlainNotificationBuilder::new("a body")
@@ -55,8 +52,6 @@ impl<'a> PlainNotificationBuilder<'a> {
     /// A number to show on a badge on top of the app icon.
     ///
     /// ```rust
-    /// # extern crate a2;
-    /// # extern crate serde;
     /// # use a2::request::notification::{PlainNotificationBuilder, NotificationBuilder};
     /// # fn main() {
     /// let mut builder = PlainNotificationBuilder::new("a body");
@@ -78,8 +73,6 @@ impl<'a> PlainNotificationBuilder<'a> {
     /// File name of the custom sound to play when receiving the notification.
     ///
     /// ```rust
-    /// # extern crate a2;
-    /// # extern crate serde;
     /// # use a2::request::notification::{PlainNotificationBuilder, NotificationBuilder};
     /// # fn main() {
     /// let mut builder = PlainNotificationBuilder::new("a body");
@@ -102,8 +95,6 @@ impl<'a> PlainNotificationBuilder<'a> {
     /// actions for that category as buttons in the banner or alert interface.
     ///
     /// ```rust
-    /// # extern crate a2;
-    /// # extern crate serde;
     /// # use a2::request::notification::{PlainNotificationBuilder, NotificationBuilder};
     /// # fn main() {
     /// let mut builder = PlainNotificationBuilder::new("a body");

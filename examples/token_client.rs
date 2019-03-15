@@ -1,10 +1,7 @@
-extern crate a2;
-extern crate argparse;
-extern crate tokio;
-extern crate pretty_env_logger;
-extern crate futures;
-
+use tokio;
+use pretty_env_logger;
 use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
+use std::fs::File;
 
 use a2::{
     Client,
@@ -18,8 +15,6 @@ use futures::{
     future::lazy,
     Future,
 };
-
-use std::fs::File;
 
 // An example client connectiong to APNs with a JWT token
 fn main() {
