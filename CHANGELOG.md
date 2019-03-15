@@ -1,8 +1,18 @@
 # Changelog
 
+## v0.4.0
+
+Introduces two changes that are a bit more drastic and hence increasing the
+major version. The 2018 syntax requires a Rust compiler version 1.31 or newer
+and the locking primitive hasn't been measured with high traffic yet in a2.
+
+- Upgrade to Rust 2018 syntax [#29](https://github.com/pimeys/a2/pull/29)
+- Switch from deprecated crossbeam ArcCell to parking_lot RwLock
+  [#32](https://github.com/pimeys/a2/pull/32)
+
 ## v0.3.5
 
-- Implement `fmt::Display` for `ErrorReason` (#28)
+- Implement `fmt::Display` for `ErrorReason` [#28](https://github.com/pimeys/a2/pull/28)
 
 ## v0.3.4
 
