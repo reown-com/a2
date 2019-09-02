@@ -124,7 +124,7 @@ extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
 
-#[allow(unused_imports)]
+#[cfg(test)]
 #[macro_use]
 extern crate indoc;
 

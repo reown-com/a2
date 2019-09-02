@@ -65,12 +65,7 @@ fn main() {
     };
 
     // Connecting to APNs
-    let client = Client::token(
-        &mut private_key,
-        key_id.as_ref(),
-        team_id.as_ref(),
-        endpoint,
-    ).unwrap();
+    let client = Client::token(&mut private_key, key_id, team_id, endpoint).unwrap();
 
     let options = NotificationOptions {
         apns_topic: topic.as_ref().map(|s| &**s),
