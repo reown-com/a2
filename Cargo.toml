@@ -1,6 +1,6 @@
 [package]
 name = "a2"
-version = "0.4.0"
+version = "0.4.1"
 authors = [
   "Julius de Bruijn <julius@nauk.io>",
   "Sergey Tkachenko <seriy.tkachenko@gmail.com>", 
