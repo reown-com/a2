@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.4.1
+
+- Fix token_client example not building due to unresolvable `as_ref()`. [#35](https://github.com/pimeys/a2/pull/35)
+- Move indoc to dev-dependencies so that crates depending on us don't need it. [#36](https://github.com/pimeys/a2/pull/36)
+- Move pretty_env_logger to dev-dependencies, it's not useful to crates depending on us. [#37](https://github.com/pimeys/a2/pull/37)
+- Remove unused tokio-io dependency. [#38](https://github.com/pimeys/a2/pull/38)
+
 ## v0.4.0
 
 Introduces two changes that are a bit more drastic and hence increasing the
