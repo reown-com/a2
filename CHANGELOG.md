@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.5.0-alpha.1
+
+- Update to `std::future` and async/await, requiring a nightly compiler for now.
+
 ## v0.4.1
 
 - Fix token_client example not building due to unresolvable `as_ref()`. [#35](https://github.com/pimeys/a2/pull/35)
