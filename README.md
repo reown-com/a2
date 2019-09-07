@@ -31,17 +31,6 @@ Bugfixes for the stable release should go against the `v0.4` branch.
 * If using authentication tokens, handles signature renewing for Apple's guidelines
   and caching for maximum performance.
 
-## Usage
-
-Add this to `Cargo.toml`:
-
-```
-[dependencies]
-a2 = "0.4"
-tokio = "0.1"
-futures = "0.1"
-```
-
 ## Examples
 
 The library supports connecting to Apple Push Notification service [either using
