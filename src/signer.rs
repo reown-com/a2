@@ -3,7 +3,7 @@ use std::io::Read;
 use serde_json;
 use base64::encode;
 use crate::error::Error;
-use parking_lot::RwLock;
+use async_std::sync::RwLock;
 
 use openssl::{
     ec::EcKey,
@@ -88,15 +88,15 @@ impl Signer {
 
     /// Take a signature out for usage. Automatically renews the signature
     /// if it's older than the expiration time.
-    pub fn with_signature<F>(&self, f: F) -> Result<(), Error>
+    pub async fn with_signature<F>(&self, f: F) -> Result<(), Error>
     where
         F: FnOnce(&str) -> (),
     {
-        if self.is_expired() {
-            self.renew()?;
+        if self.is_expired().await {
+            self.renew().await?;
         }
 
-        let signature = self.signature.read();
+        let signature = self.signature.read().await;
 
         trace!(
             "Signer::with_signature found signature for {}/{} valid for {}s",
@@ -136,7 +136,7 @@ impl Signer {
         Ok(format!("{}.{}", signing_input, encode(&signature_payload)))
     }
 
-    fn renew(&self) -> Result<(), Error> {
+    async fn renew(&self) -> Result<(), Error> {
         let issued_at = get_time().sec;
 
         trace!(
@@ -147,7 +147,7 @@ impl Signer {
             self.expire_after_s,
         );
 
-        let mut signature = self.signature.write();
+        let mut signature = self.signature.write().await;
 
         *signature = Signature {
             key: Self::create_signature(&self.secret, &self.key_id, &self.team_id, issued_at)?,
@@ -157,8 +157,8 @@ impl Signer {
         Ok(())
     }
 
-    fn is_expired(&self) -> bool {
-        let sig = self.signature.read();
+    async fn is_expired(&self) -> bool {
+        let sig = self.signature.read().await;
         let expiry = get_time().sec - sig.issued_at;
         expiry >= self.expire_after_s
     }
@@ -176,28 +176,28 @@ mod tests {
         -----END PRIVATE KEY-----"
     );
 
-    #[test]
-    fn test_signature_caching() {
+    #[tokio::test]
+    async fn test_signature_caching() {
         let signer = Signer::new(PRIVATE_KEY.as_bytes(), "89AFRD1X22", "ASDFQWERTY", 100).unwrap();
 
         let mut sig1 = String::new();
-        signer.with_signature(|sig| sig1.push_str(sig)).unwrap();
+        signer.with_signature(|sig| sig1.push_str(sig)).await.unwrap();
 
         let mut sig2 = String::new();
-        signer.with_signature(|sig| sig2.push_str(sig)).unwrap();
+        signer.with_signature(|sig| sig2.push_str(sig)).await.unwrap();
 
         assert_eq!(sig1, sig2);
     }
 
-    #[test]
-    fn test_signature_without_caching() {
+    #[tokio::test]
+    async fn test_signature_without_caching() {
         let signer = Signer::new(PRIVATE_KEY.as_bytes(), "89AFRD1X22", "ASDFQWERTY", 0).unwrap();
 
         let mut sig1 = String::new();
-        signer.with_signature(|sig| sig1.push_str(sig)).unwrap();
+        signer.with_signature(|sig| sig1.push_str(sig)).await.unwrap();
 
         let mut sig2 = String::new();
-        signer.with_signature(|sig| sig2.push_str(sig)).unwrap();
+        signer.with_signature(|sig| sig2.push_str(sig)).await.unwrap();
 
         assert_ne!(sig1, sig2);
     }

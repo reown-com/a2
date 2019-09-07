@@ -9,13 +9,10 @@ use a2::{
     Client,
     Endpoint,
 };
-use futures::{
-    future::lazy,
-    Future,
-};
 
 // An example client connectiong to APNs with a certificate and key
-fn main() {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     pretty_env_logger::init();
 
     let mut certificate_file = String::new();
@@ -76,16 +73,9 @@ fn main() {
     builder.set_badge(1u32);
 
     let payload = builder.build(device_token.as_ref(), options);
-    let sending = client.send(payload);
+    let response = client.send(payload).await?;
 
-    // Send the notification, parse response
-    tokio::run(lazy(move || {
-        sending
-            .map(|response| {
-                println!("Sent: {:?}", response);
-            })
-            .map_err(|error| {
-                println!("Error: {:?}", error);
-            })
-    }));
+    println!("Sent: {:?}", response);
+
+    Ok(())
 }

@@ -37,37 +37,28 @@
 //! ## Example sending a plain notification using token authentication:
 //!
 //! ```no_run
-//! use a2::{PlainNotificationBuilder, NotificationBuilder, Client, Endpoint};
-//! use std::fs::File;
-//! use futures::future::lazy;
-//! use futures::Future;
+//! # use a2::{PlainNotificationBuilder, NotificationBuilder, Client, Endpoint};
+//! # use std::fs::File;
+//! # #[tokio::main]
+//! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+//! let mut builder = PlainNotificationBuilder::new("Hi there");
+//! builder.set_badge(420);
+//! builder.set_category("cat1");
+//! builder.set_sound("ping.flac");
 //!
-//! fn main() {
-//!     let mut builder = PlainNotificationBuilder::new("Hi there");
-//!     builder.set_badge(420);
-//!     builder.set_category("cat1");
-//!     builder.set_sound("ping.flac");
+//! let payload = builder.build("device-token-from-the-user", Default::default());
+//! let mut file = File::open("/path/to/private_key.p8")?;
 //!
-//!     let payload = builder.build("device-token-from-the-user", Default::default());
-//!     let mut file = File::open("/path/to/private_key.p8").unwrap();
+//! let client = Client::token(
+//!     &mut file,
+//!     "KEY_ID",
+//!     "TEAM_ID",
+//!     Endpoint::Production).unwrap();
 //!
-//!     let client = Client::token(
-//!         &mut file,
-//!         "KEY_ID",
-//!         "TEAM_ID",
-//!         Endpoint::Production).unwrap();
-//!
-//!     tokio::run(lazy(move || {
-//!         client
-//!             .send(payload)
-//!             .map(|response| {
-//!                 println!("Sent: {:?}", response);
-//!             })
-//!             .map_err(|error| {
-//!                 println!("Error: {:?}", error);
-//!            })
-//!     }));
-//! }
+//! let response = client.send(payload).await?;
+//! println!("Sent: {:?}", response);
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! ## Example sending a silent notification with custom data using certificate authentication:
@@ -77,8 +68,6 @@
 //!
 //! use a2::{Client, Endpoint, SilentNotificationBuilder, NotificationBuilder};
 //! use std::fs::File;
-//! use futures::future::lazy;
-//! use futures::Future;
 //!
 //! #[derive(Serialize, Debug)]
 //! struct CorporateData {
@@ -86,7 +75,8 @@
 //!     is_paying_user: bool,
 //! }
 //!
-//! fn main() {
+//! #[tokio::main]
+//! async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 //!     let tracking_data = CorporateData {
 //!         tracking_code: "999-212-UF-NSA",
 //!         is_paying_user: false,
@@ -94,26 +84,19 @@
 //!
 //!     let mut payload = SilentNotificationBuilder::new()
 //!         .build("device-token-from-the-user", Default::default());
-//!     payload.add_custom_data("apns_gmbh", &tracking_data).unwrap();
+//!     payload.add_custom_data("apns_gmbh", &tracking_data)?;
 //!
-//!     let mut file = File::open("/path/to/cert_db.p12").unwrap();
+//!     let mut file = File::open("/path/to/cert_db.p12")?;
 //!
 //!     let client = Client::certificate(
 //!         &mut file,
 //!         "Correct Horse Battery Stable",
-//!         Endpoint::Production).unwrap();
+//!         Endpoint::Production)?;
 //!
-//!     let sending = client.send(payload);
+//!     let response = client.send(payload).await?;
+//!     println!("Sent: {:?}", response);
 //!
-//!     tokio::run(lazy(move || {
-//!         sending
-//!             .map(|response| {
-//!                 println!("Sent: {:?}", response);
-//!             })
-//!             .map_err(|error| {
-//!                 println!("Error: {:?}", error);
-//!            })
-//!     }));
+//!     Ok(())
 //! }
 //! ```
 
@@ -158,7 +141,6 @@ pub use crate::response::{
 pub use crate::client::{
     Endpoint,
     Client,
-    FutureResponse,
 };
 
 pub use crate::error::Error;

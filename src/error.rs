@@ -1,7 +1,5 @@
 //! Error and result module
 
-use crate::client::FutureResponse;
-use tokio_timer::TimeoutError;
 use std::error::Error as StdError;
 use std::io::Error as IoError;
 use serde_json::Error as SerdeError;
@@ -71,26 +69,26 @@ impl<'a> StdError for Error {
     }
 }
 
-impl From<TimeoutError<FutureResponse>> for Error {
-    fn from(_: TimeoutError<FutureResponse>) -> Error {
-        Error::TimeoutError
-    }
-}
-
-impl<'a> From<SerdeError> for Error {
+impl From<SerdeError> for Error {
     fn from(_: SerdeError) -> Error {
         Error::SerializeError
     }
 }
 
-impl<'a> From<ErrorStack> for Error {
+impl From<ErrorStack> for Error {
     fn from(e: ErrorStack) -> Error {
         Error::SignerError(format!("{}", e.description()))
     }
 }
 
-impl<'a> From<IoError> for Error {
+impl From<IoError> for Error {
     fn from(e: IoError) -> Error {
         Error::ReadError(format!("{}", e.description()))
+    }
+}
+
+impl From<hyper::error::Error> for Error {
+    fn from(_: hyper::error::Error) -> Error {
+        Error::ConnectionError
     }
 }
