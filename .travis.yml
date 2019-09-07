@@ -1,8 +1,9 @@
 language: rust
 matrix:
   include:
-    - rust: beta
     - rust: stable
+    - rust: beta
+    - rust: nightly
 
 cache:
   apt: true
