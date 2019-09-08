@@ -118,8 +118,9 @@ impl Client {
         Ok(Self::new(connector, Some(signer), endpoint))
     }
 
-    /// Send a notification payload. Returns a future that needs to be given to
-    /// an executor.
+    /// Send a notification payload.
+    ///
+    /// See [ErrorReason](enum.ErrorReason.html) for possible errors.
     pub async fn send<'a>(&self, payload: Payload<'a>) -> Result<Response, Error> {
         let request = self.build_request(payload).await;
         let path = format!("{}", request.uri());

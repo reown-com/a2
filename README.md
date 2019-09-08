@@ -15,7 +15,7 @@ Bugfixes for the stable release should go against the `v0.4` branch.
 
 ## Documentation
 
-* [Released](https://pimeys.github.io/a2/)
+* [Released](https://docs.rs/a2/)
 * [Master](https://pimeys.github.io/a2/master/)
 
 ## Features

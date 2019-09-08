@@ -11,9 +11,6 @@
 //! ids. All of these should be available from Xcode or your Apple developer
 //! account.
 //!
-//! The library is meant to be high performace and typesafe, used together with
-//! the [Tokio framework](https://tokio.rs) in an asynchronous event loop.
-//!
 //! ## Payload
 //!
 //! Building the notification payload should be done with the corresponding builders:
