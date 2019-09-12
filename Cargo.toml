@@ -27,7 +27,7 @@ base64 = "0.9"
 time = "0.1"
 log = "0.4"
 hyper = "0.13.0-alpha.1"
-hyper-alpn = "0.2.0-alpha.1"
+hyper-alpn = "0.2.0-alpha.3"
 async-std = "0.99"
 
 [dev-dependencies]
