@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.5.0-alpha.4
+
+- Switch to Hyper's GaiResolver to go around of a bug in the latest nightly.
+
 ## v0.5.0-alpha.1
 
 - Update to `std::future` and async/await, requiring a nightly compiler for now.
