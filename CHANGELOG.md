@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.5.0-alpha.5
+
+- And down to async-std's new `ToSocketAddrs` resolver
+
 ## v0.5.0-alpha.4
 
 - Switch to Hyper's GaiResolver to go around of a bug in the latest nightly.
