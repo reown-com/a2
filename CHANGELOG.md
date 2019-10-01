@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.5.0-alpha.6
+
+- Fix a bug in ALPN resolving.
+
 ## v0.5.0-alpha.5
 
 - And down to async-std's new `ToSocketAddrs` resolver
