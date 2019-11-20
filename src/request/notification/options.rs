@@ -37,8 +37,8 @@ pub struct NotificationOptions<'a> {
     /// the notification or attempt to redeliver it.
     pub apns_expiration: Option<u64>,
 
-    /// The priority of the notification.
-    pub apns_priority: Priority,
+    /// The priority of the notification. If `None`, the APNs server sets the priority to High.
+    pub apns_priority: Option<Priority>,
 
     /// The topic of the remote notification, which is typically the bundle ID
     /// for your app. The certificate you create in your developer account must
@@ -67,7 +67,7 @@ impl<'a> Default for NotificationOptions<'a> {
         NotificationOptions {
             apns_id: None,
             apns_expiration: None,
-            apns_priority: Priority::Normal,
+            apns_priority: None,
             apns_topic: None,
             apns_collapse_id: None,
         }
