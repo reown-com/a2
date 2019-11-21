@@ -63,7 +63,10 @@
 //! ```no_run
 //! #[macro_use] extern crate serde_derive;
 //!
-//! use a2::{Client, Endpoint, SilentNotificationBuilder, NotificationBuilder};
+//! use a2::{
+//!     Client, Endpoint, SilentNotificationBuilder, NotificationBuilder, NotificationOptions, 
+//!     Priority,
+//! };
 //! use std::fs::File;
 //!
 //! #[derive(Serialize, Debug)]
@@ -80,7 +83,12 @@
 //!     };
 //!
 //!     let mut payload = SilentNotificationBuilder::new()
-//!         .build("device-token-from-the-user", Default::default());
+//!         .build("device-token-from-the-user",
+//!         NotificationOptions {
+//!             apns_priority: Some(Priority::Normal),
+//!             ..Default::default()
+//!         },
+//!     );
 //!     payload.add_custom_data("apns_gmbh", &tracking_data)?;
 //!
 //!     let mut file = File::open("/path/to/cert_db.p12")?;

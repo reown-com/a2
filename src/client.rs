@@ -165,8 +165,10 @@ impl Client {
         builder.uri(&path);
         builder.method("POST");
         builder.header(CONTENT_TYPE, "application/json");
-        builder.header("apns-priority", format!("{}", payload.options.apns_priority).as_bytes());
 
+        if let Some(ref apns_priority) = payload.options.apns_priority {
+            builder.header("apns-priority", format!("{}", apns_priority).as_bytes());
+        }
         if let Some(ref apns_id) = payload.options.apns_id {
             builder.header("apns-id", apns_id.as_bytes());
         }
@@ -291,9 +293,28 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_request_with_normal_priority() {
+    async fn test_request_with_default_priority() {
         let builder = PlainNotificationBuilder::new("test");
         let payload = builder.build("a_test_id", Default::default());
+        let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
+        let request = client.build_request(payload).await;
+        let apns_priority = request.headers().get("apns-priority");
+
+        assert_eq!(None, apns_priority);
+    }
+
+    #[tokio::test]
+    async fn test_request_with_normal_priority() {
+        let builder = PlainNotificationBuilder::new("test");
+
+        let payload = builder.build(
+            "a_test_id",
+            NotificationOptions {
+                apns_priority: Some(Priority::Normal),
+                ..Default::default()
+            },
+        );
+
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
         let request = client.build_request(payload).await;
         let apns_priority = request.headers().get("apns-priority").unwrap();
@@ -308,7 +329,7 @@ mod tests {
         let payload = builder.build(
             "a_test_id",
             NotificationOptions {
-                apns_priority: Priority::High,
+                apns_priority: Some(Priority::High),
                 ..Default::default()
             }
         );
