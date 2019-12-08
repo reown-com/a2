@@ -5,7 +5,7 @@ use hyper_alpn::AlpnConnector;
 use crate::error::Error;
 use crate::error::Error::ResponseError;
 
-use futures::stream::TryStreamExt;
+use futures::stream::StreamExt;
 use hyper::{
     self,
     Client as HttpClient,
@@ -143,7 +143,19 @@ impl Client {
                 })
             },
             status => {
-                let body = response.into_body().try_concat().await?;
+                let content_length: usize = response
+                    .headers()
+                    .get(CONTENT_LENGTH)
+                    .and_then(|s| s.to_str().ok())
+                    .and_then(|s| s.parse().ok())
+                    .unwrap_or(0);
+
+                let mut body: Vec<u8> = Vec::with_capacity(content_length);
+                let mut chunks = response.into_body();
+
+                while let Some(chunk) = chunks.next().await {
+                    body.extend_from_slice(&chunk?);
+                }
 
                 Err(ResponseError(Response {
                     apns_id,
@@ -160,35 +172,36 @@ impl Client {
             self.endpoint, payload.device_token
         );
 
-        let mut builder = hyper::Request::builder();
-
-        builder.uri(&path);
-        builder.method("POST");
-        builder.header(CONTENT_TYPE, "application/json");
+        let mut builder = hyper::Request::builder()
+            .uri(&path)
+            .method("POST")
+            .header(CONTENT_TYPE, "application/json");
 
         if let Some(ref apns_priority) = payload.options.apns_priority {
-            builder.header("apns-priority", format!("{}", apns_priority).as_bytes());
+            builder = builder.header("apns-priority", format!("{}", apns_priority).as_bytes());
         }
         if let Some(ref apns_id) = payload.options.apns_id {
-            builder.header("apns-id", apns_id.as_bytes());
+            builder = builder.header("apns-id", apns_id.as_bytes());
         }
         if let Some(ref apns_expiration) = payload.options.apns_expiration {
-            builder.header("apns-expiration", format!("{}", apns_expiration).as_bytes());
+            builder = builder.header("apns-expiration", format!("{}", apns_expiration).as_bytes());
         }
         if let Some(ref apns_collapse_id) = payload.options.apns_collapse_id {
-            builder.header("apns-collapse-id", format!("{}", apns_collapse_id.value).as_bytes());
+            builder = builder.header("apns-collapse-id", format!("{}", apns_collapse_id.value).as_bytes());
         }
         if let Some(ref apns_topic) = payload.options.apns_topic {
-            builder.header("apns-topic", apns_topic.as_bytes());
+            builder = builder.header("apns-topic", apns_topic.as_bytes());
         }
         if let Some(ref signer) = self.signer {
-            signer.with_signature(|signature| {
-                builder.header(AUTHORIZATION, format!("Bearer {}", signature).as_bytes());
+            let auth = signer.with_signature(|signature| {
+                format!("Bearer {}", signature)
             }).await.unwrap();
+
+            builder = builder.header(AUTHORIZATION, auth.as_bytes());
         }
 
         let payload_json = payload.to_json_string().unwrap();
-        builder.header(CONTENT_LENGTH, format!("{}", payload_json.len()).as_bytes());
+        builder = builder.header(CONTENT_LENGTH, format!("{}", payload_json.len()).as_bytes());
 
         let request_body = Body::from(payload_json);
         builder.body(request_body).unwrap()
@@ -487,8 +500,14 @@ mod tests {
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
         let request = client.build_request(payload.clone()).await;
-        let body_chunk = request.into_body().try_concat().await.unwrap();
-        let body_str = String::from_utf8(body_chunk.to_vec()).unwrap();
+
+        let mut body: Vec<u8> = Vec::new();
+        let mut chunks = request.into_body();
+
+        while let Some(chunk) = chunks.next().await {
+            body.extend_from_slice(&chunk.unwrap());
+        }
+        let body_str = String::from_utf8(body).unwrap();
 
         assert_eq!(
             payload.to_json_string().unwrap(),

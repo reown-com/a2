@@ -88,9 +88,9 @@ impl Signer {
 
     /// Take a signature out for usage. Automatically renews the signature
     /// if it's older than the expiration time.
-    pub async fn with_signature<F>(&self, f: F) -> Result<(), Error>
+    pub async fn with_signature<F, T>(&self, f: F) -> Result<T, Error>
     where
-        F: FnOnce(&str) -> (),
+        F: FnOnce(&str) -> T,
     {
         if self.is_expired().await {
             self.renew().await?;

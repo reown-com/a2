@@ -15,22 +15,22 @@ documentation = "https://docs.rs/a2"
 edition = "2018"
 
 [dependencies]
-serde = "1.0"
+serde = "1"
 erased-serde = "0.3"
-serde_derive = "1.0"
-serde_json = "1.0"
+serde_derive = "1"
+serde_json = "1"
 openssl = "0.10"
-futures-preview = "0.3.0-alpha.19"
-http = "0.1"
+futures = "0.3"
+http = "0.2"
 base64 = "0.9"
 time = "0.1"
 log = "0.4"
-hyper = { version = "0.13.0-alpha.4", features = ["unstable-stream"] }
-hyper-alpn = "0.2.0-alpha.6"
-async-std = "0.99"
+hyper = { git = "https://github.com/hyperium/hyper.git" }
+hyper-alpn = { git = "https://github.com/pimeys/hyper-alpn.git" }
+async-std = "1"
 
 [dev-dependencies]
 argparse = "0.2"
 pretty_env_logger = "0.3"
 indoc = "0.2"
-tokio = "0.2.0-alpha.6"
+tokio = { version = "0.2", features = ["rt-threaded", "macros"] }
