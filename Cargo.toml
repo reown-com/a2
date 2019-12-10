@@ -1,6 +1,6 @@
 [package]
 name = "a2"
-version = "0.5.0-alpha.7"
+version = "0.5.0"
 authors = [
   "Julius de Bruijn <julius@nauk.io>",
   "Sergey Tkachenko <seriy.tkachenko@gmail.com>", 
@@ -25,8 +25,8 @@ http = "0.2"
 base64 = "0.9"
 time = "0.1"
 log = "0.4"
-hyper = { git = "https://github.com/hyperium/hyper.git" }
-hyper-alpn = { git = "https://github.com/pimeys/hyper-alpn.git" }
+hyper = "0.13"
+hyper-alpn = "0.2"
 async-std = "1"
 
 [dev-dependencies]

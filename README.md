@@ -10,12 +10,9 @@ HTTP/2 Apple Push Notification Service for Rust using Tokio and async sending.
 
 The main author is not currently owning any Apple phones, so would be nice to have some help from a co-author with needed devices and an Apple developer account. If you happen to have them and are willing to help, please contact!
 
-## Alpha status
+## Requirements
 
-The current master and alpha versions use `std::future` with async/await syntax,
-and requires a beta compiler of version 1.39.0. 0.4 works with stable and futures 0.1.
-
-Bugfixes for the stable release should go against the `v0.4` branch.
+Needs a Tokio executor version 0.2 or later and Rust compiler version 1.39.0 or later.
 
 ## Documentation
 

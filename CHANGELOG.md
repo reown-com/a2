@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.5.0
+
+- Stable Hyper 0.13 and Tokio 0.2 support
+
 ## v0.5.0-alpha.6
 
 - Fix a bug in ALPN resolving.
