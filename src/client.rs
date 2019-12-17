@@ -112,7 +112,7 @@ impl Client {
         R: Read,
     {
         let connector = AlpnConnector::new();
-        let signature_ttl = 60 * 45; // seconds
+        let signature_ttl = Duration::from_secs(45);
         let signer = Signer::new(pkcs8_pem, key_id, team_id, signature_ttl)?;
 
         Ok(Self::new(connector, Some(signer), endpoint))
@@ -296,7 +296,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_request_authorization_with_a_signer() {
-        let signer = Signer::new(PRIVATE_KEY.as_bytes(), "89AFRD1X22", "ASDFQWERTY", 100).unwrap();
+        let signer = Signer::new(PRIVATE_KEY.as_bytes(), "89AFRD1X22", "ASDFQWERTY", Duration::from_secs(100)).unwrap();
         let builder = PlainNotificationBuilder::new("test");
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), Some(signer), Endpoint::Production);

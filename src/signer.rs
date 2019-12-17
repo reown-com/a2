@@ -4,6 +4,7 @@ use serde_json;
 use base64::encode;
 use crate::error::Error;
 use async_std::sync::RwLock;
+use std::time::Duration;
 
 use openssl::{
     ec::EcKey,
@@ -25,7 +26,7 @@ pub struct Signer {
     key_id: String,
     team_id: String,
     secret: PKey<Private>,
-    expire_after_s: i64,
+    expire_after_s: Duration,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -52,7 +53,7 @@ impl Signer {
         mut pk_pem: R,
         key_id: S,
         team_id: T,
-        signature_ttl: i64,
+        signature_ttl: Duration,
     ) -> Result<Signer, Error>
     where
         S: Into<String>,
@@ -102,7 +103,7 @@ impl Signer {
             "Signer::with_signature found signature for {}/{} valid for {}s",
             self.key_id,
             self.team_id,
-            self.expire_after_s - (get_time().sec - signature.issued_at)
+            self.expire_after_s.as_secs(),
         );
 
         Ok(f(&signature.key))
@@ -144,7 +145,7 @@ impl Signer {
             self.key_id,
             self.team_id,
             issued_at,
-            self.expire_after_s,
+            self.expire_after_s.as_secs(),
         );
 
         let mut signature = self.signature.write().await;
@@ -160,7 +161,7 @@ impl Signer {
     async fn is_expired(&self) -> bool {
         let sig = self.signature.read().await;
         let expiry = get_time().sec - sig.issued_at;
-        expiry >= self.expire_after_s
+        expiry >= self.expire_after_s.as_secs() as i64
     }
 }
 
@@ -178,7 +179,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_signature_caching() {
-        let signer = Signer::new(PRIVATE_KEY.as_bytes(), "89AFRD1X22", "ASDFQWERTY", 100).unwrap();
+        let signer = Signer::new(PRIVATE_KEY.as_bytes(), "89AFRD1X22", "ASDFQWERTY", Duration::from_secs(100)).unwrap();
 
         let mut sig1 = String::new();
         signer.with_signature(|sig| sig1.push_str(sig)).await.unwrap();
@@ -191,7 +192,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_signature_without_caching() {
-        let signer = Signer::new(PRIVATE_KEY.as_bytes(), "89AFRD1X22", "ASDFQWERTY", 0).unwrap();
+        let signer = Signer::new(PRIVATE_KEY.as_bytes(), "89AFRD1X22", "ASDFQWERTY", Duration::from_secs(0)).unwrap();
 
         let mut sig1 = String::new();
         signer.with_signature(|sig| sig1.push_str(sig)).await.unwrap();
