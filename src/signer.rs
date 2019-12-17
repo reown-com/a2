@@ -176,6 +176,7 @@ mod tests {
         -----END PRIVATE KEY-----"
     );
 
+    #[test]
     fn test_signature_caching() {
         let signer = Signer::new(PRIVATE_KEY.as_bytes(), "89AFRD1X22", "ASDFQWERTY", 100).unwrap();
 
@@ -188,6 +189,7 @@ mod tests {
         assert_eq!(sig1, sig2);
     }
 
+    #[test]
     fn test_signature_without_caching() {
         let signer = Signer::new(PRIVATE_KEY.as_bytes(), "89AFRD1X22", "ASDFQWERTY", 0).unwrap();
 

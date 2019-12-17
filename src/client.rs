@@ -229,54 +229,54 @@ mod tests {
         -----END PRIVATE KEY-----"
     );
 
-    #[tokio::test]
-    async fn test_production_request_uri() {
+    #[test]
+    fn test_production_request_uri() {
         let builder = PlainNotificationBuilder::new("test");
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(payload).await;
+        let request = client.build_request(payload);
         let uri = format!("{}", request.uri());
 
         assert_eq!("https://api.push.apple.com/3/device/a_test_id", &uri);
     }
 
-    #[tokio::test]
-    async fn test_sandbox_request_uri() {
+    #[test]
+    fn test_sandbox_request_uri() {
         let builder = PlainNotificationBuilder::new("test");
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Sandbox);
-        let request = client.build_request(payload).await;
+        let request = client.build_request(payload);
         let uri = format!("{}", request.uri());
 
         assert_eq!("https://api.development.push.apple.com/3/device/a_test_id", &uri);
     }
 
-    #[tokio::test]
-    async fn test_request_method() {
+    #[test]
+    fn test_request_method() {
         let builder = PlainNotificationBuilder::new("test");
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(payload).await;
+        let request = client.build_request(payload);
 
         assert_eq!(&Method::POST, request.method());
     }
 
-    #[tokio::test]
-    async fn test_request_content_type() {
+    #[test]
+    fn test_request_content_type() {
         let builder = PlainNotificationBuilder::new("test");
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(payload).await;
+        let request = client.build_request(payload);
 
         assert_eq!("application/json", request.headers().get(CONTENT_TYPE).unwrap());
     }
 
-    #[tokio::test]
-    async fn test_request_content_length() {
+    #[test]
+    fn test_request_content_length() {
         let builder = PlainNotificationBuilder::new("test");
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(payload.clone()).await;
+        let request = client.build_request(payload.clone());
         let payload_json = payload.to_json_string().unwrap();
         let content_length = request.headers().get(CONTENT_LENGTH).unwrap().to_str().unwrap();
 
@@ -286,40 +286,40 @@ mod tests {
         );
     }
 
-    #[tokio::test]
-    async fn test_request_authorization_with_no_signer() {
+    #[test]
+    fn test_request_authorization_with_no_signer() {
         let builder = PlainNotificationBuilder::new("test");
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(payload).await;
+        let request = client.build_request(payload);
 
         assert_eq!(None, request.headers().get(AUTHORIZATION));
     }
 
-    #[tokio::test]
-    async fn test_request_authorization_with_a_signer() {
+    #[test]
+    fn test_request_authorization_with_a_signer() {
         let signer = Signer::new(PRIVATE_KEY.as_bytes(), "89AFRD1X22", "ASDFQWERTY", 100).unwrap();
         let builder = PlainNotificationBuilder::new("test");
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), Some(signer), Endpoint::Production);
-        let request = client.build_request(payload).await;
+        let request = client.build_request(payload);
 
         assert_ne!(None, request.headers().get(AUTHORIZATION));
     }
 
-    #[tokio::test]
-    async fn test_request_with_default_priority() {
+    #[test]
+    fn test_request_with_default_priority() {
         let builder = PlainNotificationBuilder::new("test");
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(payload).await;
+        let request = client.build_request(payload);
         let apns_priority = request.headers().get("apns-priority");
 
         assert_eq!(None, apns_priority);
     }
 
-    #[tokio::test]
-    async fn test_request_with_normal_priority() {
+    #[test]
+    fn test_request_with_normal_priority() {
         let builder = PlainNotificationBuilder::new("test");
 
         let payload = builder.build(
@@ -331,14 +331,14 @@ mod tests {
         );
 
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(payload).await;
+        let request = client.build_request(payload);
         let apns_priority = request.headers().get("apns-priority").unwrap();
 
         assert_eq!("5", apns_priority);
     }
 
-    #[tokio::test]
-    async fn test_request_with_high_priority() {
+    #[test]
+    fn test_request_with_high_priority() {
         let builder = PlainNotificationBuilder::new("test");
 
         let payload = builder.build(
@@ -350,14 +350,14 @@ mod tests {
         );
 
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(payload).await;
+        let request = client.build_request(payload);
         let apns_priority = request.headers().get("apns-priority").unwrap();
 
         assert_eq!("10", apns_priority);
     }
 
-    #[tokio::test]
-    async fn test_request_with_default_apns_id() {
+    #[test]
+    fn test_request_with_default_apns_id() {
         let builder = PlainNotificationBuilder::new("test");
 
         let payload = builder.build(
@@ -366,14 +366,14 @@ mod tests {
         );
 
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(payload).await;
+        let request = client.build_request(payload);
         let apns_id = request.headers().get("apns-id");
 
         assert_eq!(None, apns_id);
     }
 
-    #[tokio::test]
-    async fn test_request_with_an_apns_id() {
+    #[test]
+    fn test_request_with_an_apns_id() {
         let builder = PlainNotificationBuilder::new("test");
 
         let payload = builder.build(
@@ -385,14 +385,14 @@ mod tests {
         );
 
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(payload).await;
+        let request = client.build_request(payload);
         let apns_id = request.headers().get("apns-id").unwrap();
 
         assert_eq!("a-test-apns-id", apns_id);
     }
 
-    #[tokio::test]
-    async fn test_request_with_default_apns_expiration() {
+    #[test]
+    fn test_request_with_default_apns_expiration() {
         let builder = PlainNotificationBuilder::new("test");
 
         let payload = builder.build(
@@ -401,14 +401,14 @@ mod tests {
         );
 
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(payload).await;
+        let request = client.build_request(payload);
         let apns_expiration = request.headers().get("apns-expiration");
 
         assert_eq!(None, apns_expiration);
     }
 
-    #[tokio::test]
-    async fn test_request_with_an_apns_expiration() {
+    #[test]
+    fn test_request_with_an_apns_expiration() {
         let builder = PlainNotificationBuilder::new("test");
 
         let payload = builder.build(
@@ -420,14 +420,14 @@ mod tests {
         );
 
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(payload).await;
+        let request = client.build_request(payload);
         let apns_expiration = request.headers().get("apns-expiration").unwrap();
 
         assert_eq!("420", apns_expiration);
     }
 
-    #[tokio::test]
-    async fn test_request_with_default_apns_collapse_id() {
+    #[test]
+    fn test_request_with_default_apns_collapse_id() {
         let builder = PlainNotificationBuilder::new("test");
 
         let payload = builder.build(
@@ -436,14 +436,14 @@ mod tests {
         );
 
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(payload).await;
+        let request = client.build_request(payload);
         let apns_collapse_id = request.headers().get("apns-collapse-id");
 
         assert_eq!(None, apns_collapse_id);
     }
 
-    #[tokio::test]
-    async fn test_request_with_an_apns_collapse_id() {
+    #[test]
+    fn test_request_with_an_apns_collapse_id() {
         let builder = PlainNotificationBuilder::new("test");
 
         let payload = builder.build(
@@ -455,14 +455,14 @@ mod tests {
         );
 
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(payload).await;
+        let request = client.build_request(payload);
         let apns_collapse_id = request.headers().get("apns-collapse-id").unwrap();
 
         assert_eq!("a_collapse_id", apns_collapse_id);
     }
 
-    #[tokio::test]
-    async fn test_request_with_default_apns_topic() {
+    #[test]
+    fn test_request_with_default_apns_topic() {
         let builder = PlainNotificationBuilder::new("test");
 
         let payload = builder.build(
@@ -471,14 +471,14 @@ mod tests {
         );
 
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(payload).await;
+        let request = client.build_request(payload);
         let apns_topic = request.headers().get("apns-topic");
 
         assert_eq!(None, apns_topic);
     }
 
-    #[tokio::test]
-    async fn test_request_with_an_apns_topic() {
+    #[test]
+    fn test_request_with_an_apns_topic() {
         let builder = PlainNotificationBuilder::new("test");
 
         let payload = builder.build(
@@ -490,7 +490,7 @@ mod tests {
         );
 
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(payload).await;
+        let request = client.build_request(payload);
         let apns_topic = request.headers().get("apns-topic").unwrap();
 
         assert_eq!("a_topic", apns_topic);
@@ -501,7 +501,7 @@ mod tests {
         let builder = PlainNotificationBuilder::new("test");
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
-        let request = client.build_request(payload.clone()).await;
+        let request = client.build_request(payload.clone());
 
         let mut body: Vec<u8> = Vec::new();
         let mut chunks = request.into_body();
