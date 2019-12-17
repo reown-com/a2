@@ -3,7 +3,7 @@ use std::io::Read;
 use serde_json;
 use base64::encode;
 use crate::error::Error;
-use std::sync::RwLock;
+use std::{sync::RwLock, time::Duration};
 
 use openssl::{
     ec::EcKey,
@@ -25,7 +25,7 @@ pub struct Signer {
     key_id: String,
     team_id: String,
     secret: PKey<Private>,
-    expire_after_s: i64,
+    expire_after_s: Duration,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -52,7 +52,7 @@ impl Signer {
         mut pk_pem: R,
         key_id: S,
         team_id: T,
-        signature_ttl: i64,
+        signature_ttl: Duration,
     ) -> Result<Signer, Error>
     where
         S: Into<String>,
@@ -102,7 +102,7 @@ impl Signer {
             "Signer::with_signature found signature for {}/{} valid for {}s",
             self.key_id,
             self.team_id,
-            self.expire_after_s - (get_time().sec - signature.issued_at)
+            self.expire_after_s.as_secs(),
         );
 
         Ok(f(&signature.key))
@@ -123,7 +123,9 @@ impl Signer {
             iss: team_id,
             iat: issued_at,
         };
+* Try allocating less in response-ir
 
+* Make selected_fields allocate less
         let encoded_header = encode(&serde_json::to_string(&headers)?);
         let encoded_payload = encode(&serde_json::to_string(&payload)?);
         let signing_input = format!("{}.{}", encoded_header, encoded_payload);
@@ -144,7 +146,7 @@ impl Signer {
             self.key_id,
             self.team_id,
             issued_at,
-            self.expire_after_s,
+            self.expire_after_s.as_secs(),
         );
 
         let mut signature = self.signature.write().unwrap();
@@ -160,7 +162,7 @@ impl Signer {
     fn is_expired(&self) -> bool {
         let sig = self.signature.read().unwrap();
         let expiry = get_time().sec - sig.issued_at;
-        expiry >= self.expire_after_s
+        expiry >= self.expire_after_s.as_secs() as i64
     }
 }
 
@@ -178,7 +180,7 @@ mod tests {
 
     #[test]
     fn test_signature_caching() {
-        let signer = Signer::new(PRIVATE_KEY.as_bytes(), "89AFRD1X22", "ASDFQWERTY", 100).unwrap();
+        let signer = Signer::new(PRIVATE_KEY.as_bytes(), "89AFRD1X22", "ASDFQWERTY", Duration::from_secs(100)).unwrap();
 
         let mut sig1 = String::new();
         signer.with_signature(|sig| sig1.push_str(sig)).unwrap();
@@ -191,7 +193,7 @@ mod tests {
 
     #[test]
     fn test_signature_without_caching() {
-        let signer = Signer::new(PRIVATE_KEY.as_bytes(), "89AFRD1X22", "ASDFQWERTY", 0).unwrap();
+        let signer = Signer::new(PRIVATE_KEY.as_bytes(), "89AFRD1X22", "ASDFQWERTY", Duration::from_secs(0)).unwrap();
 
         let mut sig1 = String::new();
         signer.with_signature(|sig| sig1.push_str(sig)).unwrap();
