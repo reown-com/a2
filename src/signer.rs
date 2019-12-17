@@ -123,9 +123,7 @@ impl Signer {
             iss: team_id,
             iat: issued_at,
         };
-* Try allocating less in response-ir
 
-* Make selected_fields allocate less
         let encoded_header = encode(&serde_json::to_string(&headers)?);
         let encoded_payload = encode(&serde_json::to_string(&payload)?);
         let signing_input = format!("{}.{}", encoded_header, encoded_payload);
