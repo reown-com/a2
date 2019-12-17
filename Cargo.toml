@@ -27,7 +27,6 @@ time = "0.1"
 log = "0.4"
 hyper = "0.13"
 hyper-alpn = "0.2"
-async-std = "1"
 
 [dev-dependencies]
 argparse = "0.2"
