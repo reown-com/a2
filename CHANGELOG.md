@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.5.1
+
+- Enforcing static lifetimes for client send [#43](https://github.com/pimeys/a2/pull/43)
+
 ## v0.5.0
 
 - Stable Hyper 0.13 and Tokio 0.2 support
