@@ -5,7 +5,7 @@ use hyper_alpn::AlpnConnector;
 use crate::error::Error;
 use crate::error::Error::ResponseError;
 
-use futures::{stream::StreamExt, future::{FutureExt, BoxFuture}};
+use futures::stream::StreamExt;
 use hyper::{
     self,
     Client as HttpClient,
