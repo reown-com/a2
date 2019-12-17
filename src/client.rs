@@ -122,7 +122,7 @@ impl Client {
     /// Send a notification payload.
     ///
     /// See [ErrorReason](enum.ErrorReason.html) for possible errors.
-    pub fn send<'a>(&self, payload: Payload<'a>) -> impl Future<Output = Result<Response, Error>> + 'static {
+    pub fn send(&self, payload: Payload<'_>) -> impl Future<Output = Result<Response, Error>> + 'static {
         let request = self.build_request(payload);
         let requesting = self.http_client.request(request);
 
