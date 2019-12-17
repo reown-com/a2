@@ -5,7 +5,7 @@ use hyper_alpn::AlpnConnector;
 use crate::error::Error;
 use crate::error::Error::ResponseError;
 
-use futures::stream::StreamExt;
+use futures::{stream::StreamExt, future::{FutureExt, BoxFuture}};
 use hyper::{
     self,
     Client as HttpClient,
@@ -18,6 +18,7 @@ use crate::response::Response;
 use serde_json;
 use std::{fmt, str};
 use std::time::Duration;
+use std::future::Future;
 use openssl::pkcs12::Pkcs12;
 use std::io::Read;
 
@@ -121,52 +122,53 @@ impl Client {
     /// Send a notification payload.
     ///
     /// See [ErrorReason](enum.ErrorReason.html) for possible errors.
-    pub async fn send<'a>(&self, payload: Payload<'a>) -> Result<Response, Error> {
-        let request = self.build_request(payload).await;
-        let path = format!("{}", request.uri());
+    pub fn send<'a>(&self, payload: Payload<'a>) -> impl Future<Output = Result<Response, Error>> {
+        let request = self.build_request(payload);
+        let requesting = self.http_client.request(request);
 
-        let response = self.http_client.request(request).await?;
-        trace!("Client::call got response status {} from ({:?})", response.status(), path);
+        async move {
+            let response = requesting.await?;
 
-        let apns_id = response
-            .headers()
-            .get("apns-id")
-            .and_then(|s| s.to_str().ok())
-            .map(|id| String::from(id));
+            let apns_id = response
+                .headers()
+                .get("apns-id")
+                .and_then(|s| s.to_str().ok())
+                .map(|id| String::from(id));
 
-        match response.status() {
-            StatusCode::OK => {
-                Ok(Response {
-                    apns_id,
-                    error: None,
-                    code: response.status().as_u16(),
-                })
-            },
-            status => {
-                let content_length: usize = response
-                    .headers()
-                    .get(CONTENT_LENGTH)
-                    .and_then(|s| s.to_str().ok())
-                    .and_then(|s| s.parse().ok())
-                    .unwrap_or(0);
+            match response.status() {
+                StatusCode::OK => {
+                    Ok(Response {
+                        apns_id,
+                        error: None,
+                        code: response.status().as_u16(),
+                    })
+                },
+                status => {
+                    let content_length: usize = response
+                        .headers()
+                        .get(CONTENT_LENGTH)
+                        .and_then(|s| s.to_str().ok())
+                        .and_then(|s| s.parse().ok())
+                        .unwrap_or(0);
 
-                let mut body: Vec<u8> = Vec::with_capacity(content_length);
-                let mut chunks = response.into_body();
+                    let mut body: Vec<u8> = Vec::with_capacity(content_length);
+                    let mut chunks = response.into_body();
 
-                while let Some(chunk) = chunks.next().await {
-                    body.extend_from_slice(&chunk?);
+                    while let Some(chunk) = chunks.next().await {
+                        body.extend_from_slice(&chunk?);
+                    }
+
+                    Err(ResponseError(Response {
+                        apns_id,
+                        error: serde_json::from_slice(&body).ok(),
+                        code: status.as_u16(),
+                    }))
                 }
-
-                Err(ResponseError(Response {
-                    apns_id,
-                    error: serde_json::from_slice(&body).ok(),
-                    code: status.as_u16(),
-                }))
             }
         }
     }
 
-    async fn build_request(&self, payload: Payload<'_>) -> hyper::Request<Body> {
+    fn build_request(&self, payload: Payload<'_>) -> hyper::Request<Body> {
         let path = format!(
             "https://{}/3/device/{}",
             self.endpoint, payload.device_token
@@ -195,7 +197,7 @@ impl Client {
         if let Some(ref signer) = self.signer {
             let auth = signer.with_signature(|signature| {
                 format!("Bearer {}", signature)
-            }).await.unwrap();
+            }).unwrap();
 
             builder = builder.header(AUTHORIZATION, auth.as_bytes());
         }
