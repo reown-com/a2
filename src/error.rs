@@ -1,12 +1,12 @@
 //! Error and result module
 
-use std::error::Error as StdError;
-use std::io::Error as IoError;
-use serde_json::Error as SerdeError;
+use crate::response::{ErrorBody, Response};
 use openssl::error::ErrorStack;
-use std::fmt;
+use serde_json::Error as SerdeError;
 use std::convert::From;
-use crate::response::{Response, ErrorBody};
+use std::error::Error as StdError;
+use std::fmt;
+use std::io::Error as IoError;
 
 #[derive(Debug)]
 pub enum Error {
@@ -42,10 +42,11 @@ pub enum Error {
 impl<'a> fmt::Display for Error {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Error::ResponseError(Response { error: Some(ErrorBody { ref reason, .. }), .. }) => {
-                write!(fmt, "{} (reason: {:?})", self.description(), reason)
-            },
-            _ => write!(fmt, "{}", self.description()),
+            Error::ResponseError(Response {
+                error: Some(ErrorBody { ref reason, .. }),
+                ..
+            }) => write!(fmt, "{} (reason: {:?})", self, reason),
+            _ => write!(fmt, "{}", self),
         }
     }
 }
@@ -77,13 +78,13 @@ impl From<SerdeError> for Error {
 
 impl From<ErrorStack> for Error {
     fn from(e: ErrorStack) -> Error {
-        Error::SignerError(format!("{}", e.description()))
+        Error::SignerError(format!("{}", e))
     }
 }
 
 impl From<IoError> for Error {
     fn from(e: IoError) -> Error {
-        Error::ReadError(format!("{}", e.description()))
+        Error::ReadError(format!("{}", e))
     }
 }
 
