@@ -63,14 +63,13 @@ impl Client {
         endpoint: Endpoint,
     ) -> Client {
         let mut builder = HttpClient::builder();
-        builder.keep_alive_timeout(Some(Duration::from_secs(600)));
+        builder.pool_idle_timeout(Some(Duration::from_secs(600)));
         builder.http2_only(true);
-        builder.keep_alive(true);
 
         Client {
             http_client: builder.build(connector),
-            signer: signer,
-            endpoint: endpoint,
+            signer,
+            endpoint,
         }
     }
 
