@@ -113,7 +113,7 @@ impl Client {
         R: Read,
     {
         let connector = AlpnConnector::new();
-        let signature_ttl = Duration::from_secs(45);
+        let signature_ttl = Duration::from_secs(60 * 55);
         let signer = Signer::new(pkcs8_pem, key_id, team_id, signature_ttl)?;
 
         Ok(Self::new(connector, Some(signer), endpoint))
