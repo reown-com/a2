@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.5.2
+
+- Fix `TooManyProviderTokenUpdates` issue [#44](https://github.com/pimeys/a2/pull/44)
+
 ## v0.5.1
 
 - Enforcing static lifetimes for client send [#43](https://github.com/pimeys/a2/pull/43)
