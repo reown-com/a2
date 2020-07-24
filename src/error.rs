@@ -39,7 +39,7 @@ pub enum Error {
     ReadError(String),
 }
 
-impl<'a> fmt::Display for Error {
+impl fmt::Display for Error {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Error::ResponseError(Response {
@@ -62,7 +62,7 @@ impl<'a> fmt::Display for Error {
     }
 }
 
-impl<'a> StdError for Error {}
+impl StdError for Error {}
 
 impl From<SerdeError> for Error {
     fn from(_: SerdeError) -> Error {
