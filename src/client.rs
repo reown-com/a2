@@ -96,6 +96,15 @@ impl Client {
         Ok(Self::new(connector, None, endpoint))
     }
 
+    /// Create a connection to APNs using the raw PEM-formatted certificate and
+    /// key, extracted from the provider client certificate you obtain from your
+    /// [Apple developer account](https://developer.apple.com/account/).
+    pub fn certificate_parts(cert: &[u8], key: &[u8], endpoint: Endpoint) -> Result<Client, Error> {
+        let connector = AlpnConnector::with_client_cert(cert, key)?;
+
+        Ok(Self::new(connector, None, endpoint))
+    }
+
     /// Create a connection to APNs using system certificates, signing every
     /// request with a signature using a private key, key id and team id
     /// provisioned from your [Apple developer
