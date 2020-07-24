@@ -1,9 +1,8 @@
-use time::get_time;
 use std::io::Read;
 use serde_json;
 use base64::encode;
 use crate::error::Error;
-use std::{sync::RwLock, time::Duration};
+use std::{sync::RwLock, time::{Duration, SystemTime, UNIX_EPOCH}};
 
 use openssl::{
     ec::EcKey,
@@ -67,7 +66,7 @@ impl Signer {
 
         let ec_key = EcKey::private_key_from_pem(&pem_key)?;
 
-        let issued_at = get_time().sec;
+        let issued_at = get_time();
         let secret = PKey::from_ec_key(ec_key)?;
 
         let signature = RwLock::new(Signature {
@@ -137,7 +136,7 @@ impl Signer {
     }
 
     fn renew(&self) -> Result<(), Error> {
-        let issued_at = get_time().sec;
+        let issued_at = get_time();
 
         trace!(
             "Signer::renew for k_id {} t_id {} issued {} valid for {}s",
@@ -159,9 +158,16 @@ impl Signer {
 
     fn is_expired(&self) -> bool {
         let sig = self.signature.read().unwrap();
-        let expiry = get_time().sec - sig.issued_at;
+        let expiry = get_time() - sig.issued_at;
         expiry >= self.expire_after_s.as_secs() as i64
     }
+}
+
+fn get_time() -> i64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("Time went backwards")
+        .as_secs() as i64
 }
 
 #[cfg(test)]
