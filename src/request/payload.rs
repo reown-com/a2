@@ -93,7 +93,7 @@ impl<'a> Payload<'a> {
 }
 
 /// The pre-defined notification data.
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone)]
 #[serde(rename_all = "kebab-case")]
 pub struct APS<'a> {
     /// The notification content. Can be empty for silent notifications.

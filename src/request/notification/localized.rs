@@ -6,7 +6,7 @@ use std::{
     borrow::Cow,
 };
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone)]
 #[serde(rename_all = "kebab-case")]
 pub struct LocalizedAlert<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
