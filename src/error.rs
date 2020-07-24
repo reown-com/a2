@@ -45,30 +45,24 @@ impl<'a> fmt::Display for Error {
             Error::ResponseError(Response {
                 error: Some(ErrorBody { ref reason, .. }),
                 ..
-            }) => write!(fmt, "{} (reason: {:?})", self, reason),
-            _ => write!(fmt, "{}", self),
+            }) => write!(
+                fmt,
+                "Notification was not accepted by APNs (reason: {})",
+                reason
+            ),
+            Error::SerializeError => fmt.write_str("Error serializing to JSON"),
+            Error::ConnectionError => fmt.write_str("Error connecting to APNs"),
+            Error::SignerError(_) => fmt.write_str("Error creating a signature"),
+            Error::ResponseError(_) => fmt.write_str("Notification was not accepted by APNs"),
+            Error::InvalidOptions(_) => fmt.write_str("Invalid options for APNs payload"),
+            Error::TlsError(_) => fmt.write_str("Error in creating a TLS connection"),
+            Error::ReadError(_) => fmt.write_str("Error in reading a certificate file"),
+            Error::TimeoutError => fmt.write_str("Timeout in sending a push notification"),
         }
     }
 }
 
-impl<'a> StdError for Error {
-    fn description(&self) -> &str {
-        match self {
-            Error::SerializeError => "Error serializing to JSON",
-            Error::ConnectionError => "Error connecting to APNs",
-            Error::SignerError(_) => "Error creating a signature",
-            Error::ResponseError(_) => "Notification was not accepted by APNs",
-            Error::InvalidOptions(_) => "Invalid options for APNs payload",
-            Error::TlsError(_) => "Error in creating a TLS connection",
-            Error::ReadError(_) => "Error in reading a certificate file",
-            Error::TimeoutError => "Timeout in sending a push notification",
-        }
-    }
-
-    fn cause(&self) -> Option<&dyn StdError> {
-        None
-    }
-}
+impl<'a> StdError for Error {}
 
 impl From<SerdeError> for Error {
     fn from(_: SerdeError) -> Error {
