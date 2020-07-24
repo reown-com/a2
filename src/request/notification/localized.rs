@@ -6,7 +6,7 @@ use std::{
     borrow::Cow,
 };
 
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "kebab-case")]
 pub struct LocalizedAlert<'a> {
     title: &'a str,
