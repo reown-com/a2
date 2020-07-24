@@ -9,26 +9,29 @@ use std::{
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "kebab-case")]
 pub struct LocalizedAlert<'a> {
-    title: &'a str,
-    body: &'a str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<&'a str>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    title_loc_key: Option<&'a str>,
+    pub body: Option<&'a str>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    title_loc_args: Option<Vec<Cow<'a, str>>>,
+    pub title_loc_key: Option<&'a str>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    action_loc_key: Option<&'a str>,
+    pub title_loc_args: Option<Vec<Cow<'a, str>>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    loc_key: Option<&'a str>,
+    pub action_loc_key: Option<&'a str>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    loc_args: Option<Vec<Cow<'a, str>>>,
+    pub loc_key: Option<&'a str>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    launch_image: Option<&'a str>,
+    pub loc_args: Option<Vec<Cow<'a, str>>>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub launch_image: Option<&'a str>,
 }
 
 /// A builder to create a localized APNs payload.
@@ -84,8 +87,8 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     {
         LocalizedNotificationBuilder {
             alert: LocalizedAlert {
-                title: title,
-                body: body,
+                title: Some(title),
+                body: Some(body),
                 title_loc_key: None,
                 title_loc_args: None,
                 action_loc_key: None,
