@@ -19,17 +19,17 @@ serde = "1"
 erased-serde = "0.3"
 serde_derive = "1"
 serde_json = "1"
-thiserror = "1.0"
+thiserror = "1"
 openssl = "0.10"
 futures = "0.3"
 http = "0.2"
 base64 = "0.12"
 log = "0.4"
-hyper = "0.13"
-hyper-alpn = "0.2"
+hyper = { version = "0.14", features = ["client", "http2"] }
+hyper-alpn = "0.3"
 
 [dev-dependencies]
 argparse = "0.2"
 pretty_env_logger = "0.4"
-indoc = "0.3"
-tokio = { version = "0.2", features = ["rt-threaded", "macros"] }
+indoc = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
