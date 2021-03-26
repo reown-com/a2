@@ -39,10 +39,9 @@ impl<'a> PlainNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn new(body: &'a str) -> PlainNotificationBuilder<'a>
-    {
+    pub fn new(body: &'a str) -> PlainNotificationBuilder<'a> {
         PlainNotificationBuilder {
-            body: body,
+            body,
             badge: None,
             sound: None,
             category: None,
@@ -64,8 +63,7 @@ impl<'a> PlainNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_badge(&mut self, badge: u32) -> &mut Self
-    {
+    pub fn set_badge(&mut self, badge: u32) -> &mut Self {
         self.badge = Some(badge);
         self
     }
@@ -85,9 +83,8 @@ impl<'a> PlainNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_sound(&mut self, sound: &'a str) -> &mut Self
-    {
-        self.sound = Some(sound.into());
+    pub fn set_sound(&mut self, sound: &'a str) -> &mut Self {
+        self.sound = Some(sound);
         self
     }
 
@@ -107,16 +104,14 @@ impl<'a> PlainNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_category(&mut self, category: &'a str) -> &mut Self
-    {
+    pub fn set_category(&mut self, category: &'a str) -> &mut Self {
         self.category = Some(category);
         self
     }
 }
 
 impl<'a> NotificationBuilder<'a> for PlainNotificationBuilder<'a> {
-    fn build(self, device_token: &'a str, options: NotificationOptions<'a>) -> Payload<'a>
-    {
+    fn build(self, device_token: &'a str, options: NotificationOptions<'a>) -> Payload<'a> {
         Payload {
             aps: APS {
                 alert: Some(APSAlert::Plain(self.body)),
@@ -126,8 +121,8 @@ impl<'a> NotificationBuilder<'a> for PlainNotificationBuilder<'a> {
                 category: self.category,
                 mutable_content: None,
             },
-            device_token: device_token,
-            options: options,
+            device_token,
+            options,
             data: BTreeMap::new(),
         }
     }
@@ -148,7 +143,8 @@ mod tests {
             "aps": {
                 "alert": "kulli",
             }
-        }).to_string();
+        })
+        .to_string();
 
         assert_eq!(expected_payload, payload);
     }
@@ -172,7 +168,8 @@ mod tests {
                 "category": "cat1",
                 "sound": "prööt"
             }
-        }).to_string();
+        })
+        .to_string();
 
         assert_eq!(expected_payload, payload);
     }
@@ -199,8 +196,7 @@ mod tests {
             key_struct: SubData { nothing: "here" },
         };
 
-        let mut payload =
-            PlainNotificationBuilder::new("kulli").build("device-token", Default::default());
+        let mut payload = PlainNotificationBuilder::new("kulli").build("device-token", Default::default());
 
         payload.add_custom_data("custom", &test_data).unwrap();
 
@@ -218,7 +214,8 @@ mod tests {
             "aps": {
                 "alert": "kulli",
             }
-        }).to_string();
+        })
+        .to_string();
 
         assert_eq!(expected_payload, payload_json);
     }

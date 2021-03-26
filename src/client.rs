@@ -10,7 +10,6 @@ use crate::response::Response;
 use http::header::{AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE};
 use hyper::{self, Body, Client as HttpClient, StatusCode};
 use openssl::pkcs12::Pkcs12;
-use serde_json;
 use std::future::Future;
 use std::io::Read;
 use std::time::Duration;
@@ -110,7 +109,7 @@ impl Client {
                 .headers()
                 .get("apns-id")
                 .and_then(|s| s.to_str().ok())
-                .map(|id| String::from(id));
+                .map(String::from);
 
             match response.status() {
                 StatusCode::OK => Ok(Response {
@@ -140,16 +139,16 @@ impl Client {
             .header(CONTENT_TYPE, "application/json");
 
         if let Some(ref apns_priority) = payload.options.apns_priority {
-            builder = builder.header("apns-priority", format!("{}", apns_priority).as_bytes());
+            builder = builder.header("apns-priority", apns_priority.to_string().as_bytes());
         }
         if let Some(ref apns_id) = payload.options.apns_id {
             builder = builder.header("apns-id", apns_id.as_bytes());
         }
         if let Some(ref apns_expiration) = payload.options.apns_expiration {
-            builder = builder.header("apns-expiration", format!("{}", apns_expiration).as_bytes());
+            builder = builder.header("apns-expiration", apns_expiration.to_string().as_bytes());
         }
         if let Some(ref apns_collapse_id) = payload.options.apns_collapse_id {
-            builder = builder.header("apns-collapse-id", format!("{}", apns_collapse_id.value).as_bytes());
+            builder = builder.header("apns-collapse-id", apns_collapse_id.value.to_string().as_bytes());
         }
         if let Some(ref apns_topic) = payload.options.apns_topic {
             builder = builder.header("apns-topic", apns_topic.as_bytes());
