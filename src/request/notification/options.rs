@@ -14,7 +14,7 @@ impl<'a> CollapseId<'a> {
                 "The collapse-id is too big. Maximum 64 bytes.",
             )))
         } else {
-            Ok(CollapseId { value: value })
+            Ok(CollapseId { value })
         }
     }
 }
@@ -114,7 +114,7 @@ mod tests {
     #[test]
     fn test_collapse_id_over_64_chars() {
         let mut long_string = Vec::with_capacity(65);
-        long_string.extend_from_slice(&[65;65]);
+        long_string.extend_from_slice(&[65; 65]);
 
         let collapse_id = CollapseId::new(str::from_utf8(&long_string).unwrap());
         assert!(collapse_id.is_err());

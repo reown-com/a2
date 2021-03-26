@@ -46,15 +46,18 @@ impl SilentNotificationBuilder {
     /// # }
     /// ```
     pub fn new() -> SilentNotificationBuilder {
-        SilentNotificationBuilder {
-            content_available: 1,
-        }
+        SilentNotificationBuilder { content_available: 1 }
+    }
+}
+
+impl Default for SilentNotificationBuilder {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
 impl<'a> NotificationBuilder<'a> for SilentNotificationBuilder {
-    fn build(self, device_token: &'a str, options: NotificationOptions<'a>) -> Payload<'a>
-    {
+    fn build(self, device_token: &'a str, options: NotificationOptions<'a>) -> Payload<'a> {
         Payload {
             aps: APS {
                 alert: None,
@@ -64,8 +67,8 @@ impl<'a> NotificationBuilder<'a> for SilentNotificationBuilder {
                 category: None,
                 mutable_content: None,
             },
-            device_token: device_token,
-            options: options,
+            device_token,
+            options,
             data: BTreeMap::new(),
         }
     }
@@ -87,7 +90,8 @@ mod tests {
             "aps": {
                 "content-available": 1
             }
-        }).to_string();
+        })
+        .to_string();
 
         assert_eq!(expected_payload, payload);
     }
@@ -114,8 +118,7 @@ mod tests {
             key_struct: SubData { nothing: "here" },
         };
 
-        let mut payload =
-            SilentNotificationBuilder::new().build("device-token", Default::default());
+        let mut payload = SilentNotificationBuilder::new().build("device-token", Default::default());
 
         payload.add_custom_data("custom", &test_data).unwrap();
 
@@ -131,7 +134,8 @@ mod tests {
                     "nothing": "here"
                 }
             }
-        }).to_string();
+        })
+        .to_string();
 
         assert_eq!(expected_payload, payload.to_json_string().unwrap());
     }
@@ -142,8 +146,7 @@ mod tests {
         test_data.insert("key_str", "foo");
         test_data.insert("key_str2", "bar");
 
-        let mut payload =
-            SilentNotificationBuilder::new().build("device-token", Default::default());
+        let mut payload = SilentNotificationBuilder::new().build("device-token", Default::default());
 
         payload.add_custom_data("custom", &test_data).unwrap();
 
@@ -155,7 +158,8 @@ mod tests {
                 "key_str": "foo",
                 "key_str2": "bar"
             }
-        }).to_string();
+        })
+        .to_string();
 
         assert_eq!(expected_payload, payload.to_json_string().unwrap());
     }
