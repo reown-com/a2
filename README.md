@@ -1,6 +1,6 @@
 # a2
 
-[![Travis Build Status](https://travis-ci.org/pimeys/a2.svg?branch=master)](https://travis-ci.org/pimeys/a2)
+[![Cargo tests](https://github.com/pimeys/a2/actions/workflows/test.yml/badge.svg)](https://github.com/pimeys/a2/actions/workflows/test.yml)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![crates.io](http://meritbadge.herokuapp.com/a2)](https://crates.io/crates/a2)
 
