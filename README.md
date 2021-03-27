@@ -4,7 +4,7 @@
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![crates.io](http://meritbadge.herokuapp.com/a2)](https://crates.io/crates/a2)
 
-[Matrix chat](https://matrix.to/#/!lcXPcLYqIXRyoxzJmp:nauk.io?via=nauk.io)
+[Matrix chat](https://matrix.to/#/#rust-push:nauk.io?via=nauk.io&via=matrix.org&via=shine.horse)
 
 HTTP/2 Apple Push Notification Service for Rust using Tokio and async sending.
 
