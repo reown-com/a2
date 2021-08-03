@@ -1,6 +1,6 @@
 [package]
 name = "a2"
-version = "0.6.0"
+version = "0.6.1"
 authors = [
   "Julius de Bruijn <julius@nauk.io>",
   "Sergey Tkachenko <seriy.tkachenko@gmail.com>", 
@@ -23,7 +23,7 @@ thiserror = "1"
 openssl = "0.10"
 futures = "0.3"
 http = "0.2"
-base64 = "0.12"
+base64 = "0.13"
 log = "0.4"
 hyper = { version = "0.14", features = ["client", "http2"] }
 hyper-alpn = "0.3"
