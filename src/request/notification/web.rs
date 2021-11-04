@@ -17,7 +17,7 @@ pub struct WebPushAlert<'a> {
 /// ```rust
 /// # use a2::request::notification::{NotificationBuilder, WebNotificationBuilder, WebPushAlert};
 /// # fn main() {
-/// let mut builder = WebNotificationBuilder::new(WebPushAlert {title: "Hello", body: "World", action: "View"}, vec!["arg1"]);
+/// let mut builder = WebNotificationBuilder::new(WebPushAlert {title: "Hello", body: "World", action: "View"}, &["arg1"]);
 /// builder.set_sound("prööt");
 /// let payload = builder.build("device_id", Default::default())
 ///    .to_json_string().unwrap();
@@ -26,7 +26,7 @@ pub struct WebPushAlert<'a> {
 pub struct WebNotificationBuilder<'a> {
     alert: WebPushAlert<'a>,
     sound: Option<&'a str>,
-    url_args: &'a Vec<&'a str>,
+    url_args: &'a [&'a str],
 }
 
 impl<'a> WebNotificationBuilder<'a> {
@@ -35,16 +35,16 @@ impl<'a> WebNotificationBuilder<'a> {
     /// ```rust
     /// # use a2::request::notification::{WebNotificationBuilder, NotificationBuilder, WebPushAlert};
     /// # fn main() {
-    /// let mut builder = WebNotificationBuilder::new(WebPushAlert {title: "Hello", body: "World", action: "View"}, vec!["arg1"]);
-    ///     .build("token", Default::default());
+    /// let mut builder = WebNotificationBuilder::new(WebPushAlert {title: "Hello", body: "World", action: "View"}, &["arg1"]);
+    /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":\{"title": "Hello"\,\"body\":\"World\",\"action\":\"View\",\"url-args\":\[\"arg1\"\]}}}",
+    ///     "{\"aps\":{\"alert\":{\"action\":\"View\",\"body\":\"World\",\"title\":\"Hello\"},\"url-args\":[\"arg1\"]}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
     /// ```
-    pub fn new(alert: WebPushAlert<'a>, url_args: &'a Vec<&'a str>) -> WebNotificationBuilder<'a> {
+    pub fn new(alert: WebPushAlert<'a>, url_args: &'a [&'a str]) -> WebNotificationBuilder<'a> {
         WebNotificationBuilder {
             alert,
             sound: None,
@@ -55,14 +55,14 @@ impl<'a> WebNotificationBuilder<'a> {
     /// File name of the custom sound to play when receiving the notification.
     ///
     /// ```rust
-    /// # use a2::request::notification::{WebNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::notification::{WebNotificationBuilder, NotificationBuilder, WebPushAlert};
     /// # fn main() {
-    /// let mut builder = WebNotificationBuilder::new(WebPushAlert {title: "Hello", body: "World", action: "View"}, vec!["arg1"]);
+    /// let mut builder = WebNotificationBuilder::new(WebPushAlert {title: "Hello", body: "World", action: "View"}, &["arg1"]);
     /// builder.set_sound("meow");
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":\{"title": "Hello"\,\"body\":\"World\",\"action\":\"View\",\"url-args\":\[\"arg1\"\,\"sound\":\"meow\"]}}}",
+    ///     "{\"aps\":{\"alert\":{\"action\":\"View\",\"body\":\"World\",\"title\":\"Hello\"},\"sound\":\"meow\",\"url-args\":[\"arg1\"]}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
