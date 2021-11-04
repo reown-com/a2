@@ -66,6 +66,7 @@ impl<'a> NotificationBuilder<'a> for SilentNotificationBuilder {
                 content_available: Some(self.content_available),
                 category: None,
                 mutable_content: None,
+                url_args: None,
             },
             device_token,
             options,

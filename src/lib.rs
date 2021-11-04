@@ -127,7 +127,7 @@ mod signer;
 
 pub use crate::request::notification::{
     CollapseId, LocalizedNotificationBuilder, NotificationBuilder, NotificationOptions, PlainNotificationBuilder,
-    Priority, SilentNotificationBuilder,
+    Priority, SilentNotificationBuilder, WebNotificationBuilder, WebPushAlert
 };
 
 pub use crate::response::{ErrorBody, ErrorReason, Response};
