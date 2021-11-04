@@ -26,7 +26,7 @@ pub struct WebPushAlert<'a> {
 pub struct WebNotificationBuilder<'a> {
     alert: WebPushAlert<'a>,
     sound: Option<&'a str>,
-    url_args: &'a Vec<&'a str>
+    url_args: &'a Vec<&'a str>,
 }
 
 impl<'a> WebNotificationBuilder<'a> {
@@ -71,7 +71,6 @@ impl<'a> WebNotificationBuilder<'a> {
         self.sound = Some(sound);
         self
     }
-
 }
 
 impl<'a> NotificationBuilder<'a> for WebNotificationBuilder<'a> {
@@ -99,10 +98,17 @@ mod tests {
 
     #[test]
     fn test_webpush_notification() {
-        let payload = WebNotificationBuilder::new(WebPushAlert{action: "View", title: "Hello", body: "world"}, &vec!["arg1"])
-            .build("device-token", Default::default())
-            .to_json_string()
-            .unwrap();
+        let payload = WebNotificationBuilder::new(
+            WebPushAlert {
+                action: "View",
+                title: "Hello",
+                body: "world",
+            },
+            &vec!["arg1"],
+        )
+        .build("device-token", Default::default())
+        .to_json_string()
+        .unwrap();
 
         let expected_payload = json!({
             "aps": {
@@ -111,12 +117,11 @@ mod tests {
                     "action": "View",
                     "title": "Hello"
                 },
-                "url-args": "[\"arg1\"]"
+                "url-args": ["arg1"]
             }
         })
         .to_string();
 
         assert_eq!(expected_payload, payload);
     }
-
 }

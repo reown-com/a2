@@ -120,7 +120,6 @@ pub struct APS<'a> {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url_args: Option<&'a Vec<&'a str>>,
-
 }
 
 /// Different notification content types.
