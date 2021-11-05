@@ -315,6 +315,7 @@ impl<'a> NotificationBuilder<'a> for LocalizedNotificationBuilder<'a> {
                 content_available: None,
                 category: self.category,
                 mutable_content: Some(self.mutable_content),
+                url_args: None,
             },
             device_token,
             options,

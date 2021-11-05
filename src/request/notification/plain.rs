@@ -120,6 +120,7 @@ impl<'a> NotificationBuilder<'a> for PlainNotificationBuilder<'a> {
                 content_available: None,
                 category: self.category,
                 mutable_content: None,
+                url_args: None,
             },
             device_token,
             options,
