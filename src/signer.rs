@@ -6,12 +6,16 @@ use std::{
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
+#[cfg(feature = "openssl")]
 use openssl::{
     ec::EcKey,
     hash::MessageDigest,
     pkey::{PKey, Private},
     sign::Signer as SslSigner,
 };
+#[cfg(feature = "ring")]
+use ring::{rand, signature};
+use thiserror::Error;
 
 #[derive(Debug)]
 struct Signature {
@@ -25,7 +29,7 @@ pub struct Signer {
     signature: RwLock<Signature>,
     key_id: String,
     team_id: String,
-    secret: PKey<Private>,
+    secret: Secret,
     expire_after_s: Duration,
 }
 
@@ -46,10 +50,49 @@ struct JwtPayload<'a> {
     iat: i64,
 }
 
+enum Secret {
+    #[cfg(feature = "openssl")]
+    OpenSSL(PKey<Private>),
+    #[cfg(feature = "ring")]
+    Ring(signature::EcdsaKeyPair),
+}
+
+impl Secret {
+    #[cfg(feature = "openssl")]
+    fn new_openssl(pem_key: &[u8]) -> Result<Self, Error> {
+        let ec_key = EcKey::private_key_from_pem(&pem_key)?;
+        let secret = PKey::from_ec_key(ec_key)?;
+        Ok(Self::OpenSSL(secret))
+    }
+
+    #[cfg(feature = "ring")]
+    fn new_ring(pem_key: &[u8]) -> Result<Self, Error> {
+        let der = pem::parse(pem_key).unwrap();
+        let alg = &signature::ECDSA_P256_SHA256_FIXED_SIGNING;
+        let signing_key = signature::EcdsaKeyPair::from_pkcs8(alg, &der.contents)?;
+        Ok(Self::Ring(signing_key))
+    }
+
+    fn from_pem<R>(mut pk_pem: R) -> Result<Secret, Error>
+    where
+        R: Read,
+    {
+        let mut pem_key: Vec<u8> = Vec::new();
+        pk_pem.read_to_end(&mut pem_key)?;
+        cfg_if::cfg_if! {
+            if #[cfg(feature = "openssl")] {
+                Self::new_openssl(&pem_key)
+            } else if #[cfg(feature = "ring")] {
+                Self::new_ring(&pem_key)
+            }
+        }
+    }
+}
+
 impl Signer {
     /// Creates a signer with a pkcs8 private key, APNs key id and team id.
     /// Can fail if the key is not valid or there is a problem with system OpenSSL.
-    pub fn new<S, T, R>(mut pk_pem: R, key_id: S, team_id: T, signature_ttl: Duration) -> Result<Signer, Error>
+    pub fn new<S, T, R>(pk_pem: R, key_id: S, team_id: T, signature_ttl: Duration) -> Result<Signer, Error>
     where
         S: Into<String>,
         T: Into<String>,
@@ -58,14 +101,9 @@ impl Signer {
         let key_id: String = key_id.into();
         let team_id: String = team_id.into();
 
-        let mut pem_key: Vec<u8> = Vec::new();
-        pk_pem.read_to_end(&mut pem_key)?;
-
-        let ec_key = EcKey::private_key_from_pem(&pem_key)?;
+        let secret = Secret::from_pem(pk_pem)?;
 
         let issued_at = get_time();
-        let secret = PKey::from_ec_key(ec_key)?;
-
         let signature = RwLock::new(Signature {
             key: Self::create_signature(&secret, &key_id, &team_id, issued_at)?,
             issued_at,
@@ -104,7 +142,7 @@ impl Signer {
         Ok(f(&signature.key))
     }
 
-    fn create_signature(secret: &PKey<Private>, key_id: &str, team_id: &str, issued_at: i64) -> Result<String, Error> {
+    fn create_signature(secret: &Secret, key_id: &str, team_id: &str, issued_at: i64) -> Result<String, Error> {
         let headers = JwtHeader {
             alg: JwtAlg::ES256,
             kid: key_id,
@@ -119,10 +157,7 @@ impl Signer {
         let encoded_payload = encode(&serde_json::to_string(&payload)?);
         let signing_input = format!("{}.{}", encoded_header, encoded_payload);
 
-        let mut signer = SslSigner::new(MessageDigest::sha256(), secret)?;
-        signer.update(signing_input.as_bytes())?;
-
-        let signature_payload = signer.sign_to_vec()?;
+        let signature_payload = secret.sign(&signing_input)?;
 
         Ok(format!("{}.{}", signing_input, encode(&signature_payload)))
     }
@@ -153,6 +188,40 @@ impl Signer {
         let expiry = get_time() - sig.issued_at;
         expiry >= self.expire_after_s.as_secs() as i64
     }
+}
+
+impl Secret {
+    fn sign(&self, _signing_input: &String) -> Result<Vec<u8>, SignerError> {
+        match self {
+            #[cfg(feature = "openssl")]
+            Secret::OpenSSL(key) => {
+                let signing_input = _signing_input;
+                let mut signer = SslSigner::new(MessageDigest::sha256(), key)?;
+                signer.update(signing_input.as_bytes())?;
+                let signature_payload = signer.sign_to_vec()?;
+                Ok(signature_payload)
+            }
+            #[cfg(feature = "ring")]
+            Secret::Ring(key) => {
+                #[cfg(feature = "ring")]
+                let signing_input = _signing_input;
+                let rng = rand::SystemRandom::new();
+                let signature_payload = key.sign(&rng, signing_input.as_bytes())?;
+                Ok(signature_payload.as_ref().to_vec())
+            }
+        }
+    }
+}
+
+/// Failed to sign payload
+#[derive(Debug, Error)]
+pub enum SignerError {
+    #[cfg(feature = "openssl")]
+    #[error(transparent)]
+    OpenSSL(#[from] openssl::error::ErrorStack),
+    #[cfg(feature = "ring")]
+    #[error(transparent)]
+    Ring(#[from] ring::error::Unspecified),
 }
 
 fn get_time() -> i64 {

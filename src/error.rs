@@ -1,6 +1,6 @@
 //! Error and result module
 
-use crate::response::Response;
+use crate::{response::Response, signer::SignerError};
 use std::io;
 use thiserror::Error;
 
@@ -16,7 +16,7 @@ pub enum Error {
 
     /// Couldn't generate an APNs token with the given key.
     #[error("Error creating a signature: {0}")]
-    SignerError(#[from] openssl::error::ErrorStack),
+    SignerError(#[from] SignerError),
 
     /// APNs couldn't accept the notification. Contains
     /// [Response](response/struct.Response.html) with additional
@@ -38,4 +38,16 @@ pub enum Error {
     /// Error reading the certificate or private key.
     #[error("Error in reading a certificate file: {0}")]
     ReadError(#[from] io::Error),
+
+    /// Unexpected private key (only EC keys are supported)
+    #[cfg(feature = "ring")]
+    #[error("Unexpected private key: {0}")]
+    UnexpectedKey(#[from] ring::error::KeyRejected),
+}
+
+#[cfg(feature = "openssl")]
+impl From<openssl::error::ErrorStack> for Error {
+    fn from(e: openssl::error::ErrorStack) -> Self {
+        Self::SignerError(SignerError::OpenSSL(e))
+    }
 }

@@ -14,7 +14,7 @@ The main author is not currently owning any Apple phones, so would be nice to ha
 
 ## Requirements
 
-Needs a Tokio executor version 0.2 or later and Rust compiler version 1.39.0 or later.
+Needs a Tokio executor version 0.2 or later and Rust compiler version 1.60 or later.
 
 ## Documentation
 
