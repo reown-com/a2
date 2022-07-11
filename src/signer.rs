@@ -67,7 +67,7 @@ impl Secret {
 
     #[cfg(feature = "ring")]
     fn new_ring(pem_key: &[u8]) -> Result<Self, Error> {
-        let der = pem::parse(pem_key).unwrap();
+        let der = pem::parse(pem_key).map_err(SignerError::Pem)?;
         let alg = &signature::ECDSA_P256_SHA256_FIXED_SIGNING;
         let signing_key = signature::EcdsaKeyPair::from_pkcs8(alg, &der.contents)?;
         Ok(Self::Ring(signing_key))
@@ -219,6 +219,9 @@ pub enum SignerError {
     #[cfg(feature = "openssl")]
     #[error(transparent)]
     OpenSSL(#[from] openssl::error::ErrorStack),
+    #[cfg(feature = "ring")]
+    #[error(transparent)]
+    Pem(#[from] pem::PemError),
     #[cfg(feature = "ring")]
     #[error(transparent)]
     Ring(#[from] ring::error::Unspecified),
