@@ -8,7 +8,7 @@ HTTP/2 Apple Push Notification Service for Rust using Tokio and async sending.
 
 ## Requirements
 
-Needs a Tokio executor version 0.2 or later and Rust compiler version 1.39.0 or later.
+Needs a Tokio executor version 1.0 or later and Rust compiler version 1.56.0 or later.
 
 ## Documentation
 
