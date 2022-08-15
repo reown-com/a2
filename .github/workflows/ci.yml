@@ -1,0 +1,111 @@
+name: ci
+
+on:
+  pull_request:
+    paths-ignore:
+      - '.github/**'
+      - 'README.md'
+
+  push:
+    branches: ['main']
+    paths-ignore:
+      - '.github/**'
+      - 'README.md'
+
+concurrency:
+  # Support push/pr as event types with different behaviors each:
+  # 1. push: queue up builds
+  # 2. pr: only allow one run per PR
+  group: ${{ github.workflow }}-${{ github.event.type }}${{ github.event.pull_request.number }}
+  # If there is already a workflow running for the same pull request, cancel it
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  tasks:
+    name: "[${{ matrix.os }}] ${{ matrix.cargo.name }}"
+    runs-on: "${{ matrix.os }}"
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+        rust:
+          - stable
+        cargo:
+          - name: "Clippy"
+            cmd: clippy
+            args: -- -D clippy::all
+            cache: {}
+          - name: "Formatting"
+            cmd: fmt
+            args: -- --check
+            cache: {}
+          - name: "Unit Tests"
+            cmd: test
+            args: --all-features
+            cache: { sharedKey: "tests" }
+        include:
+          - os: ubuntu-latest
+            sccache-path: /home/runner/.cache/sccache
+    env:
+      RUST_BACKTRACE: full
+      RUSTC_WRAPPER: sccache
+      SCCACHE_CACHE_SIZE: 1G
+      SCCACHE_DIR: ${{ matrix.sccache-path }}
+    steps:
+      # Checkout code
+      - name: "Git checkout"
+        uses: actions/checkout@v2
+
+      # Install sccache
+      - name: "Install sccache"
+        if: matrix.os == 'ubuntu-latest'
+        env:
+          SCCACHE_URL: https://github.com/mozilla/sccache/releases/download
+          SCCACHE_VERSION: v0.2.15
+        run: |
+          SCCACHE_FILE=sccache-$SCCACHE_VERSION-x86_64-unknown-linux-musl
+          curl -sSL "$SCCACHE_URL/$SCCACHE_VERSION/$SCCACHE_FILE.tar.gz" | tar xz
+          install -vDm 755 "$SCCACHE_FILE/sccache" "$HOME/.local/bin/sccache"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      # Install Rust toolchain
+      - name: "Install Rust ${{ matrix.rust }}"
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          profile: minimal
+          override: true
+
+      # Rebuild cache
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@3bb3a9a087029c7bc392586cdc88cb6f66b9c6ef
+        with: ${{ matrix.cargo.cache }}
+        continue-on-error: false
+
+      - name: Cache sccache
+        uses: actions/cache@v2
+        continue-on-error: false
+        with:
+          path: ${{ matrix.sccache-path }}
+          key: ${{ runner.os }}-sccache-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-sccache-
+
+      # Run job
+      - name: "Start sccache server"
+        run: |
+          sccache --stop-server || true
+          sccache --start-server
+
+      - name: "Task ${{ matrix.cargo.name }}"
+        uses: actions-rs/cargo@v1
+        with:
+          command: ${{ matrix.cargo.cmd }}
+          args: ${{ matrix.cargo.args }}
+
+      - name: "Print sccache stats"
+        run: sccache --show-stats
+
+      - name: "Stop sccache server"
+        run: sccache --stop-server || true

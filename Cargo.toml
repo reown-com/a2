@@ -2,6 +2,7 @@
 name = "a2"
 version = "0.6.2"
 authors = [
+  "Harry Bairstow <harry@walletconnect.com>",
   "Julius de Bruijn <julius@nauk.io>",
   "Sergey Tkachenko <seriy.tkachenko@gmail.com>", 
 ]
@@ -9,8 +10,8 @@ license = "MIT"
 readme  = "README.md"
 description = "A native, asynchronous Apple push notification client"
 keywords    = ["apns", "apple", "push", "async", "http2"]
-repository  = "https://github.com/pimeys/a2.git"
-homepage    = "https://github.com/pimeys/a2"
+repository  = "https://github.com/walletconnect/a2.git"
+homepage    = "https://github.com/walletconnect/a2"
 documentation = "https://docs.rs/a2"
 edition = "2018"
 
