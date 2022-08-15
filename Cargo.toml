@@ -13,21 +13,19 @@ keywords    = ["apns", "apple", "push", "async", "http2"]
 repository  = "https://github.com/walletconnect/a2.git"
 homepage    = "https://github.com/walletconnect/a2"
 documentation = "https://docs.rs/a2"
-edition = "2018"
+edition = "2021"
 
 [dependencies]
-serde = "1"
+serde = { version = "1", features = ["derive"] }
 erased-serde = "0.3"
-serde_derive = "1"
 serde_json = "1"
 thiserror = "1"
 openssl = "0.10"
-futures = "0.3"
+hyper = { version = "0.14", features = ["client", "http2", "tcp"] }
+hyper-alpn = "0.3"
 http = "0.2"
 base64 = "0.13"
 log = "0.4"
-hyper = { version = "0.14", features = ["client", "http2", "tcp"] }
-hyper-alpn = "0.3"
 
 [dev-dependencies]
 argparse = "0.2"

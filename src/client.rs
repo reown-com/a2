@@ -10,7 +10,6 @@ use crate::response::Response;
 use http::header::{AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE};
 use hyper::{self, Body, Client as HttpClient, StatusCode};
 use openssl::pkcs12::Pkcs12;
-use std::future::Future;
 use std::io::Read;
 use std::time::Duration;
 use std::{fmt, str};
@@ -98,34 +97,32 @@ impl Client {
     /// Send a notification payload.
     ///
     /// See [ErrorReason](enum.ErrorReason.html) for possible errors.
-    pub fn send(&self, payload: Payload<'_>) -> impl Future<Output = Result<Response, Error>> + 'static {
+    pub async fn send(&self, payload: Payload<'_>) -> Result<Response, Error> {
         let request = self.build_request(payload);
         let requesting = self.http_client.request(request);
 
-        async move {
-            let response = requesting.await?;
+        let response = requesting.await?;
 
-            let apns_id = response
-                .headers()
-                .get("apns-id")
-                .and_then(|s| s.to_str().ok())
-                .map(String::from);
+        let apns_id = response
+            .headers()
+            .get("apns-id")
+            .and_then(|s| s.to_str().ok())
+            .map(String::from);
 
-            match response.status() {
-                StatusCode::OK => Ok(Response {
+        match response.status() {
+            StatusCode::OK => Ok(Response {
+                apns_id,
+                error: None,
+                code: response.status().as_u16(),
+            }),
+            status => {
+                let body = hyper::body::to_bytes(response).await?;
+
+                Err(ResponseError(Response {
                     apns_id,
-                    error: None,
-                    code: response.status().as_u16(),
-                }),
-                status => {
-                    let body = hyper::body::to_bytes(response).await?;
-
-                    Err(ResponseError(Response {
-                        apns_id,
-                        error: serde_json::from_slice(&body).ok(),
-                        code: status.as_u16(),
-                    }))
-                }
+                    error: serde_json::from_slice(&body).ok(),
+                    code: status.as_u16(),
+                }))
             }
         }
     }
@@ -180,13 +177,11 @@ mod tests {
     use hyper::Method;
     use hyper_alpn::AlpnConnector;
 
-    const PRIVATE_KEY: &'static str = indoc!(
-        "-----BEGIN PRIVATE KEY-----
-        MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg8g/n6j9roKvnUkwu
-        lCEIvbDqlUhA5FOzcakkG90E8L+hRANCAATKS2ZExEybUvchRDuKBftotMwVEus3
-        jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
-        -----END PRIVATE KEY-----"
-    );
+    const PRIVATE_KEY: &'static str = "-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg8g/n6j9roKvnUkwu
+lCEIvbDqlUhA5FOzcakkG90E8L+hRANCAATKS2ZExEybUvchRDuKBftotMwVEus3
+jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
+-----END PRIVATE KEY-----";
 
     #[test]
     fn test_production_request_uri() {

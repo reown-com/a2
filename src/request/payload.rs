@@ -50,7 +50,7 @@ impl<'a> Payload<'a> {
     /// Using a custom struct:
     ///
     /// ```rust
-    /// # #[macro_use] extern crate serde_derive;
+    /// # #[macro_use] extern crate serde;
     /// # use a2::request::notification::{SilentNotificationBuilder, NotificationBuilder};
     /// # fn main() {
     /// #[derive(Serialize)]
