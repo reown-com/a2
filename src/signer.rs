@@ -21,6 +21,7 @@ struct Signature {
 
 /// For signing requests when using token-based authentication. Re-uses the same
 /// signature for a certain amount of time.
+#[derive(Debug)]
 pub struct Signer {
     signature: RwLock<Signature>,
     key_id: String,
