@@ -48,7 +48,7 @@ impl<'a> WebNotificationBuilder<'a> {
         WebNotificationBuilder {
             alert,
             sound: None,
-            url_args: url_args,
+            url_args,
         }
     }
 

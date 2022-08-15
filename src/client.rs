@@ -140,7 +140,7 @@ impl Client {
         if let Some(ref apns_priority) = payload.options.apns_priority {
             builder = builder.header("apns-priority", apns_priority.to_string().as_bytes());
         }
-        if let Some(ref apns_id) = payload.options.apns_id {
+        if let Some(apns_id) = payload.options.apns_id {
             builder = builder.header("apns-id", apns_id.as_bytes());
         }
         if let Some(ref apns_expiration) = payload.options.apns_expiration {
@@ -149,7 +149,7 @@ impl Client {
         if let Some(ref apns_collapse_id) = payload.options.apns_collapse_id {
             builder = builder.header("apns-collapse-id", apns_collapse_id.value.to_string().as_bytes());
         }
-        if let Some(ref apns_topic) = payload.options.apns_topic {
+        if let Some(apns_topic) = payload.options.apns_topic {
             builder = builder.header("apns-topic", apns_topic.as_bytes());
         }
         if let Some(ref signer) = self.signer {
