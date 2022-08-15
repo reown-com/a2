@@ -97,6 +97,7 @@ impl Client {
     /// Send a notification payload.
     ///
     /// See [ErrorReason](enum.ErrorReason.html) for possible errors.
+    #[cfg_attr(feature = "tracing", ::tracing::instrument)]
     pub async fn send(&self, payload: Payload<'_>) -> Result<Response, Error> {
         let request = self.build_request(payload);
         let requesting = self.http_client.request(request);

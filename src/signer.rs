@@ -94,12 +94,15 @@ impl Signer {
 
         let signature = self.signature.read().unwrap();
 
-        trace!(
-            "Signer::with_signature found signature for {}/{} valid for {}s",
-            self.key_id,
-            self.team_id,
-            self.expire_after_s.as_secs(),
-        );
+        #[cfg(feature = "tracing")]
+        {
+            tracing::trace!(
+                "Signer::with_signature found signature for {}/{} valid for {}s",
+                self.key_id,
+                self.team_id,
+                self.expire_after_s.as_secs(),
+            );
+        }
 
         Ok(f(&signature.key))
     }
@@ -130,13 +133,16 @@ impl Signer {
     fn renew(&self) -> Result<(), Error> {
         let issued_at = get_time();
 
-        trace!(
-            "Signer::renew for k_id {} t_id {} issued {} valid for {}s",
-            self.key_id,
-            self.team_id,
-            issued_at,
-            self.expire_after_s.as_secs(),
-        );
+        #[cfg(feature = "tracing")]
+        {
+            tracing::trace!(
+                "Signer::renew for k_id {} t_id {} issued {} valid for {}s",
+                self.key_id,
+                self.team_id,
+                issued_at,
+                self.expire_after_s.as_secs(),
+            );
+        }
 
         let mut signature = self.signature.write().unwrap();
 

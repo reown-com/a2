@@ -15,6 +15,9 @@ homepage    = "https://github.com/walletconnect/a2"
 documentation = "https://docs.rs/a2"
 edition = "2021"
 
+[features]
+tracing = ["dep:tracing"]
+
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 erased-serde = "0.3"
@@ -25,7 +28,7 @@ hyper = { version = "0.14", features = ["client", "http2"] }
 hyper-alpn = "0.3"
 http = "0.2"
 base64 = "0.13"
-log = "0.4"
+tracing = { version = "0.1.36", optional = true }
 
 [dev-dependencies]
 argparse = "0.2"
