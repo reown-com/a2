@@ -1,11 +1,11 @@
 use crate::error::Error;
 use base64::encode;
 use std::io::Read;
+use std::sync::Arc;
 use std::{
     sync::RwLock,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
-use std::sync::Arc;
 
 use openssl::{
     ec::EcKey,
