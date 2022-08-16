@@ -42,7 +42,7 @@ impl fmt::Display for Endpoint {
 /// the notification and responds with a status OK. In any other case the future
 /// fails. If APNs gives a reason for the failure, the returned `Err`
 /// holds the response for handling.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Client {
     endpoint: Endpoint,
     signer: Option<Signer>,

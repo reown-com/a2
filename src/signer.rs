@@ -5,6 +5,7 @@ use std::{
     sync::RwLock,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
+use std::sync::Arc;
 
 use openssl::{
     ec::EcKey,
@@ -13,7 +14,7 @@ use openssl::{
     sign::Signer as SslSigner,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Signature {
     key: String,
     issued_at: i64,
@@ -21,9 +22,9 @@ struct Signature {
 
 /// For signing requests when using token-based authentication. Re-uses the same
 /// signature for a certain amount of time.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Signer {
-    signature: RwLock<Signature>,
+    signature: Arc<RwLock<Signature>>,
     key_id: String,
     team_id: String,
     secret: PKey<Private>,
@@ -73,7 +74,7 @@ impl Signer {
         });
 
         let signer = Signer {
-            signature,
+            signature: Arc::new(signature),
             key_id,
             team_id,
             secret,
