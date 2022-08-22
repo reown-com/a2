@@ -1,25 +1,19 @@
 # a2
 
-[![Cargo tests](https://github.com/pimeys/a2/actions/workflows/test.yml/badge.svg)](https://github.com/pimeys/a2/actions/workflows/test.yml)
+[![CI Status](https://github.com/walletconnect/a2/actions/workflows/ci.yml/badge.svg)](https://github.com/walletconnect/a2/actions/workflows/ci.yml)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-[![crates.io](http://meritbadge.herokuapp.com/a2)](https://crates.io/crates/a2)
-
-[Matrix chat](https://matrix.to/#/#rust-push:nauk.io?via=nauk.io&via=matrix.org&via=shine.horse)
+[![crates.io](https://img.shields.io/crates/v/a2)](https://crates.io/crates/a2)
 
 HTTP/2 Apple Push Notification Service for Rust using Tokio and async sending.
 
-## Help needed
-
-The main author is not currently owning any Apple phones, so would be nice to have some help from a co-author with needed devices and an Apple developer account. If you happen to have them and are willing to help, please contact!
-
 ## Requirements
 
-Needs a Tokio executor version 0.2 or later and Rust compiler version 1.60 or later.
+Needs a Tokio executor version 1.0 or later and Rust compiler version 1.60.0 or later.
 
 ## Documentation
 
 * [Released](https://docs.rs/a2/)
-* [Master](https://pimeys.github.io/a2/master/)
+* [Master](https://walletconnect.github.io/a2/master/)
 
 ## Features
 
@@ -38,9 +32,9 @@ Needs a Tokio executor version 0.2 or later and Rust compiler version 1.60 or la
 
 The library supports connecting to Apple Push Notification service [either using
 a
-certificate](https://github.com/pimeys/a2/blob/master/examples/certificate_client.rs)
+certificate](https://github.com/walletconnect/a2/blob/master/examples/certificate_client.rs)
 with a password [or a private
-key](https://github.com/pimeys/a2/blob/master/examples/token_client.rs) with
+key](https://github.com/walletconnect/a2/blob/master/examples/token_client.rs) with
 a team id and key id. Both are available from your Apple account and with both
 it is possible to send push notifications to one application.
 
@@ -70,7 +64,3 @@ for production use:
 ## Tests
 
 `cargo test`
-
-## Contact
-
-oh_lawd @ IRC (Freenode, Mozilla)

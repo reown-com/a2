@@ -1,5 +1,4 @@
 use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
-use pretty_env_logger;
 use std::fs::File;
 use tokio;
 
@@ -8,7 +7,7 @@ use a2::{Client, Endpoint, NotificationBuilder, NotificationOptions, PlainNotifi
 // An example client connectiong to APNs with a JWT token
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    pretty_env_logger::init();
+    tracing_subscriber::fmt().init();
 
     let mut key_file = String::new();
     let mut team_id = String::new();

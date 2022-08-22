@@ -10,7 +10,6 @@ use crate::response::Response;
 use http::header::{AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE};
 use hyper::{self, Body, Client as HttpClient, StatusCode};
 use std::fmt;
-use std::future::Future;
 use std::io::Read;
 use std::time::Duration;
 
@@ -42,6 +41,7 @@ impl fmt::Display for Endpoint {
 /// the notification and responds with a status OK. In any other case the future
 /// fails. If APNs gives a reason for the failure, the returned `Err`
 /// holds the response for handling.
+#[derive(Debug, Clone)]
 pub struct Client {
     endpoint: Endpoint,
     signer: Option<Signer>,
@@ -106,34 +106,33 @@ impl Client {
     /// Send a notification payload.
     ///
     /// See [ErrorReason](enum.ErrorReason.html) for possible errors.
-    pub fn send(&self, payload: Payload<'_>) -> impl Future<Output = Result<Response, Error>> + 'static {
+    #[cfg_attr(feature = "tracing", ::tracing::instrument)]
+    pub async fn send(&self, payload: Payload<'_>) -> Result<Response, Error> {
         let request = self.build_request(payload);
         let requesting = self.http_client.request(request);
 
-        async move {
-            let response = requesting.await?;
+        let response = requesting.await?;
 
-            let apns_id = response
-                .headers()
-                .get("apns-id")
-                .and_then(|s| s.to_str().ok())
-                .map(String::from);
+        let apns_id = response
+            .headers()
+            .get("apns-id")
+            .and_then(|s| s.to_str().ok())
+            .map(String::from);
 
-            match response.status() {
-                StatusCode::OK => Ok(Response {
+        match response.status() {
+            StatusCode::OK => Ok(Response {
+                apns_id,
+                error: None,
+                code: response.status().as_u16(),
+            }),
+            status => {
+                let body = hyper::body::to_bytes(response).await?;
+
+                Err(ResponseError(Response {
                     apns_id,
-                    error: None,
-                    code: response.status().as_u16(),
-                }),
-                status => {
-                    let body = hyper::body::to_bytes(response).await?;
-
-                    Err(ResponseError(Response {
-                        apns_id,
-                        error: serde_json::from_slice(&body).ok(),
-                        code: status.as_u16(),
-                    }))
-                }
+                    error: serde_json::from_slice(&body).ok(),
+                    code: status.as_u16(),
+                }))
             }
         }
     }
@@ -149,7 +148,7 @@ impl Client {
         if let Some(ref apns_priority) = payload.options.apns_priority {
             builder = builder.header("apns-priority", apns_priority.to_string().as_bytes());
         }
-        if let Some(ref apns_id) = payload.options.apns_id {
+        if let Some(apns_id) = payload.options.apns_id {
             builder = builder.header("apns-id", apns_id.as_bytes());
         }
         if let Some(ref apns_expiration) = payload.options.apns_expiration {
@@ -158,7 +157,7 @@ impl Client {
         if let Some(ref apns_collapse_id) = payload.options.apns_collapse_id {
             builder = builder.header("apns-collapse-id", apns_collapse_id.value.to_string().as_bytes());
         }
-        if let Some(ref apns_topic) = payload.options.apns_topic {
+        if let Some(apns_topic) = payload.options.apns_topic {
             builder = builder.header("apns-topic", apns_topic.as_bytes());
         }
         if let Some(ref signer) = self.signer {
@@ -188,13 +187,11 @@ mod tests {
     use hyper::Method;
     use hyper_alpn::AlpnConnector;
 
-    const PRIVATE_KEY: &'static str = indoc!(
-        "-----BEGIN PRIVATE KEY-----
-        MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg8g/n6j9roKvnUkwu
-        lCEIvbDqlUhA5FOzcakkG90E8L+hRANCAATKS2ZExEybUvchRDuKBftotMwVEus3
-        jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
-        -----END PRIVATE KEY-----"
-    );
+    const PRIVATE_KEY: &'static str = "-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg8g/n6j9roKvnUkwu
+lCEIvbDqlUhA5FOzcakkG90E8L+hRANCAATKS2ZExEybUvchRDuKBftotMwVEus3
+jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
+-----END PRIVATE KEY-----";
 
     #[test]
     fn test_production_request_uri() {

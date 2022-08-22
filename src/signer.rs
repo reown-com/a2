@@ -1,6 +1,7 @@
 use crate::error::Error;
 use base64::encode;
 use std::io::Read;
+use std::sync::Arc;
 use std::{
     sync::RwLock,
     time::{Duration, SystemTime, UNIX_EPOCH},
@@ -13,11 +14,11 @@ use openssl::{
     pkey::{PKey, Private},
     sign::Signer as SslSigner,
 };
-#[cfg(feature = "ring")]
+#[cfg(all(not(feature = "openssl"), feature = "ring"))]
 use ring::{rand, signature};
 use thiserror::Error;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Signature {
     key: String,
     issued_at: i64,
@@ -25,11 +26,12 @@ struct Signature {
 
 /// For signing requests when using token-based authentication. Re-uses the same
 /// signature for a certain amount of time.
+#[derive(Debug, Clone)]
 pub struct Signer {
-    signature: RwLock<Signature>,
+    signature: Arc<RwLock<Signature>>,
     key_id: String,
     team_id: String,
-    secret: Secret,
+    secret: Arc<Secret>,
     expire_after_s: Duration,
 }
 
@@ -50,10 +52,11 @@ struct JwtPayload<'a> {
     iat: i64,
 }
 
+#[derive(Debug)]
 enum Secret {
     #[cfg(feature = "openssl")]
     OpenSSL(PKey<Private>),
-    #[cfg(feature = "ring")]
+    #[cfg(all(not(feature = "openssl"), feature = "ring"))]
     Ring(signature::EcdsaKeyPair),
 }
 
@@ -65,7 +68,7 @@ impl Secret {
         Ok(Self::OpenSSL(secret))
     }
 
-    #[cfg(feature = "ring")]
+    #[cfg(all(not(feature = "openssl"), feature = "ring"))]
     fn new_ring(pem_key: &[u8]) -> Result<Self, Error> {
         let der = pem::parse(pem_key).map_err(SignerError::Pem)?;
         let alg = &signature::ECDSA_P256_SHA256_FIXED_SIGNING;
@@ -110,10 +113,10 @@ impl Signer {
         });
 
         let signer = Signer {
-            signature,
+            signature: Arc::new(signature),
             key_id,
             team_id,
-            secret,
+            secret: Arc::new(secret),
             expire_after_s: signature_ttl,
         };
 
@@ -132,12 +135,15 @@ impl Signer {
 
         let signature = self.signature.read().unwrap();
 
-        trace!(
-            "Signer::with_signature found signature for {}/{} valid for {}s",
-            self.key_id,
-            self.team_id,
-            self.expire_after_s.as_secs(),
-        );
+        #[cfg(feature = "tracing")]
+        {
+            tracing::trace!(
+                "Signer::with_signature found signature for {}/{} valid for {}s",
+                self.key_id,
+                self.team_id,
+                self.expire_after_s.as_secs(),
+            );
+        }
 
         Ok(f(&signature.key))
     }
@@ -165,13 +171,16 @@ impl Signer {
     fn renew(&self) -> Result<(), Error> {
         let issued_at = get_time();
 
-        trace!(
-            "Signer::renew for k_id {} t_id {} issued {} valid for {}s",
-            self.key_id,
-            self.team_id,
-            issued_at,
-            self.expire_after_s.as_secs(),
-        );
+        #[cfg(feature = "tracing")]
+        {
+            tracing::trace!(
+                "Signer::renew for k_id {} t_id {} issued {} valid for {}s",
+                self.key_id,
+                self.team_id,
+                issued_at,
+                self.expire_after_s.as_secs(),
+            );
+        }
 
         let mut signature = self.signature.write().unwrap();
 
@@ -201,7 +210,7 @@ impl Secret {
                 let signature_payload = signer.sign_to_vec()?;
                 Ok(signature_payload)
             }
-            #[cfg(feature = "ring")]
+            #[cfg(all(not(feature = "openssl"), feature = "ring"))]
             Secret::Ring(key) => {
                 #[cfg(feature = "ring")]
                 let signing_input = _signing_input;
@@ -238,13 +247,11 @@ fn get_time() -> i64 {
 mod tests {
     use super::*;
 
-    const PRIVATE_KEY: &'static str = indoc!(
-        "-----BEGIN PRIVATE KEY-----
-        MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg8g/n6j9roKvnUkwu
-        lCEIvbDqlUhA5FOzcakkG90E8L+hRANCAATKS2ZExEybUvchRDuKBftotMwVEus3
-        jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
-        -----END PRIVATE KEY-----"
-    );
+    const PRIVATE_KEY: &'static str = "-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg8g/n6j9roKvnUkwu
+lCEIvbDqlUhA5FOzcakkG90E8L+hRANCAATKS2ZExEybUvchRDuKBftotMwVEus3
+jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
+-----END PRIVATE KEY-----";
 
     #[test]
     fn test_signature_caching() {
