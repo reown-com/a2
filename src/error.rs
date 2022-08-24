@@ -40,7 +40,7 @@ pub enum Error {
     ReadError(#[from] io::Error),
 
     /// Unexpected private key (only EC keys are supported)
-    #[cfg(feature = "ring")]
+    #[cfg(all(not(feature = "openssl"), feature = "ring"))]
     #[error("Unexpected private key: {0}")]
     UnexpectedKey(#[from] ring::error::KeyRejected),
 }

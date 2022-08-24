@@ -63,7 +63,7 @@ enum Secret {
 impl Secret {
     #[cfg(feature = "openssl")]
     fn new_openssl(pem_key: &[u8]) -> Result<Self, Error> {
-        let ec_key = EcKey::private_key_from_pem(&pem_key)?;
+        let ec_key = EcKey::private_key_from_pem(pem_key)?;
         let secret = PKey::from_ec_key(ec_key)?;
         Ok(Self::OpenSSL(secret))
     }
@@ -82,12 +82,13 @@ impl Secret {
     {
         let mut pem_key: Vec<u8> = Vec::new();
         pk_pem.read_to_end(&mut pem_key)?;
-        cfg_if::cfg_if! {
-            if #[cfg(feature = "openssl")] {
-                Self::new_openssl(&pem_key)
-            } else if #[cfg(feature = "ring")] {
-                Self::new_ring(&pem_key)
-            }
+        #[cfg(feature = "openssl")]
+        {
+            Self::new_openssl(&pem_key)
+        }
+        #[cfg(all(not(feature = "openssl"), feature = "ring"))]
+        {
+            Self::new_ring(&pem_key)
         }
     }
 }
@@ -200,11 +201,10 @@ impl Signer {
 }
 
 impl Secret {
-    fn sign(&self, _signing_input: &String) -> Result<Vec<u8>, SignerError> {
+    fn sign(&self, signing_input: &String) -> Result<Vec<u8>, SignerError> {
         match self {
             #[cfg(feature = "openssl")]
             Secret::OpenSSL(key) => {
-                let signing_input = _signing_input;
                 let mut signer = SslSigner::new(MessageDigest::sha256(), key)?;
                 signer.update(signing_input.as_bytes())?;
                 let signature_payload = signer.sign_to_vec()?;
@@ -212,8 +212,6 @@ impl Secret {
             }
             #[cfg(all(not(feature = "openssl"), feature = "ring"))]
             Secret::Ring(key) => {
-                #[cfg(feature = "ring")]
-                let signing_input = _signing_input;
                 let rng = rand::SystemRandom::new();
                 let signature_payload = key.sign(&rng, signing_input.as_bytes())?;
                 Ok(signature_payload.as_ref().to_vec())
@@ -228,10 +226,10 @@ pub enum SignerError {
     #[cfg(feature = "openssl")]
     #[error(transparent)]
     OpenSSL(#[from] openssl::error::ErrorStack),
-    #[cfg(feature = "ring")]
+    #[cfg(all(not(feature = "openssl"), feature = "ring"))]
     #[error(transparent)]
     Pem(#[from] pem::PemError),
-    #[cfg(feature = "ring")]
+    #[cfg(all(not(feature = "openssl"), feature = "ring"))]
     #[error(transparent)]
     Ring(#[from] ring::error::Unspecified),
 }

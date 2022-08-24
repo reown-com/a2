@@ -33,7 +33,6 @@ base64 = "0.13"
 tracing = { version = "0.1.36", optional = true }
 pem = { version = "1.0.2", optional = true }
 ring = { version = "0.16.20", features = ["std"], optional = true }
-cfg-if = "1.0.0"
 
 [dev-dependencies]
 argparse = "0.2"

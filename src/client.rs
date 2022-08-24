@@ -66,7 +66,7 @@ impl Client {
     /// account](https://developer.apple.com/account/).
     ///
     /// Only works with the `openssl` feature.
-    #[allow(unused_variables)]
+    #[cfg(feature = "openssl")]
     pub fn certificate<R>(certificate: &mut R, password: &str, endpoint: Endpoint) -> Result<Client, Error>
     where
         R: Read,
@@ -74,16 +74,10 @@ impl Client {
         let mut cert_der: Vec<u8> = Vec::new();
         certificate.read_to_end(&mut cert_der)?;
 
-        cfg_if::cfg_if! {
-            if #[cfg(feature = "openssl")] {
-                let pkcs = openssl::pkcs12::Pkcs12::from_der(&cert_der)?.parse(password)?;
-                let connector = AlpnConnector::with_client_cert(&pkcs.cert.to_pem()?, &pkcs.pkey.private_key_to_pem_pkcs8()?)?;
+        let pkcs = openssl::pkcs12::Pkcs12::from_der(&cert_der)?.parse(password)?;
+        let connector = AlpnConnector::with_client_cert(&pkcs.cert.to_pem()?, &pkcs.pkey.private_key_to_pem_pkcs8()?)?;
 
-                Ok(Self::new(connector, None, endpoint))
-            } else if #[cfg(feature = "ring")] {
-                unimplemented!();
-            }
-        }
+        Ok(Self::new(connector, None, endpoint))
     }
 
     /// Create a connection to APNs using system certificates, signing every
