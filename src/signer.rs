@@ -57,7 +57,10 @@ enum Secret {
     #[cfg(feature = "openssl")]
     OpenSSL(PKey<Private>),
     #[cfg(all(not(feature = "openssl"), feature = "ring"))]
-    Ring(signature::EcdsaKeyPair),
+    Ring {
+        signing_key: signature::EcdsaKeyPair,
+        rng: rand::SystemRandom,
+    },
 }
 
 impl Secret {
@@ -73,7 +76,8 @@ impl Secret {
         let der = pem::parse(pem_key).map_err(SignerError::Pem)?;
         let alg = &signature::ECDSA_P256_SHA256_FIXED_SIGNING;
         let signing_key = signature::EcdsaKeyPair::from_pkcs8(alg, &der.contents)?;
-        Ok(Self::Ring(signing_key))
+        let rng = rand::SystemRandom::new();
+        Ok(Self::Ring { signing_key, rng })
     }
 
     fn from_pem<R>(mut pk_pem: R) -> Result<Secret, Error>
@@ -211,9 +215,8 @@ impl Secret {
                 Ok(signature_payload)
             }
             #[cfg(all(not(feature = "openssl"), feature = "ring"))]
-            Secret::Ring(key) => {
-                let rng = rand::SystemRandom::new();
-                let signature_payload = key.sign(&rng, signing_input.as_bytes())?;
+            Secret::Ring { signing_key, rng } => {
+                let signature_payload = signing_key.sign(rng, signing_input.as_bytes())?;
                 Ok(signature_payload.as_ref().to_vec())
             }
         }

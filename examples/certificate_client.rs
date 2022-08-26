@@ -1,6 +1,7 @@
 use a2::{Client, Endpoint, NotificationBuilder, NotificationOptions, PlainNotificationBuilder};
 use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
 use std::fs::File;
+use std::path::PathBuf;
 use tokio;
 
 // An example client connectiong to APNs with a certificate and key
@@ -33,9 +34,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         ap.parse_args_or_exit();
     }
 
-    // Read the private key and certificate from the disk
-    let mut certificate = File::open(certificate_file).unwrap();
-
     // Which service to call, test or production?
     let endpoint = if sandbox {
         Endpoint::Sandbox
@@ -44,7 +42,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     };
 
     // Connecting to APNs using a client certificate
-    let client = Client::certificate(&mut certificate, &password, endpoint).unwrap();
+    let new_client = || -> Result<Client, Box<dyn std::error::Error + Sync + Send>> {
+        #[cfg(feature = "openssl")]
+        {
+            let mut certificate = File::open(certificate_file)?;
+            Ok(Client::certificate(&mut certificate, &password, endpoint)?)
+        }
+        #[cfg(all(not(feature = "openssl"), feature = "ring"))]
+        {
+            Err("ring does not support loading of certificates".into())
+        }
+    };
+    let client = new_client()?;
 
     let options = NotificationOptions {
         apns_topic: topic.as_ref().map(|s| &**s),
