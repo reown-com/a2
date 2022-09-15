@@ -38,7 +38,7 @@ jobs:
             cache: {}
           - name: "Clippy (ring feature)"
             cmd: clippy
-            args: --no-default-features --feature ring -- -D clippy::all
+            args: --no-default-features --features ring -- -D clippy::all
             cache: {}
           - name: "Formatting"
             cmd: fmt
