@@ -1,7 +1,5 @@
-use a2::{Client, Endpoint, NotificationBuilder, NotificationOptions, PlainNotificationBuilder};
+use a2::{Client, NotificationBuilder, NotificationOptions, PlainNotificationBuilder};
 use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
-use std::fs::File;
-use std::path::PathBuf;
 use tokio;
 
 // An example client connectiong to APNs with a certificate and key
@@ -34,18 +32,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         ap.parse_args_or_exit();
     }
 
-    // Which service to call, test or production?
-    let endpoint = if sandbox {
-        Endpoint::Sandbox
-    } else {
-        Endpoint::Production
-    };
-
     // Connecting to APNs using a client certificate
     let new_client = || -> Result<Client, Box<dyn std::error::Error + Sync + Send>> {
         #[cfg(feature = "openssl")]
         {
-            let mut certificate = File::open(certificate_file)?;
+            // Which service to call, test or production?
+            let endpoint = if sandbox {
+                a2::Endpoint::Sandbox
+            } else {
+                a2::Endpoint::Production
+            };
+
+            let mut certificate = std::fs::File::open(certificate_file)?;
             Ok(Client::certificate(&mut certificate, &password, endpoint)?)
         }
         #[cfg(all(not(feature = "openssl"), feature = "ring"))]

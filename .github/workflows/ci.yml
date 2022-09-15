@@ -36,6 +36,10 @@ jobs:
             cmd: clippy
             args: -- -D clippy::all
             cache: {}
+          - name: "Clippy (ring feature)"
+            cmd: clippy
+            args: --no-default-features --feature ring -- -D clippy::all
+            cache: {}
           - name: "Formatting"
             cmd: fmt
             args: -- --check
@@ -44,6 +48,10 @@ jobs:
             cmd: test
             args: --all-features
             cache: { sharedKey: "tests" }
+          - name: "Unit Tests (ring feature)"
+            cmd: test
+            args: --no-default-features --features ring
+            cache: { sharedKey: "tests-ring" }
         include:
           - os: ubuntu-latest
             sccache-path: /home/runner/.cache/sccache
