@@ -4,7 +4,7 @@ version = "0.6.2"
 authors = [
   "Harry Bairstow <harry@walletconnect.com>",
   "Julius de Bruijn <julius@nauk.io>",
-  "Sergey Tkachenko <seriy.tkachenko@gmail.com>", 
+  "Sergey Tkachenko <seriy.tkachenko@gmail.com>",
 ]
 license = "MIT"
 readme  = "README.md"
@@ -16,19 +16,23 @@ documentation = "https://docs.rs/a2"
 edition = "2021"
 
 [features]
+default = ["openssl"]
 tracing = ["dep:tracing"]
+ring = ["dep:ring", "pem"]
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 erased-serde = "0.3"
 serde_json = "1"
 thiserror = "1"
-openssl = "0.10"
-hyper = { version = "0.14", features = ["client", "http2"] }
+openssl = { version = "0.10", optional = true }
+hyper = { version = "0.14", default-features = false, features = ["client", "http2"] }
 hyper-alpn = "0.4"
 http = "0.2"
 base64 = "0.13"
 tracing = { version = "0.1.36", optional = true }
+pem = { version = "1.0.2", optional = true }
+ring = { version = "0.16.20", features = ["std"], optional = true }
 
 [dev-dependencies]
 argparse = "0.2"
