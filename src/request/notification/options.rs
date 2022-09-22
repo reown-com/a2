@@ -14,13 +14,13 @@ impl<'a> CollapseId<'a> {
                 "The collapse-id is too big. Maximum 64 bytes.",
             )))
         } else {
-            Ok(CollapseId { value: value })
+            Ok(CollapseId { value })
         }
     }
 }
 
 /// Headers to specify options to the notification.
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct NotificationOptions<'a> {
     /// A canonical UUID that identifies the notification. If there is an error
     /// sending the notification, APNs uses this value to identify the
@@ -60,18 +60,6 @@ pub struct NotificationOptions<'a> {
     /// user as a single notification. The value of this key must not exceed 64
     /// bytes.
     pub apns_collapse_id: Option<CollapseId<'a>>,
-}
-
-impl<'a> Default for NotificationOptions<'a> {
-    fn default() -> NotificationOptions<'a> {
-        NotificationOptions {
-            apns_id: None,
-            apns_expiration: None,
-            apns_priority: None,
-            apns_topic: None,
-            apns_collapse_id: None,
-        }
-    }
 }
 
 /// The importance how fast to bring the notification for the user..
@@ -114,7 +102,7 @@ mod tests {
     #[test]
     fn test_collapse_id_over_64_chars() {
         let mut long_string = Vec::with_capacity(65);
-        long_string.extend_from_slice(&[65;65]);
+        long_string.extend_from_slice(&[65; 65]);
 
         let collapse_id = CollapseId::new(str::from_utf8(&long_string).unwrap());
         assert!(collapse_id.is_err());

@@ -64,7 +64,7 @@
 //! #[macro_use] extern crate serde_derive;
 //!
 //! use a2::{
-//!     Client, Endpoint, SilentNotificationBuilder, NotificationBuilder, NotificationOptions, 
+//!     Client, Endpoint, SilentNotificationBuilder, NotificationBuilder, NotificationOptions,
 //!     Priority,
 //! };
 //! use std::fs::File;
@@ -119,33 +119,19 @@ extern crate indoc;
 #[macro_use]
 extern crate log;
 
-pub mod request;
-pub mod error;
-pub mod response;
 pub mod client;
+pub mod error;
+pub mod request;
+pub mod response;
 mod signer;
 
-pub use crate::request::{
-    notification::{
-        NotificationBuilder,
-        LocalizedNotificationBuilder,
-        PlainNotificationBuilder,
-        SilentNotificationBuilder,
-        CollapseId,
-        NotificationOptions,
-        Priority,
-    }
+pub use crate::request::notification::{
+    CollapseId, LocalizedNotificationBuilder, NotificationBuilder, NotificationOptions, PlainNotificationBuilder,
+    Priority, SilentNotificationBuilder, WebNotificationBuilder, WebPushAlert,
 };
 
-pub use crate::response::{
-    Response,
-    ErrorBody,
-    ErrorReason,
-};
+pub use crate::response::{ErrorBody, ErrorReason, Response};
 
-pub use crate::client::{
-    Endpoint,
-    Client,
-};
+pub use crate::client::{Client, Endpoint};
 
 pub use crate::error::Error;

@@ -1,15 +1,7 @@
-use tokio;
-use pretty_env_logger;
 use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
 use std::fs::File;
 
-use a2::{
-    Client,
-    Endpoint,
-    NotificationBuilder,
-    NotificationOptions,
-    PlainNotificationBuilder,
-};
+use a2::{Client, Endpoint, NotificationBuilder, NotificationOptions, PlainNotificationBuilder};
 
 // An example client connectiong to APNs with a JWT token
 #[tokio::main]
@@ -33,18 +25,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             .add_option(&["-t", "--team_id"], Store, "APNs team ID");
         ap.refer(&mut key_id)
             .add_option(&["-k", "--key_id"], Store, "APNs key ID");
-        ap.refer(&mut device_token).add_option(
-            &["-d", "--device_token"],
-            Store,
-            "APNs device token",
-        );
+        ap.refer(&mut device_token)
+            .add_option(&["-d", "--device_token"], Store, "APNs device token");
         ap.refer(&mut message)
             .add_option(&["-m", "--message"], Store, "Notification message");
-        ap.refer(&mut sandbox).add_option(
-            &["-s", "--sandbox"],
-            StoreTrue,
-            "Use the development APNs servers",
-        );
+        ap.refer(&mut sandbox)
+            .add_option(&["-s", "--sandbox"], StoreTrue, "Use the development APNs servers");
         ap.refer(&mut topic)
             .add_option(&["-o", "--topic"], StoreOption, "APNS topic");
         ap.parse_args_or_exit();
@@ -64,7 +50,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let client = Client::token(&mut private_key, key_id, team_id, endpoint).unwrap();
 
     let options = NotificationOptions {
-        apns_topic: topic.as_ref().map(|s| &**s),
+        apns_topic: topic.as_deref(),
         ..Default::default()
     };
 

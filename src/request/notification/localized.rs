@@ -1,34 +1,34 @@
 use crate::request::notification::{NotificationBuilder, NotificationOptions};
 use crate::request::payload::{APSAlert, Payload, APS};
 
-use std::{
-    collections::BTreeMap,
-    borrow::Cow,
-};
+use std::{borrow::Cow, collections::BTreeMap};
 
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone)]
 #[serde(rename_all = "kebab-case")]
 pub struct LocalizedAlert<'a> {
-    title: &'a str,
-    body: &'a str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<&'a str>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    title_loc_key: Option<&'a str>,
+    pub body: Option<&'a str>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    title_loc_args: Option<Vec<Cow<'a, str>>>,
+    pub title_loc_key: Option<&'a str>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    action_loc_key: Option<&'a str>,
+    pub title_loc_args: Option<Vec<Cow<'a, str>>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    loc_key: Option<&'a str>,
+    pub action_loc_key: Option<&'a str>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    loc_args: Option<Vec<Cow<'a, str>>>,
+    pub loc_key: Option<&'a str>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    launch_image: Option<&'a str>,
+    pub loc_args: Option<Vec<Cow<'a, str>>>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub launch_image: Option<&'a str>,
 }
 
 /// A builder to create a localized APNs payload.
@@ -37,8 +37,9 @@ pub struct LocalizedAlert<'a> {
 ///
 /// ```rust
 /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
-/// # fn main() {
-/// let mut builder = LocalizedNotificationBuilder::new("Hi there", "What's up?");
+/// let mut builder = LocalizedNotificationBuilder::default();
+/// builder.set_title("Hi there");
+/// builder.set_body("What's up?");
 /// builder.set_badge(420);
 /// builder.set_category("cat1");
 /// builder.set_sound("prööt");
@@ -52,8 +53,8 @@ pub struct LocalizedAlert<'a> {
 /// builder.set_loc_args(&["narf", "derp"]);
 /// let payload = builder.build("device_id", Default::default())
 ///   .to_json_string().unwrap();
-/// # }
 /// ```
+#[derive(Default)]
 pub struct LocalizedNotificationBuilder<'a> {
     alert: LocalizedAlert<'a>,
     badge: Option<u32>,
@@ -63,7 +64,10 @@ pub struct LocalizedNotificationBuilder<'a> {
 }
 
 impl<'a> LocalizedNotificationBuilder<'a> {
-    /// Creates a new builder with the minimum amount of content.
+    /// Creates a new builder.
+    ///
+    /// This is a convenience function for the very common pattern of providing the
+    /// title and body for a new LocalizedNotification.
     ///
     /// ```rust
     /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
@@ -77,46 +81,70 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn new(
-        title: &'a str,
-        body: &'a str
-    ) -> LocalizedNotificationBuilder<'a>
-    {
+    pub fn new(title: &'a str, body: &'a str) -> LocalizedNotificationBuilder<'a> {
         LocalizedNotificationBuilder {
             alert: LocalizedAlert {
-                title: title,
-                body: body,
-                title_loc_key: None,
-                title_loc_args: None,
-                action_loc_key: None,
-                loc_key: None,
-                loc_args: None,
-                launch_image: None,
+                title: Some(title),
+                body: Some(body),
+                ..Default::default()
             },
-            badge: None,
-            sound: None,
-            category: None,
-            mutable_content: 0,
+            ..Default::default()
         }
+    }
+
+    /// Set the title
+    ///
+    /// ```rust
+    /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
+    /// let payload = LocalizedNotificationBuilder::default();
+    /// let mut builder = LocalizedNotificationBuilder::default();
+    /// builder.set_title("a title");
+    /// let payload = builder.build("token", Default::default());
+    ///
+    /// assert_eq!(
+    ///     "{\"aps\":{\"alert\":{\"title\":\"a title\"},\"mutable-content\":0}}",
+    ///     &payload.to_json_string().unwrap()
+    /// );
+    /// ```
+    pub fn set_title(&mut self, title: &'a str) -> &mut Self {
+        self.alert.title = Some(title);
+        self
+    }
+
+    /// Set the body
+    ///
+    /// ```rust
+    /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
+    /// # fn main() {
+    /// let mut builder = LocalizedNotificationBuilder::default();
+    /// builder.set_body("a body");
+    /// let payload = builder.build("token", Default::default());
+    ///
+    /// assert_eq!(
+    ///     "{\"aps\":{\"alert\":{\"body\":\"a body\"},\"mutable-content\":0}}",
+    ///     &payload.to_json_string().unwrap()
+    /// );
+    /// # }
+    /// ```
+    pub fn set_body(&mut self, body: &'a str) -> &mut Self {
+        self.alert.body = Some(body);
+        self
     }
 
     /// A number to show on a badge on top of the app icon.
     ///
     /// ```rust
     /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
-    /// # fn main() {
-    /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
+    /// let mut builder = LocalizedNotificationBuilder::default();
     /// builder.set_badge(4);
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"body\":\"a body\",\"title\":\"a title\"},\"badge\":4,\"mutable-content\":0}}",
+    ///     "{\"aps\":{\"alert\":{},\"badge\":4,\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
-    /// # }
     /// ```
-    pub fn set_badge(&mut self, badge: u32) -> &mut Self
-    {
+    pub fn set_badge(&mut self, badge: u32) -> &mut Self {
         self.badge = Some(badge);
         self
     }
@@ -125,19 +153,16 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
-    /// # fn main() {
-    /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
+    /// let mut builder = LocalizedNotificationBuilder::default();
     /// builder.set_sound("ping");
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"body\":\"a body\",\"title\":\"a title\"},\"mutable-content\":0,\"sound\":\"ping\"}}",
+    ///     "{\"aps\":{\"alert\":{},\"mutable-content\":0,\"sound\":\"ping\"}}",
     ///     &payload.to_json_string().unwrap()
     /// );
-    /// # }
     /// ```
-    pub fn set_sound(&mut self, sound: &'a str) -> &mut Self
-    {
+    pub fn set_sound(&mut self, sound: &'a str) -> &mut Self {
         self.sound = Some(sound);
         self
     }
@@ -147,20 +172,17 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
-    /// # fn main() {
-    /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
+    /// let mut builder = LocalizedNotificationBuilder::default();
     /// builder.set_category("cat1");
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"body\":\"a body\",\"title\":\"a title\"},\"category\":\"cat1\",\"mutable-content\":0}}",
+    ///     "{\"aps\":{\"alert\":{},\"category\":\"cat1\",\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
-    /// # }
     /// ```
-    pub fn set_category(&mut self, category: &'a str) -> &mut Self
-    {
-        self.category = Some(category.into());
+    pub fn set_category(&mut self, category: &'a str) -> &mut Self {
+        self.category = Some(category);
         self
     }
 
@@ -168,19 +190,16 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
-    /// # fn main() {
-    /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
+    /// let mut builder = LocalizedNotificationBuilder::default();
     /// builder.set_title_loc_key("play");
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"body\":\"a body\",\"title\":\"a title\",\"title-loc-key\":\"play\"},\"mutable-content\":0}}",
+    ///     "{\"aps\":{\"alert\":{\"title-loc-key\":\"play\"},\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
-    /// # }
     /// ```
-    pub fn set_title_loc_key(&mut self, key: &'a str) -> &mut Self
-    {
+    pub fn set_title_loc_key(&mut self, key: &'a str) -> &mut Self {
         self.alert.title_loc_key = Some(key);
         self
     }
@@ -189,28 +208,20 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
-    /// # fn main() {
-    /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
+    /// let mut builder = LocalizedNotificationBuilder::default();
     /// builder.set_title_loc_args(&["foo", "bar"]);
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"body\":\"a body\",\"title\":\"a title\",\"title-loc-args\":[\"foo\",\"bar\"]},\"mutable-content\":0}}",
+    ///     "{\"aps\":{\"alert\":{\"title-loc-args\":[\"foo\",\"bar\"]},\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
-    /// # }
     /// ```
-    pub fn set_title_loc_args<S>(
-        &mut self,
-        args: &'a [S]
-    ) -> &mut Self
+    pub fn set_title_loc_args<S>(&mut self, args: &'a [S]) -> &mut Self
     where
-        S: Into<Cow<'a, str>> + AsRef<str>
+        S: Into<Cow<'a, str>> + AsRef<str>,
     {
-        let converted = args
-            .iter()
-            .map(|a| a.as_ref().into())
-            .collect();
+        let converted = args.iter().map(|a| a.as_ref().into()).collect();
 
         self.alert.title_loc_args = Some(converted);
         self
@@ -220,19 +231,16 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
-    /// # fn main() {
-    /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
+    /// let mut builder = LocalizedNotificationBuilder::default();
     /// builder.set_action_loc_key("stop");
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"action-loc-key\":\"stop\",\"body\":\"a body\",\"title\":\"a title\"},\"mutable-content\":0}}",
+    ///     "{\"aps\":{\"alert\":{\"action-loc-key\":\"stop\"},\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
-    /// # }
     /// ```
-    pub fn set_action_loc_key(&mut self, key: &'a str) -> &mut Self
-    {
+    pub fn set_action_loc_key(&mut self, key: &'a str) -> &mut Self {
         self.alert.action_loc_key = Some(key);
         self
     }
@@ -241,19 +249,16 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
-    /// # fn main() {
-    /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
+    /// let mut builder = LocalizedNotificationBuilder::default();
     /// builder.set_loc_key("lol");
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"body\":\"a body\",\"loc-key\":\"lol\",\"title\":\"a title\"},\"mutable-content\":0}}",
+    ///     "{\"aps\":{\"alert\":{\"loc-key\":\"lol\"},\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
-    /// # }
     /// ```
-    pub fn set_loc_key(&mut self, key: &'a str) -> &mut Self
-    {
+    pub fn set_loc_key(&mut self, key: &'a str) -> &mut Self {
         self.alert.loc_key = Some(key);
         self
     }
@@ -262,28 +267,20 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
-    /// # fn main() {
-    /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
+    /// let mut builder = LocalizedNotificationBuilder::default();
     /// builder.set_loc_args(&["omg", "foo"]);
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"body\":\"a body\",\"loc-args\":[\"omg\",\"foo\"],\"title\":\"a title\"},\"mutable-content\":0}}",
+    ///     "{\"aps\":{\"alert\":{\"loc-args\":[\"omg\",\"foo\"]},\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
-    /// # }
     /// ```
-    pub fn set_loc_args<S>(
-        &mut self,
-        args: &'a [S]
-    ) -> &mut Self
+    pub fn set_loc_args<S>(&mut self, args: &'a [S]) -> &mut Self
     where
-        S: Into<Cow<'a, str>> + AsRef<str>
+        S: Into<Cow<'a, str>> + AsRef<str>,
     {
-        let converted = args
-            .iter()
-            .map(|a| a.as_ref().into())
-            .collect();
+        let converted = args.iter().map(|a| a.as_ref().into()).collect();
 
         self.alert.loc_args = Some(converted);
         self
@@ -293,19 +290,16 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
-    /// # fn main() {
-    /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
+    /// let mut builder = LocalizedNotificationBuilder::default();
     /// builder.set_launch_image("cat.png");
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"body\":\"a body\",\"launch-image\":\"cat.png\",\"title\":\"a title\"},\"mutable-content\":0}}",
+    ///     "{\"aps\":{\"alert\":{\"launch-image\":\"cat.png\"},\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
-    /// # }
     /// ```
-    pub fn set_launch_image(&mut self, image: &'a str) -> &mut Self
-    {
+    pub fn set_launch_image(&mut self, image: &'a str) -> &mut Self {
         self.alert.launch_image = Some(image);
         self
     }
@@ -314,27 +308,23 @@ impl<'a> LocalizedNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{LocalizedNotificationBuilder, NotificationBuilder};
-    /// # fn main() {
-    /// let mut builder = LocalizedNotificationBuilder::new("a title", "a body");
+    /// let mut builder = LocalizedNotificationBuilder::default();
     /// builder.set_mutable_content();
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"body\":\"a body\",\"title\":\"a title\"},\"mutable-content\":1}}",
+    ///     "{\"aps\":{\"alert\":{},\"mutable-content\":1}}",
     ///     &payload.to_json_string().unwrap()
     /// );
-    /// # }
     /// ```
-    pub fn set_mutable_content(&mut self) -> &mut Self
-    {
+    pub fn set_mutable_content(&mut self) -> &mut Self {
         self.mutable_content = 1;
         self
     }
 }
 
 impl<'a> NotificationBuilder<'a> for LocalizedNotificationBuilder<'a> {
-    fn build(self, device_token: &'a str, options: NotificationOptions<'a>) -> Payload<'a>
-    {
+    fn build(self, device_token: &'a str, options: NotificationOptions<'a>) -> Payload<'a> {
         Payload {
             aps: APS {
                 alert: Some(APSAlert::Localized(self.alert)),
@@ -343,9 +333,10 @@ impl<'a> NotificationBuilder<'a> for LocalizedNotificationBuilder<'a> {
                 content_available: None,
                 category: self.category,
                 mutable_content: Some(self.mutable_content),
+                url_args: None,
             },
-            device_token: device_token,
-            options: options,
+            device_token,
+            options,
             data: BTreeMap::new(),
         }
     }
@@ -357,7 +348,8 @@ mod tests {
 
     #[test]
     fn test_localized_notification_with_minimal_required_values() {
-        let payload = LocalizedNotificationBuilder::new("the title", "the body")
+        let builder = LocalizedNotificationBuilder::new("the title", "the body");
+        let payload = builder
             .build("device-token", Default::default())
             .to_json_string()
             .unwrap();
@@ -370,15 +362,18 @@ mod tests {
                 },
                 "mutable-content": 0
             }
-        }).to_string();
+        })
+        .to_string();
 
         assert_eq!(expected_payload, payload);
     }
 
     #[test]
     fn test_localized_notification_with_full_data() {
-        let mut builder = LocalizedNotificationBuilder::new("the title", "the body");
+        let mut builder = LocalizedNotificationBuilder::default();
 
+        builder.set_title("the title");
+        builder.set_body("the body");
         builder.set_badge(420);
         builder.set_category("cat1");
         builder.set_sound("prööt");
@@ -413,7 +408,8 @@ mod tests {
                 "mutable-content": 1,
                 "sound": "prööt"
             }
-        }).to_string();
+        })
+        .to_string();
 
         assert_eq!(expected_payload, payload);
     }
@@ -440,8 +436,8 @@ mod tests {
             key_struct: SubData { nothing: "here" },
         };
 
-        let mut payload = LocalizedNotificationBuilder::new("the title", "the body")
-            .build("device-token", Default::default());
+        let builder = LocalizedNotificationBuilder::new("the title", "the body");
+        let mut payload = builder.build("device-token", Default::default());
 
         payload.add_custom_data("custom", &test_data).unwrap();
 
@@ -461,7 +457,8 @@ mod tests {
                 },
                 "mutable-content": 0
             },
-        }).to_string();
+        })
+        .to_string();
 
         assert_eq!(expected_payload, payload.to_json_string().unwrap());
     }

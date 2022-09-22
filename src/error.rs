@@ -1,95 +1,41 @@
 //! Error and result module
 
-use crate::response::{ErrorBody, Response};
-use openssl::error::ErrorStack;
-use serde_json::Error as SerdeError;
-use std::convert::From;
-use std::error::Error as StdError;
-use std::fmt;
-use std::io::Error as IoError;
+use crate::response::Response;
+use std::io;
+use thiserror::Error;
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum Error {
     /// User request or Apple response JSON data was faulty.
-    SerializeError,
+    #[error("Error serializing to JSON: {0}")]
+    SerializeError(#[from] serde_json::Error),
 
     /// A problem connecting to APNs servers.
-    ConnectionError,
-
-    /// APNs couldn't response in a timely manner, if using
-    /// [send_with_timeout](client/struct.Client.html#method.send_with_timeout)
-    TimeoutError,
+    #[error("Error connecting to APNs: {0}")]
+    ConnectionError(#[from] hyper::Error),
 
     /// Couldn't generate an APNs token with the given key.
-    SignerError(String),
+    #[error("Error creating a signature: {0}")]
+    SignerError(#[from] openssl::error::ErrorStack),
 
     /// APNs couldn't accept the notification. Contains
     /// [Response](response/struct.Response.html) with additional
     /// information.
+    #[error(
+        "Notification was not accepted by APNs (reason: {})",
+        .0.error
+            .as_ref()
+            .map(|e| e.reason.to_string())
+            .unwrap_or_else(|| "Unknown".to_string())
+    )]
     ResponseError(Response),
 
     /// Invalid option values given in
     /// [NotificationOptions](request/notification/struct.NotificationOptions.html)
+    #[error("Invalid options for APNs payload: {0}")]
     InvalidOptions(String),
 
-    /// TLS connection failed
-    TlsError(String),
-
     /// Error reading the certificate or private key.
-    ReadError(String),
-}
-
-impl<'a> fmt::Display for Error {
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Error::ResponseError(Response {
-                error: Some(ErrorBody { ref reason, .. }),
-                ..
-            }) => write!(fmt, "{} (reason: {:?})", self, reason),
-            _ => write!(fmt, "{}", self),
-        }
-    }
-}
-
-impl<'a> StdError for Error {
-    fn description(&self) -> &str {
-        match self {
-            Error::SerializeError => "Error serializing to JSON",
-            Error::ConnectionError => "Error connecting to APNs",
-            Error::SignerError(_) => "Error creating a signature",
-            Error::ResponseError(_) => "Notification was not accepted by APNs",
-            Error::InvalidOptions(_) => "Invalid options for APNs payload",
-            Error::TlsError(_) => "Error in creating a TLS connection",
-            Error::ReadError(_) => "Error in reading a certificate file",
-            Error::TimeoutError => "Timeout in sending a push notification",
-        }
-    }
-
-    fn cause(&self) -> Option<&dyn StdError> {
-        None
-    }
-}
-
-impl From<SerdeError> for Error {
-    fn from(_: SerdeError) -> Error {
-        Error::SerializeError
-    }
-}
-
-impl From<ErrorStack> for Error {
-    fn from(e: ErrorStack) -> Error {
-        Error::SignerError(format!("{}", e))
-    }
-}
-
-impl From<IoError> for Error {
-    fn from(e: IoError) -> Error {
-        Error::ReadError(format!("{}", e))
-    }
-}
-
-impl From<hyper::error::Error> for Error {
-    fn from(_: hyper::error::Error) -> Error {
-        Error::ConnectionError
-    }
+    #[error("Error in reading a certificate file: {0}")]
+    ReadError(#[from] io::Error),
 }

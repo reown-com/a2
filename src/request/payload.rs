@@ -1,10 +1,10 @@
 //! Payload with `aps` and custom data
 
-use crate::request::notification::{LocalizedAlert, NotificationOptions};
 use crate::error::Error;
+use crate::request::notification::{LocalizedAlert, NotificationOptions, WebPushAlert};
+use erased_serde::Serialize;
 use serde_json::{self, Value};
 use std::collections::BTreeMap;
-use erased_serde::Serialize;
 
 /// The data and options for a push notification.
 #[derive(Debug, Clone)]
@@ -69,13 +69,7 @@ impl<'a> Payload<'a> {
     /// );
     /// # }
     /// ```
-    pub fn add_custom_data(
-        &mut self,
-        root_key: &'a str,
-        data: &dyn Serialize,
-    ) -> Result<&mut Self, Error>
-    where
-    {
+    pub fn add_custom_data(&mut self, root_key: &'a str, data: &dyn Serialize) -> Result<&mut Self, Error> {
         self.data.insert(root_key, serde_json::to_value(data)?);
 
         Ok(self)
@@ -83,6 +77,7 @@ impl<'a> Payload<'a> {
 
     /// Combine the APS payload and the custom data to a final payload JSON.
     /// Returns an error if serialization fails.
+    #[allow(clippy::wrong_self_convention)]
     pub fn to_json_string(mut self) -> Result<String, Error> {
         let aps_data = serde_json::to_value(&self.aps)?;
 
@@ -93,8 +88,9 @@ impl<'a> Payload<'a> {
 }
 
 /// The pre-defined notification data.
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Default, Debug, Clone)]
 #[serde(rename_all = "kebab-case")]
+#[allow(clippy::upper_case_acronyms)]
 pub struct APS<'a> {
     /// The notification content. Can be empty for silent notifications.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -121,14 +117,19 @@ pub struct APS<'a> {
     /// displaying it to the user.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mutable_content: Option<u8>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub url_args: Option<&'a [&'a str]>,
 }
 
 /// Different notification content types.
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum APSAlert<'a> {
     /// Text-only notification.
     Plain(&'a str),
     /// A rich localized notification.
     Localized(LocalizedAlert<'a>),
+    /// Safari web push notification
+    WebPush(WebPushAlert<'a>),
 }

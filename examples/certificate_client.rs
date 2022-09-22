@@ -1,14 +1,6 @@
-use tokio;
-use pretty_env_logger;
+use a2::{Client, Endpoint, NotificationBuilder, NotificationOptions, PlainNotificationBuilder};
 use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
 use std::fs::File;
-use a2::{
-    NotificationBuilder,
-    NotificationOptions,
-    PlainNotificationBuilder,
-    Client,
-    Endpoint,
-};
 
 // An example client connectiong to APNs with a certificate and key
 #[tokio::main]
@@ -25,25 +17,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     {
         let mut ap = ArgumentParser::new();
         ap.set_description("APNs certificate-based push");
-        ap.refer(&mut certificate_file).add_option(
-            &["-c", "--certificate"],
-            Store,
-            "Certificate PKCS12 file location",
-        );
+        ap.refer(&mut certificate_file)
+            .add_option(&["-c", "--certificate"], Store, "Certificate PKCS12 file location");
         ap.refer(&mut password)
             .add_option(&["-p", "--password"], Store, "Certificate password");
-        ap.refer(&mut device_token).add_option(
-            &["-d", "--device_token"],
-            Store,
-            "APNs device token",
-        );
+        ap.refer(&mut device_token)
+            .add_option(&["-d", "--device_token"], Store, "APNs device token");
         ap.refer(&mut message)
             .add_option(&["-m", "--message"], Store, "Notification message");
-        ap.refer(&mut sandbox).add_option(
-            &["-s", "--sandbox"],
-            StoreTrue,
-            "Use the development APNs servers",
-        );
+        ap.refer(&mut sandbox)
+            .add_option(&["-s", "--sandbox"], StoreTrue, "Use the development APNs servers");
         ap.refer(&mut topic)
             .add_option(&["-o", "--topic"], StoreOption, "APNS topic");
         ap.parse_args_or_exit();
@@ -63,7 +46,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let client = Client::certificate(&mut certificate, &password, endpoint).unwrap();
 
     let options = NotificationOptions {
-        apns_topic: topic.as_ref().map(|s| &**s),
+        apns_topic: topic.as_deref(),
         ..Default::default()
     };
 

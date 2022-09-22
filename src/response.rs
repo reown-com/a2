@@ -27,7 +27,7 @@ pub struct Response {
 }
 
 /// The response body from APNs. Only available for errors.
-#[derive(Deserialize, Debug, PartialEq)]
+#[derive(Deserialize, Debug, Eq, PartialEq)]
 pub struct ErrorBody {
     /// The error indicating the reason for the failure.
     pub reason: ErrorReason,
@@ -42,7 +42,7 @@ pub struct ErrorBody {
 }
 
 /// A description what went wrong with the push notification.
-#[derive(Deserialize, Debug, PartialEq)]
+#[derive(Deserialize, Debug, Eq, PartialEq)]
 pub enum ErrorReason {
     /// The collapse identifier exceeds the maximum allowed size.
     BadCollapseId,
@@ -214,11 +214,7 @@ mod tests {
             (ErrorReason::BadMessageId, "BadMessageId", None),
             (ErrorReason::BadPriority, "BadPriority", None),
             (ErrorReason::BadTopic, "BadTopic", None),
-            (
-                ErrorReason::DeviceTokenNotForTopic,
-                "DeviceTokenNotForTopic",
-                None,
-            ),
+            (ErrorReason::DeviceTokenNotForTopic, "DeviceTokenNotForTopic", None),
             (ErrorReason::DuplicateHeaders, "DuplicateHeaders", None),
             (ErrorReason::IdleTimeout, "IdleTimeout", None),
             (ErrorReason::MissingDeviceToken, "MissingDeviceToken", None),
@@ -231,29 +227,13 @@ mod tests {
                 "BadCertificateEnvironment",
                 None,
             ),
-            (
-                ErrorReason::ExpiredProviderToken,
-                "ExpiredProviderToken",
-                None,
-            ),
+            (ErrorReason::ExpiredProviderToken, "ExpiredProviderToken", None),
             (ErrorReason::Forbidden, "Forbidden", None),
-            (
-                ErrorReason::InvalidProviderToken,
-                "InvalidProviderToken",
-                None,
-            ),
-            (
-                ErrorReason::MissingProviderToken,
-                "MissingProviderToken",
-                None,
-            ),
+            (ErrorReason::InvalidProviderToken, "InvalidProviderToken", None),
+            (ErrorReason::MissingProviderToken, "MissingProviderToken", None),
             (ErrorReason::BadPath, "BadPath", None),
             (ErrorReason::MethodNotAllowed, "MethodNotAllowed", None),
-            (
-                ErrorReason::Unregistered,
-                "Unregistered",
-                Some(1508249865488u64),
-            ),
+            (ErrorReason::Unregistered, "Unregistered", Some(1508249865488u64)),
             (ErrorReason::PayloadTooLarge, "PayloadTooLarge", None),
             (
                 ErrorReason::TooManyProviderTokenUpdates,
@@ -261,11 +241,7 @@ mod tests {
                 None,
             ),
             (ErrorReason::TooManyRequests, "TooManyRequests", None),
-            (
-                ErrorReason::InternalServerError,
-                "InternalServerError",
-                None,
-            ),
+            (ErrorReason::InternalServerError, "InternalServerError", None),
             (ErrorReason::ServiceUnavailable, "ServiceUnavailable", None),
             (ErrorReason::Shutdown, "Shutdown", None),
         ];

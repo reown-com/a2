@@ -1,7 +1,8 @@
 [package]
 name = "a2"
-version = "0.5.2"
+version = "0.6.2"
 authors = [
+  "Harry Bairstow <harry@walletconnect.com>",
   "Julius de Bruijn <julius@nauk.io>",
   "Sergey Tkachenko <seriy.tkachenko@gmail.com>", 
 ]
@@ -9,8 +10,8 @@ license = "MIT"
 readme  = "README.md"
 description = "A native, asynchronous Apple push notification client"
 keywords    = ["apns", "apple", "push", "async", "http2"]
-repository  = "https://github.com/pimeys/a2.git"
-homepage    = "https://github.com/pimeys/a2"
+repository  = "https://github.com/walletconnect/a2.git"
+homepage    = "https://github.com/walletconnect/a2"
 documentation = "https://docs.rs/a2"
 edition = "2018"
 
@@ -19,16 +20,17 @@ serde = "1"
 erased-serde = "0.3"
 serde_derive = "1"
 serde_json = "1"
+thiserror = "1"
 openssl = "0.10"
 futures = "0.3"
 http = "0.2"
-base64 = "0.12"
+base64 = "0.13"
 log = "0.4"
-hyper = "0.13"
-hyper-alpn = "0.2"
+hyper = { version = "0.14", features = ["client", "http2", "tcp"] }
+hyper-alpn = "0.3"
 
 [dev-dependencies]
 argparse = "0.2"
 pretty_env_logger = "0.4"
-indoc = "0.3"
-tokio = { version = "0.2", features = ["rt-threaded", "macros"] }
+indoc = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
