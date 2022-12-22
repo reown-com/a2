@@ -60,13 +60,15 @@ pub struct DefaultAlert<'a> {
 ///   .to_json_string().unwrap();
 /// # }
 /// ```
+#[derive(Debug, Clone)]
 pub struct DefaultNotificationBuilder<'a> {
     alert: DefaultAlert<'a>,
     badge: Option<u32>,
     sound: Option<&'a str>,
     category: Option<&'a str>,
     mutable_content: u8,
-    content_available: u8,
+    content_available: Option<u8>,
+    has_edited_alert: bool,
 }
 
 impl<'a> DefaultNotificationBuilder<'a> {
@@ -103,7 +105,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
             sound: None,
             category: None,
             mutable_content: 0,
-            content_available: 0,
+            content_available: None,
+            has_edited_alert: false
         }
     }
 
@@ -124,8 +127,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_title(&mut self, title: &'a str) -> &mut Self {
+    pub fn set_title(mut self, title: &'a str) -> Self {
         self.alert.title = Some(title);
+        self.has_edited_alert = true;
         self
     }
 
@@ -144,8 +148,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_subtitle(&mut self, subtitle: &'a str) -> &mut Self {
+    pub fn set_subtitle(mut self, subtitle: &'a str) -> Self {
         self.alert.subtitle = Some(subtitle);
+        self.has_edited_alert = true;
         self
     }
 
@@ -164,8 +169,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_body(&mut self, body: &'a str) -> &mut Self {
+    pub fn set_body(mut self, body: &'a str) -> Self {
         self.alert.body = Some(body);
+        self.has_edited_alert = true;
         self
     }
 
@@ -184,7 +190,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_badge(&mut self, badge: u32) -> &mut Self {
+    pub fn set_badge(mut self, badge: u32) -> Self {
         self.badge = Some(badge);
         self
     }
@@ -205,7 +211,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_sound(&mut self, sound: &'a str) -> &mut Self {
+    pub fn set_sound(mut self, sound: &'a str) -> Self {
         self.sound = Some(sound);
         self
     }
@@ -227,7 +233,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_category(&mut self, category: &'a str) -> &mut Self {
+    pub fn set_category(mut self, category: &'a str) -> Self {
         self.category = Some(category);
         self
     }
@@ -248,8 +254,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_title_loc_key(&mut self, key: &'a str) -> &mut Self {
+    pub fn set_title_loc_key(mut self, key: &'a str) -> Self {
         self.alert.title_loc_key = Some(key);
+        self.has_edited_alert = true;
         self
     }
 
@@ -269,13 +276,14 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_title_loc_args<S>(&mut self, args: &'a [S]) -> &mut Self
+    pub fn set_title_loc_args<S>(mut self, args: &'a [S]) -> Self
     where
         S: Into<Cow<'a, str>> + AsRef<str>,
     {
         let converted = args.iter().map(|a| a.as_ref().into()).collect();
 
         self.alert.title_loc_args = Some(converted);
+        self.has_edited_alert = true;
         self
     }
 
@@ -295,8 +303,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_action_loc_key(&mut self, key: &'a str) -> &mut Self {
+    pub fn set_action_loc_key(mut self, key: &'a str) -> Self {
         self.alert.action_loc_key = Some(key);
+        self.has_edited_alert = true;
         self
     }
 
@@ -316,8 +325,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_loc_key(&mut self, key: &'a str) -> &mut Self {
+    pub fn set_loc_key(mut self, key: &'a str) -> Self {
         self.alert.loc_key = Some(key);
+        self.has_edited_alert = true;
         self
     }
 
@@ -337,13 +347,14 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_loc_args<S>(&mut self, args: &'a [S]) -> &mut Self
+    pub fn set_loc_args<S>(mut self, args: &'a [S]) -> Self
     where
         S: Into<Cow<'a, str>> + AsRef<str>,
     {
         let converted = args.iter().map(|a| a.as_ref().into()).collect();
 
         self.alert.loc_args = Some(converted);
+        self.has_edited_alert = true;
         self
     }
 
@@ -363,8 +374,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_launch_image(&mut self, image: &'a str) -> &mut Self {
-        self.alert.launch_image = Some(image);
+    pub fn set_launch_image(mut self, image: &'a str) -> Self {
+        self.alert.launch_image = Some(image);self.has_edited_alert = true;
         self
     }
 
@@ -384,7 +395,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_mutable_content(&mut self) -> &mut Self {
+    pub fn set_mutable_content(mut self) -> Self {
         self.mutable_content = 1;
         self
     }
@@ -405,8 +416,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_content_available(&mut self) -> &mut Self {
-        self.content_available = 1;
+    pub fn set_content_available(mut self) -> Self {
+        self.content_available = Some(1);
         self
     }
 }
@@ -415,10 +426,13 @@ impl<'a> NotificationBuilder<'a> for DefaultNotificationBuilder<'a> {
     fn build(self, device_token: &'a str, options: NotificationOptions<'a>) -> Payload<'a> {
         Payload {
             aps: APS {
-                alert: Some(APSAlert::Default(self.alert)),
+                alert: match self.has_edited_alert {
+                    true => Some(APSAlert::Default(self.alert)),
+                    false => None
+                },
                 badge: self.badge,
                 sound: self.sound,
-                content_available: Some(self.content_available),
+                content_available: self.content_available,
                 category: self.category,
                 mutable_content: Some(self.mutable_content),
                 url_args: None,
@@ -465,21 +479,20 @@ mod tests {
 
     #[test]
     fn test_default_notification_with_full_data() {
-        let mut builder = DefaultNotificationBuilder::new();
-
-        builder.set_title("the title");
-        builder.set_body("the body");
-        builder.set_badge(420);
-        builder.set_category("cat1");
-        builder.set_sound("prööt");
-        builder.set_mutable_content();
-        builder.set_action_loc_key("PLAY");
-        builder.set_launch_image("foo.jpg");
-        builder.set_loc_args(&["argh", "narf"]);
-        builder.set_title_loc_key("STOP");
-        builder.set_title_loc_args(&["herp", "derp"]);
-        builder.set_loc_key("PAUSE");
-        builder.set_loc_args(&["narf", "derp"]);
+        let builder = DefaultNotificationBuilder::new()
+            .set_title("the title")
+            .set_body("the body")
+            .set_badge(420)
+            .set_category("cat1")
+            .set_sound("prööt")
+            .set_mutable_content()
+            .set_action_loc_key("PLAY")
+            .set_launch_image("foo.jpg")
+            .set_loc_args(&["argh", "narf"])
+            .set_title_loc_key("STOP")
+            .set_title_loc_args(&["herp", "derp"])
+            .set_loc_key("PAUSE")
+            .set_loc_args(&["narf", "derp"]);
 
         let payload = builder
             .build("device-token", Default::default())
@@ -510,7 +523,7 @@ mod tests {
     }
 
     #[test]
-    fn test_plain_notification_with_custom_data() {
+    fn test_notification_with_custom_data_1() {
         #[derive(Serialize, Debug)]
         struct SubData {
             nothing: &'static str,
@@ -552,7 +565,7 @@ mod tests {
                     "title": "the title",
                     "body": "the body",
                 },
-                "mutable-content": 0
+                "mutable-content": 0,
             },
         })
         .to_string();
@@ -561,7 +574,7 @@ mod tests {
     }
 
     #[test]
-    fn test_notification_with_custom_data() {
+    fn test_notification_with_custom_data_2() {
         #[derive(Serialize, Debug)]
         struct SubData {
             nothing: &'static str,
@@ -603,6 +616,7 @@ mod tests {
                 "alert": {
                     "body": "kulli"
                 },
+                "mutable-content": 0
             }
         })
         .to_string();
@@ -620,7 +634,8 @@ mod tests {
 
         let expected_payload = json!({
             "aps": {
-                "content-available": 1
+                "content-available": 1,
+                "mutable-content": 0
             }
         })
         .to_string();
@@ -658,7 +673,8 @@ mod tests {
 
         let expected_payload = json!({
             "aps": {
-                "content-available": 1
+                "content-available": 1,
+                "mutable-content": 0
             },
             "custom": {
                 "key_str": "foo",
@@ -688,7 +704,8 @@ mod tests {
 
         let expected_payload = json!({
             "aps": {
-                "content-available": 1
+                "content-available": 1,
+                "mutable-content": 0,
             },
             "custom": {
                 "key_str": "foo",
