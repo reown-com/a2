@@ -1,5 +1,4 @@
 ///! Payload with `aps` and custom data
-
 use crate::error::Error;
 use crate::request::notification::{DefaultAlert, NotificationOptions, WebPushAlert};
 use erased_serde::Serialize;
@@ -126,7 +125,7 @@ pub struct APS<'a> {
 }
 
 /// Different notification content types.
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum APSAlert<'a> {
     /// A notification that supports all of the iOS features

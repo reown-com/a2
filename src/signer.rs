@@ -1,11 +1,11 @@
 use crate::error::Error;
 use base64::encode;
 use std::io::Read;
+use std::sync::Arc;
 use std::{
     sync::RwLock,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
-use std::sync::Arc;
 
 #[cfg(feature = "openssl")]
 use openssl::{
@@ -118,10 +118,10 @@ impl Signer {
         });
 
         let signer = Signer {
-            signature,
+            signature: Arc::new(signature),
             key_id,
             team_id,
-            secret,
+            secret: Arc::new(secret),
             expire_after_s: signature_ttl,
         };
 
