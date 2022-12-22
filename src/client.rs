@@ -9,10 +9,9 @@ use crate::request::payload::Payload;
 use crate::response::Response;
 use http::header::{AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE};
 use hyper::{self, Body, Client as HttpClient, StatusCode};
-use openssl::pkcs12::Pkcs12;
+use std::fmt;
 use std::io::Read;
 use std::time::Duration;
-use std::{fmt, str};
 
 /// The APNs service endpoint to connect.
 #[derive(Debug, Clone)]
@@ -65,6 +64,9 @@ impl Client {
     /// Create a connection to APNs using the provider client certificate which
     /// you obtain from your [Apple developer
     /// account](https://developer.apple.com/account/).
+    ///
+    /// Only works with the `openssl` feature.
+    #[cfg(feature = "openssl")]
     pub fn certificate<R>(certificate: &mut R, password: &str, endpoint: Endpoint) -> Result<Client, Error>
     where
         R: Read,
@@ -72,7 +74,7 @@ impl Client {
         let mut cert_der: Vec<u8> = Vec::new();
         certificate.read_to_end(&mut cert_der)?;
 
-        let pkcs = Pkcs12::from_der(&cert_der)?.parse(password)?;
+        let pkcs = openssl::pkcs12::Pkcs12::from_der(&cert_der)?.parse(password)?;
         let connector = AlpnConnector::with_client_cert(&pkcs.cert.to_pem()?, &pkcs.pkey.private_key_to_pem_pkcs8()?)?;
 
         Ok(Self::new(connector, None, endpoint))

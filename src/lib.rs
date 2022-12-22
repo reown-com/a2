@@ -59,6 +59,8 @@
 //! ## Example sending a silent notification with custom data using certificate authentication:
 //!
 //! ```no_run
+//! # #[cfg(all(feature = "openssl", not(feature = "ring")))]
+//! # {
 //! #[macro_use] extern crate serde;
 //!
 //! use a2::{
@@ -102,7 +104,10 @@
 //!
 //!     Ok(())
 //! }
+//! # }
 //! ```
+#[cfg(not(any(feature = "openssl", feature = "ring")))]
+compile_error!("either feature \"openssl\" or feature \"ring\" has to be enabled");
 
 #[macro_use]
 extern crate serde;
