@@ -2,11 +2,7 @@ use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
 use std::fs::File;
 use tokio;
 
-<<<<<<< HEAD
-use a2::{Client, Endpoint, NotificationBuilder, NotificationOptions, PlainNotificationBuilder};
-=======
 use a2::{Client, DefaultNotificationBuilder, Endpoint, NotificationBuilder, NotificationOptions};
->>>>>>> upstream/master
 
 // An example client connectiong to APNs with a JWT token
 #[tokio::main]

@@ -1,12 +1,6 @@
-<<<<<<< HEAD
-use a2::{Client, Endpoint, NotificationBuilder, NotificationOptions, PlainNotificationBuilder};
-use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
-use std::fs::File;
-=======
 use a2::{Client, DefaultNotificationBuilder, NotificationBuilder, NotificationOptions};
 use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
 use tokio;
->>>>>>> upstream/master
 
 // An example client connectiong to APNs with a certificate and key
 #[tokio::main]
