@@ -1,7 +1,7 @@
 //! Payload with `aps` and custom data
 
 use crate::error::Error;
-use crate::request::notification::{LocalizedAlert, NotificationOptions, WebPushAlert};
+use crate::request::notification::{DefaultAlert, NotificationOptions, WebPushAlert};
 use erased_serde::Serialize;
 use serde_json::{self, Value};
 use std::collections::BTreeMap;
@@ -126,10 +126,8 @@ pub struct APS<'a> {
 #[derive(Serialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum APSAlert<'a> {
-    /// Text-only notification.
-    Plain(&'a str),
-    /// A rich localized notification.
-    Localized(LocalizedAlert<'a>),
+    /// A notification that supports all of the iOS features
+    Default(DefaultAlert<'a>),
     /// Safari web push notification
     WebPush(WebPushAlert<'a>),
 }
