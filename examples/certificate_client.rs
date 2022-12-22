@@ -1,4 +1,4 @@
-use a2::{Client, NotificationBuilder, NotificationOptions, PlainNotificationBuilder};
+use a2::{Client, DefaultNotificationBuilder, NotificationBuilder, NotificationOptions};
 use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
 use tokio;
 
@@ -59,7 +59,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     };
 
     // Notification payload
-    let mut builder = PlainNotificationBuilder::new(message.as_ref());
+    let mut builder = DefaultNotificationBuilder::new();
+    builder.set_body(message.as_ref());
     builder.set_sound("default");
     builder.set_badge(1u32);
 

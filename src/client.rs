@@ -173,8 +173,8 @@ impl Client {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::request::notification::DefaultNotificationBuilder;
     use crate::request::notification::NotificationBuilder;
-    use crate::request::notification::PlainNotificationBuilder;
     use crate::request::notification::{CollapseId, NotificationOptions, Priority};
     use crate::signer::Signer;
     use http::header::{AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE};
@@ -189,7 +189,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
 
     #[test]
     fn test_production_request_uri() {
-        let builder = PlainNotificationBuilder::new("test");
+        let builder = DefaultNotificationBuilder::new();
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
         let request = client.build_request(payload);
@@ -200,7 +200,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
 
     #[test]
     fn test_sandbox_request_uri() {
-        let builder = PlainNotificationBuilder::new("test");
+        let builder = DefaultNotificationBuilder::new();
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Sandbox);
         let request = client.build_request(payload);
@@ -211,7 +211,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
 
     #[test]
     fn test_request_method() {
-        let builder = PlainNotificationBuilder::new("test");
+        let builder = DefaultNotificationBuilder::new();
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
         let request = client.build_request(payload);
@@ -221,7 +221,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
 
     #[test]
     fn test_request_content_type() {
-        let builder = PlainNotificationBuilder::new("test");
+        let builder = DefaultNotificationBuilder::new();
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
         let request = client.build_request(payload);
@@ -231,7 +231,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
 
     #[test]
     fn test_request_content_length() {
-        let builder = PlainNotificationBuilder::new("test");
+        let builder = DefaultNotificationBuilder::new();
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
         let request = client.build_request(payload.clone());
@@ -243,7 +243,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
 
     #[test]
     fn test_request_authorization_with_no_signer() {
-        let builder = PlainNotificationBuilder::new("test");
+        let builder = DefaultNotificationBuilder::new();
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
         let request = client.build_request(payload);
@@ -261,7 +261,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
         )
         .unwrap();
 
-        let builder = PlainNotificationBuilder::new("test");
+        let builder = DefaultNotificationBuilder::new();
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), Some(signer), Endpoint::Production);
         let request = client.build_request(payload);
@@ -271,7 +271,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
 
     #[test]
     fn test_request_with_default_priority() {
-        let builder = PlainNotificationBuilder::new("test");
+        let builder = DefaultNotificationBuilder::new();
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
         let request = client.build_request(payload);
@@ -282,7 +282,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
 
     #[test]
     fn test_request_with_normal_priority() {
-        let builder = PlainNotificationBuilder::new("test");
+        let builder = DefaultNotificationBuilder::new();
 
         let payload = builder.build(
             "a_test_id",
@@ -301,7 +301,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
 
     #[test]
     fn test_request_with_high_priority() {
-        let builder = PlainNotificationBuilder::new("test");
+        let builder = DefaultNotificationBuilder::new();
 
         let payload = builder.build(
             "a_test_id",
@@ -320,7 +320,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
 
     #[test]
     fn test_request_with_default_apns_id() {
-        let builder = PlainNotificationBuilder::new("test");
+        let builder = DefaultNotificationBuilder::new();
 
         let payload = builder.build("a_test_id", Default::default());
 
@@ -333,7 +333,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
 
     #[test]
     fn test_request_with_an_apns_id() {
-        let builder = PlainNotificationBuilder::new("test");
+        let builder = DefaultNotificationBuilder::new();
 
         let payload = builder.build(
             "a_test_id",
@@ -352,7 +352,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
 
     #[test]
     fn test_request_with_default_apns_expiration() {
-        let builder = PlainNotificationBuilder::new("test");
+        let builder = DefaultNotificationBuilder::new();
 
         let payload = builder.build("a_test_id", Default::default());
 
@@ -365,7 +365,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
 
     #[test]
     fn test_request_with_an_apns_expiration() {
-        let builder = PlainNotificationBuilder::new("test");
+        let builder = DefaultNotificationBuilder::new();
 
         let payload = builder.build(
             "a_test_id",
@@ -384,7 +384,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
 
     #[test]
     fn test_request_with_default_apns_collapse_id() {
-        let builder = PlainNotificationBuilder::new("test");
+        let builder = DefaultNotificationBuilder::new();
 
         let payload = builder.build("a_test_id", Default::default());
 
@@ -397,7 +397,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
 
     #[test]
     fn test_request_with_an_apns_collapse_id() {
-        let builder = PlainNotificationBuilder::new("test");
+        let builder = DefaultNotificationBuilder::new();
 
         let payload = builder.build(
             "a_test_id",
@@ -416,7 +416,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
 
     #[test]
     fn test_request_with_default_apns_topic() {
-        let builder = PlainNotificationBuilder::new("test");
+        let builder = DefaultNotificationBuilder::new();
 
         let payload = builder.build("a_test_id", Default::default());
 
@@ -429,7 +429,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
 
     #[test]
     fn test_request_with_an_apns_topic() {
-        let builder = PlainNotificationBuilder::new("test");
+        let builder = DefaultNotificationBuilder::new();
 
         let payload = builder.build(
             "a_test_id",
@@ -448,7 +448,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
 
     #[tokio::test]
     async fn test_request_body() {
-        let builder = PlainNotificationBuilder::new("test");
+        let builder = DefaultNotificationBuilder::new();
         let payload = builder.build("a_test_id", Default::default());
         let client = Client::new(AlpnConnector::new(), None, Endpoint::Production);
         let request = client.build_request(payload.clone());

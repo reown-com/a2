@@ -2,7 +2,7 @@ use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
 use std::fs::File;
 use tokio;
 
-use a2::{Client, Endpoint, NotificationBuilder, NotificationOptions, PlainNotificationBuilder};
+use a2::{Client, DefaultNotificationBuilder, Endpoint, NotificationBuilder, NotificationOptions};
 
 // An example client connectiong to APNs with a JWT token
 #[tokio::main]
@@ -56,7 +56,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     };
 
     // Notification payload
-    let mut builder = PlainNotificationBuilder::new(message.as_ref());
+    let mut builder = DefaultNotificationBuilder::new();
+    builder.set_body(message.as_ref());
     builder.set_sound("default");
     builder.set_badge(1u32);
 
