@@ -54,7 +54,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let client = new_client()?;
 
     let options = NotificationOptions {
-        apns_topic: topic.as_ref().map(|s| &**s),
+        apns_topic: topic.as_deref(),
         ..Default::default()
     };
 

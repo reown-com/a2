@@ -3,7 +3,7 @@ use crate::request::payload::{APSAlert, Payload, APS};
 
 use std::{borrow::Cow, collections::BTreeMap};
 
-#[derive(Serialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "kebab-case")]
 pub struct DefaultAlert<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]

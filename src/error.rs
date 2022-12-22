@@ -1,5 +1,4 @@
-//! Error and result module
-
+///! Error and result module
 use crate::{response::Response, signer::SignerError};
 use std::io;
 use thiserror::Error;

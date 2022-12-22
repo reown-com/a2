@@ -20,7 +20,7 @@ impl<'a> CollapseId<'a> {
 }
 
 /// Headers to specify options to the notification.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct NotificationOptions<'a> {
     /// A canonical UUID that identifies the notification. If there is an error
     /// sending the notification, APNs uses this value to identify the

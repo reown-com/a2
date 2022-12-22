@@ -1,5 +1,4 @@
-//! Payload with `aps` and custom data
-
+///! Payload with `aps` and custom data
 use crate::error::Error;
 use crate::request::notification::{DefaultAlert, NotificationOptions, WebPushAlert};
 use erased_serde::Serialize;
@@ -91,7 +90,7 @@ impl<'a> Payload<'a> {
 }
 
 /// The pre-defined notification data.
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Default, Debug, Clone)]
 #[serde(rename_all = "kebab-case")]
 #[allow(clippy::upper_case_acronyms)]
 pub struct APS<'a> {

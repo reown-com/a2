@@ -149,7 +149,7 @@ impl Client {
             builder = builder.header("apns-expiration", apns_expiration.to_string().as_bytes());
         }
         if let Some(ref apns_collapse_id) = payload.options.apns_collapse_id {
-            builder = builder.header("apns-collapse-id", apns_collapse_id.value.to_string().as_bytes());
+            builder = builder.header("apns-collapse-id", apns_collapse_id.value.as_bytes());
         }
         if let Some(apns_topic) = payload.options.apns_topic {
             builder = builder.header("apns-topic", apns_topic.as_bytes());

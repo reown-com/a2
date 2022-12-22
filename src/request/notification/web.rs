@@ -2,7 +2,7 @@ use crate::request::notification::{NotificationBuilder, NotificationOptions};
 use crate::request::payload::{APSAlert, Payload, APS};
 use std::collections::BTreeMap;
 
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "kebab-case")]
 pub struct WebPushAlert<'a> {
     pub title: &'a str,
@@ -104,7 +104,7 @@ mod tests {
                 title: "Hello",
                 body: "world",
             },
-            &vec!["arg1"],
+            &["arg1"],
         )
         .build("device-token", Default::default())
         .to_json_string()
