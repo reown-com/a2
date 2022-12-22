@@ -59,9 +59,9 @@
 //! ## Example sending a silent notification with custom data using certificate authentication:
 //!
 //! ```no_run
+//! #[macro_use] extern crate serde;
 //! # #[cfg(all(feature = "openssl", not(feature = "ring")))]
 //! # {
-//! #[macro_use] extern crate serde;
 //!
 //! use a2::{
 //!     Client, Endpoint, DefaultNotificationBuilder, NotificationBuilder, NotificationOptions,
