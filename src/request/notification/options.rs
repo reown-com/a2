@@ -20,7 +20,7 @@ impl<'a> CollapseId<'a> {
 }
 
 /// Headers to specify options to the notification.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct NotificationOptions<'a> {
     /// A canonical UUID that identifies the notification. If there is an error
     /// sending the notification, APNs uses this value to identify the
@@ -60,18 +60,6 @@ pub struct NotificationOptions<'a> {
     /// user as a single notification. The value of this key must not exceed 64
     /// bytes.
     pub apns_collapse_id: Option<CollapseId<'a>>,
-}
-
-impl<'a> Default for NotificationOptions<'a> {
-    fn default() -> NotificationOptions<'a> {
-        NotificationOptions {
-            apns_id: None,
-            apns_expiration: None,
-            apns_priority: None,
-            apns_topic: None,
-            apns_collapse_id: None,
-        }
-    }
 }
 
 /// The importance how fast to bring the notification for the user..
