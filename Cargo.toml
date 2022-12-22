@@ -4,7 +4,7 @@ version = "0.6.2"
 authors = [
   "Harry Bairstow <harry@walletconnect.com>",
   "Julius de Bruijn <julius@nauk.io>",
-  "Sergey Tkachenko <seriy.tkachenko@gmail.com>", 
+  "Sergey Tkachenko <seriy.tkachenko@gmail.com>",
 ]
 license = "MIT"
 readme  = "README.md"
@@ -13,24 +13,29 @@ keywords    = ["apns", "apple", "push", "async", "http2"]
 repository  = "https://github.com/walletconnect/a2.git"
 homepage    = "https://github.com/walletconnect/a2"
 documentation = "https://docs.rs/a2"
-edition = "2018"
+edition = "2021"
+
+[features]
+default = ["openssl"]
+tracing = ["dep:tracing"]
+ring = ["dep:ring", "pem"]
 
 [dependencies]
-serde = "1"
+serde = { version = "1", features = ["derive"] }
 erased-serde = "0.3"
-serde_derive = "1"
 serde_json = "1"
 thiserror = "1"
-openssl = "0.10"
-futures = "0.3"
+openssl = { version = "0.10", optional = true }
+hyper = { version = "0.14", default-features = false, features = ["client", "http2"] }
+hyper-alpn = "0.4"
 http = "0.2"
-base64 = "0.13"
-log = "0.4"
-hyper = { version = "0.14", features = ["client", "http2", "tcp"] }
-hyper-alpn = "0.3"
+base64 = "0.20"
+tracing = { version = "0.1", optional = true }
+pem = { version = "1.0", optional = true }
+ring = { version = "0.16", features = ["std"], optional = true }
 
 [dev-dependencies]
 argparse = "0.2"
-pretty_env_logger = "0.4"
-indoc = "1"
+tracing-subscriber = "0.3"
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+hyper = { version = "0.14", features = ["client", "http2", "tcp"] }

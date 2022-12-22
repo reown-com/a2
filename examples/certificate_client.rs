@@ -1,11 +1,17 @@
+<<<<<<< HEAD
 use a2::{Client, Endpoint, NotificationBuilder, NotificationOptions, PlainNotificationBuilder};
 use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
 use std::fs::File;
+=======
+use a2::{Client, DefaultNotificationBuilder, NotificationBuilder, NotificationOptions};
+use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
+use tokio;
+>>>>>>> upstream/master
 
 // An example client connectiong to APNs with a certificate and key
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    pretty_env_logger::init();
+    tracing_subscriber::fmt().init();
 
     let mut certificate_file = String::new();
     let mut password = String::new();
@@ -32,18 +38,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         ap.parse_args_or_exit();
     }
 
-    // Read the private key and certificate from the disk
-    let mut certificate = File::open(certificate_file).unwrap();
-
-    // Which service to call, test or production?
-    let endpoint = if sandbox {
-        Endpoint::Sandbox
-    } else {
-        Endpoint::Production
-    };
-
     // Connecting to APNs using a client certificate
-    let client = Client::certificate(&mut certificate, &password, endpoint).unwrap();
+    let new_client = || -> Result<Client, Box<dyn std::error::Error + Sync + Send>> {
+        #[cfg(feature = "openssl")]
+        {
+            // Which service to call, test or production?
+            let endpoint = if sandbox {
+                a2::Endpoint::Sandbox
+            } else {
+                a2::Endpoint::Production
+            };
+
+            let mut certificate = std::fs::File::open(certificate_file)?;
+            Ok(Client::certificate(&mut certificate, &password, endpoint)?)
+        }
+        #[cfg(all(not(feature = "openssl"), feature = "ring"))]
+        {
+            Err("ring does not support loading of certificates".into())
+        }
+    };
+    let client = new_client()?;
 
     let options = NotificationOptions {
         apns_topic: topic.as_deref(),
@@ -51,9 +65,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     };
 
     // Notification payload
-    let mut builder = PlainNotificationBuilder::new(message.as_ref());
-    builder.set_sound("default");
-    builder.set_badge(1u32);
+    let builder = DefaultNotificationBuilder::new()
+        .set_body(message.as_ref())
+        .set_sound("default")
+        .set_badge(1u32);
 
     let payload = builder.build(device_token.as_ref(), options);
     let response = client.send(payload).await?;
