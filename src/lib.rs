@@ -35,11 +35,11 @@
 //! # use std::fs::File;
 //! # #[tokio::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-//! let mut builder = DefaultNotificationBuilder::new();
-//! builder.set_body("Hi there");
-//! builder.set_badge(420);
-//! builder.set_category("cat1");
-//! builder.set_sound("ping.flac");
+//! let mut builder = DefaultNotificationBuilder::new()
+//!     .set_body("Hi there")
+//!     .set_badge(420)
+//!     .set_category("cat1")
+//!     .set_sound("ping.flac");
 //!
 //! let payload = builder.build("device-token-from-the-user", Default::default());
 //! let mut file = File::open("/path/to/private_key.p8")?;
@@ -59,8 +59,6 @@
 //! ## Example sending a silent notification with custom data using certificate authentication:
 //!
 //! ```no_run
-//! # #[cfg(all(feature = "openssl", not(feature = "ring")))]
-//! # {
 //! #[macro_use] extern crate serde;
 //!
 //! use a2::{
@@ -104,7 +102,6 @@
 //!
 //!     Ok(())
 //! }
-//! # }
 //! ```
 #[cfg(not(any(feature = "openssl", feature = "ring")))]
 compile_error!("either feature \"openssl\" or feature \"ring\" has to be enabled");

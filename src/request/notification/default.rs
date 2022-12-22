@@ -41,21 +41,21 @@ pub struct DefaultAlert<'a> {
 /// ```rust
 /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
 /// # fn main() {
-/// let mut builder = DefaultNotificationBuilder::new();
-/// builder.set_title("Hi there");
-/// builder.set_subtitle("From bob");
-/// builder.set_body("What's up?");
-/// builder.set_badge(420);
-/// builder.set_category("cat1");
-/// builder.set_sound("prööt");
-/// builder.set_mutable_content();
-/// builder.set_action_loc_key("PLAY");
-/// builder.set_launch_image("foo.jpg");
-/// builder.set_loc_args(&["argh", "narf"]);
-/// builder.set_title_loc_key("STOP");
-/// builder.set_title_loc_args(&["herp", "derp"]);
-/// builder.set_loc_key("PAUSE");
-/// builder.set_loc_args(&["narf", "derp"]);
+/// let mut builder = DefaultNotificationBuilder::new()
+///     .set_title("Hi there")
+///     .set_subtitle("From bob")
+///     .set_body("What's up?")
+///     .set_badge(420)
+///     .set_category("cat1")
+///     .set_sound("prööt")
+///     .set_mutable_content()
+///     .set_action_loc_key("PLAY")
+///     .set_launch_image("foo.jpg")
+///     .set_loc_args(&["argh", "narf"])
+///     .set_title_loc_key("STOP")
+///     .set_title_loc_args(&["herp", "derp"])
+///     .set_loc_key("PAUSE")
+///     .set_loc_args(&["narf", "derp"]);
 /// let payload = builder.build("device_id", Default::default())
 ///   .to_json_string().unwrap();
 /// # }
@@ -106,7 +106,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
             category: None,
             mutable_content: 0,
             content_available: None,
-            has_edited_alert: false
+            has_edited_alert: false,
         }
     }
 
@@ -117,12 +117,12 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
     /// # fn main() {
-    /// let mut builder = DefaultNotificationBuilder::new();
-    /// builder.set_title("a title");
+    /// let mut builder = DefaultNotificationBuilder::new()
+    ///     .set_title("a title");
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"title\":\"a title\",\"mutable-content\":0}}",
+    ///     "{\"aps\":{\"alert\":{\"title\":\"a title\"},\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
@@ -138,12 +138,12 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
     /// # fn main() {
-    /// let mut builder = DefaultNotificationBuilder::new();
-    /// builder.set_subtitle("a subtitle");
+    /// let mut builder = DefaultNotificationBuilder::new()
+    ///     .set_subtitle("a subtitle");
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"subtitle\":\"a subtitle\",\"mutable-content\":0}}",
+    ///     "{\"aps\":{\"alert\":{\"subtitle\":\"a subtitle\"},\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
@@ -159,12 +159,12 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
     /// # fn main() {
-    /// let mut builder = DefaultNotificationBuilder::new();
-    /// builder.set_body("a body");
+    /// let mut builder = DefaultNotificationBuilder::new()
+    ///     .set_body("a body");
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"body\":\"a body\",\"mutable-content\":0}}",
+    ///     "{\"aps\":{\"alert\":{\"body\":\"a body\"},\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
@@ -180,8 +180,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
     /// # fn main() {
-    /// let mut builder = DefaultNotificationBuilder::new();
-    /// builder.set_badge(4);
+    /// let mut builder = DefaultNotificationBuilder::new()
+    ///     .set_badge(4);
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
@@ -200,9 +200,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
     /// # fn main() {
-    /// let mut builder = DefaultNotificationBuilder::new();
-    /// builder.set_title("a title");
-    /// builder.set_sound("ping");
+    /// let mut builder = DefaultNotificationBuilder::new()
+    ///     .set_title("a title")
+    ///     .set_sound("ping");
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
@@ -222,9 +222,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
     /// # fn main() {
-    /// let mut builder = DefaultNotificationBuilder::new();
-    /// builder.set_title("a title");
-    /// builder.set_category("cat1");
+    /// let mut builder = DefaultNotificationBuilder::new()
+    ///     .set_title("a title")
+    ///     .set_category("cat1");
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
@@ -243,9 +243,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
     /// # fn main() {
-    /// let mut builder = DefaultNotificationBuilder::new();
-    /// builder.set_title("a title");
-    /// builder.set_title_loc_key("play");
+    /// let mut builder = DefaultNotificationBuilder::new()
+    ///     .set_title("a title")
+    ///     .set_title_loc_key("play");
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
@@ -265,9 +265,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
     /// # fn main() {
-    /// let mut builder = DefaultNotificationBuilder::new();
-    /// builder.set_title("a title");
-    /// builder.set_title_loc_args(&["foo", "bar"]);
+    /// let mut builder = DefaultNotificationBuilder::new()
+    ///     .set_title("a title")
+    ///     .set_title_loc_args(&["foo", "bar"]);
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
@@ -292,9 +292,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
     /// # fn main() {
-    /// let mut builder = DefaultNotificationBuilder::new();
-    /// builder.set_title("a title");
-    /// builder.set_action_loc_key("stop");
+    /// let mut builder = DefaultNotificationBuilder::new()
+    ///     .set_title("a title")
+    ///     .set_action_loc_key("stop");
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
@@ -314,9 +314,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
     /// # fn main() {
-    /// let mut builder = DefaultNotificationBuilder::new();
-    /// builder.set_title("a title");
-    /// builder.set_loc_key("lol");
+    /// let mut builder = DefaultNotificationBuilder::new()
+    ///     .set_title("a title")
+    ///     .set_loc_key("lol");
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
@@ -336,9 +336,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
     /// # fn main() {
-    /// let mut builder = DefaultNotificationBuilder::new();
-    /// builder.set_title("a title");
-    /// builder.set_loc_args(&["omg", "foo"]);
+    /// let mut builder = DefaultNotificationBuilder::new()
+    ///     .set_title("a title")
+    ///     .set_loc_args(&["omg", "foo"]);
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
@@ -363,9 +363,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
     /// # fn main() {
-    /// let mut builder = DefaultNotificationBuilder::new();
-    /// builder.set_title("a title");
-    /// builder.set_launch_image("cat.png");
+    /// let mut builder = DefaultNotificationBuilder::new()
+    ///     .set_title("a title")
+    ///     .set_launch_image("cat.png");
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
@@ -375,7 +375,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// # }
     /// ```
     pub fn set_launch_image(mut self, image: &'a str) -> Self {
-        self.alert.launch_image = Some(image);self.has_edited_alert = true;
+        self.alert.launch_image = Some(image);
+        self.has_edited_alert = true;
         self
     }
 
@@ -384,9 +385,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
     /// # fn main() {
-    /// let mut builder = DefaultNotificationBuilder::new();
-    /// builder.set_title("a title");
-    /// builder.set_mutable_content();
+    /// let mut builder = DefaultNotificationBuilder::new()
+    ///     .set_title("a title")
+    ///     .set_mutable_content();
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
@@ -405,13 +406,13 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
     /// # fn main() {
-    /// let mut builder = DefaultNotificationBuilder::new();
-    /// builder.set_title("a title");
-    /// builder.set_content_available();
+    /// let mut builder = DefaultNotificationBuilder::new()
+    ///     .set_title("a title")
+    ///     .set_content_available();
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"title\":\"a title\"},\"content-available\":1}}",
+    ///     "{\"aps\":{\"alert\":{\"title\":\"a title\"},\"content-available\":1,\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
@@ -428,7 +429,7 @@ impl<'a> NotificationBuilder<'a> for DefaultNotificationBuilder<'a> {
             aps: APS {
                 alert: match self.has_edited_alert {
                     true => Some(APSAlert::Default(self.alert)),
-                    false => None
+                    false => None,
                 },
                 badge: self.badge,
                 sound: self.sound,

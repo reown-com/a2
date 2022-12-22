@@ -30,10 +30,11 @@ impl<'a> Payload<'a> {
     /// Using a `HashMap`:
     ///
     /// ```rust
-    /// # use a2::request::notification::{SilentNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
     /// # use std::collections::HashMap;
     /// # fn main() {
-    /// let mut payload = SilentNotificationBuilder::new()
+    /// let mut payload = DefaultNotificationBuilder::new()
+    ///     .set_content_available()
     ///     .build("token", Default::default());
     /// let mut custom_data = HashMap::new();
     ///
@@ -41,7 +42,7 @@ impl<'a> Payload<'a> {
     /// payload.add_custom_data("foo_data", &custom_data).unwrap();
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"content-available\":1},\"foo_data\":{\"foo\":\"bar\"}}",
+    ///     "{\"aps\":{\"content-available\":1,\"mutable-content\":0},\"foo_data\":{\"foo\":\"bar\"}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
@@ -50,24 +51,26 @@ impl<'a> Payload<'a> {
     /// Using a custom struct:
     ///
     /// ```rust
-    /// # #[macro_use] extern crate serde;
-    /// # use a2::request::notification::{SilentNotificationBuilder, NotificationBuilder};
-    /// # fn main() {
+    /// #[macro_use] extern crate serde;
+    /// use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// fn main() {
     /// #[derive(Serialize)]
     /// struct CompanyData {
     ///     foo: &'static str,
     /// }
     ///
-    /// let mut payload = SilentNotificationBuilder::new().build("token", Default::default());
+    /// let mut payload = DefaultNotificationBuilder::new()
+    ///     .set_content_available()
+    ///     .build("token", Default::default());
     /// let mut custom_data = CompanyData { foo: "bar" };
     ///
     /// payload.add_custom_data("foo_data", &custom_data).unwrap();
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"content-available\":1},\"foo_data\":{\"foo\":\"bar\"}}",
+    ///     "{\"aps\":{\"content-available\":1,\"mutable-content\":0},\"foo_data\":{\"foo\":\"bar\"}}",
     ///     &payload.to_json_string().unwrap()
     /// );
-    /// # }
+    /// }
     /// ```
     pub fn add_custom_data(&mut self, root_key: &'a str, data: &dyn Serialize) -> Result<&mut Self, Error> {
         self.data.insert(root_key, serde_json::to_value(data)?);
