@@ -40,9 +40,9 @@ key](https://github.com/walletconnect/a2/blob/master/examples/token_client.rs) w
 a team id and key id. Both are available from your Apple account and with both
 it is possible to send push notifications to one application.
 
-To see it used in a real project, take a look to the [XORC
-Notifications](https://github.com/xray-tech/xorc-notifications), which is a
-full-fledged consumer for sending push notifications.
+To see it used in a real project, take a look to the [Echo
+Server](https://github.com/walletconnect/echo-server), which is a project by WalletConnect to
+handle incoming webhooks and converting them to push notifications.
 
 ## Gotchas
 
