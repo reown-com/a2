@@ -27,7 +27,7 @@ serde_json = "1"
 thiserror = "1"
 openssl = { version = "0.10", optional = true }
 hyper = { version = "0.14", default-features = false, features = ["client", "http2"] }
-hyper-alpn = "0.4"
+hyper-alpn = { git = "https://github.com/WalletConnect/hyper-alpn", ref = "0030fd0" }
 http = "0.2"
 base64 = "0.20"
 tracing = { version = "0.1", optional = true }
