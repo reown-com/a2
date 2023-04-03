@@ -1,5 +1,5 @@
 use crate::request::notification::{NotificationBuilder, NotificationOptions};
-use crate::request::payload::{APSAlert, Payload, APS};
+use crate::request::payload::{APSAlert, APSSound, Payload, APS};
 use std::collections::BTreeMap;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -79,7 +79,7 @@ impl<'a> NotificationBuilder<'a> for WebNotificationBuilder<'a> {
             aps: APS {
                 alert: Some(APSAlert::WebPush(self.alert)),
                 badge: None,
-                sound: self.sound,
+                sound: self.sound.map(APSSound::WebPush),
                 content_available: None,
                 category: None,
                 mutable_content: None,

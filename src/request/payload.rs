@@ -1,6 +1,6 @@
 ///! Payload with `aps` and custom data
 use crate::error::Error;
-use crate::request::notification::{DefaultAlert, NotificationOptions, WebPushAlert};
+use crate::request::notification::{DefaultAlert, DefaultSound, NotificationOptions, WebPushAlert};
 use erased_serde::Serialize;
 use serde_json::{self, Value};
 use std::collections::BTreeMap;
@@ -104,7 +104,7 @@ pub struct APS<'a> {
 
     /// The name of the sound file to play when user receives the notification.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub sound: Option<&'a str>,
+    pub sound: Option<APSSound<'a>>,
 
     /// Set to one for silent notifications.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -132,4 +132,14 @@ pub enum APSAlert<'a> {
     Default(DefaultAlert<'a>),
     /// Safari web push notification
     WebPush(WebPushAlert<'a>),
+}
+
+/// Different notification sound types.
+#[derive(Serialize, Debug, Clone)]
+#[serde(untagged)]
+pub enum APSSound<'a> {
+    /// A notification that supports all of the iOS features
+    Default(DefaultSound<'a>),
+    /// Safari web push notification
+    WebPush(&'a str),
 }

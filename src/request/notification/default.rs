@@ -1,7 +1,24 @@
 use crate::request::notification::{NotificationBuilder, NotificationOptions};
-use crate::request::payload::{APSAlert, Payload, APS};
+use crate::request::payload::{APSAlert, APSSound, Payload, APS};
 
 use std::{borrow::Cow, collections::BTreeMap};
+
+fn is_zero(value: &u8) -> bool {
+    *value == 0
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+#[serde(rename_all = "kebab-case")]
+pub struct DefaultSound<'a> {
+    #[serde(skip_serializing_if = "is_zero")]
+    critical: u8,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    name: Option<&'a str>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    volume: Option<f64>,
+}
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "kebab-case")]
@@ -48,6 +65,7 @@ pub struct DefaultAlert<'a> {
 ///     .set_badge(420)
 ///     .set_category("cat1")
 ///     .set_sound("prööt")
+///     .set_critical(false, None)
 ///     .set_mutable_content()
 ///     .set_action_loc_key("PLAY")
 ///     .set_launch_image("foo.jpg")
@@ -64,11 +82,12 @@ pub struct DefaultAlert<'a> {
 pub struct DefaultNotificationBuilder<'a> {
     alert: DefaultAlert<'a>,
     badge: Option<u32>,
-    sound: Option<&'a str>,
+    sound: DefaultSound<'a>,
     category: Option<&'a str>,
     mutable_content: u8,
     content_available: Option<u8>,
     has_edited_alert: bool,
+    has_edited_sound: bool,
 }
 
 impl<'a> DefaultNotificationBuilder<'a> {
@@ -102,11 +121,16 @@ impl<'a> DefaultNotificationBuilder<'a> {
                 launch_image: None,
             },
             badge: None,
-            sound: None,
+            sound: DefaultSound {
+                critical: 0,
+                name: None,
+                volume: None,
+            },
             category: None,
             mutable_content: 0,
             content_available: None,
             has_edited_alert: false,
+            has_edited_sound: false,
         }
     }
 
@@ -130,6 +154,35 @@ impl<'a> DefaultNotificationBuilder<'a> {
     pub fn set_title(mut self, title: &'a str) -> Self {
         self.alert.title = Some(title);
         self.has_edited_alert = true;
+        self
+    }
+
+    /// Set critical alert value for this notification
+    /// Volume can only be set when the notification is marked as critcial
+    /// Note: You'll need the [critical alerts entitlement](https://developer.apple.com/contact/request/notifications-critical-alerts-entitlement/) to use `true`!
+    ///
+    /// ```rust
+    /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # fn main() {
+    /// let mut builder = DefaultNotificationBuilder::new()
+    ///     .set_critical(true, None);
+    /// let payload = builder.build("token", Default::default());
+    ///
+    /// assert_eq!(
+    ///     "{\"aps\":{\"mutable-content\":0,\"sound\":{\"critical\":1}}}",
+    ///     &payload.to_json_string().unwrap()
+    /// );
+    /// # }
+    /// ```
+    pub fn set_critical(mut self, critical: bool, volume: Option<f64>) -> Self {
+        self.has_edited_sound = true;
+        if !critical {
+            self.sound.volume = None;
+            self.sound.critical = 0;
+        } else {
+            self.sound.volume = volume;
+            self.sound.critical = 1;
+        }
         self
     }
 
@@ -206,13 +259,14 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"title\":\"a title\"},\"mutable-content\":0,\"sound\":\"ping\"}}",
+    ///     "{\"aps\":{\"alert\":{\"title\":\"a title\"},\"mutable-content\":0,\"sound\":{\"name\":\"ping\"}}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
     /// ```
     pub fn set_sound(mut self, sound: &'a str) -> Self {
-        self.sound = Some(sound);
+        self.has_edited_sound = true;
+        self.sound.name = Some(sound);
         self
     }
 
@@ -432,7 +486,10 @@ impl<'a> NotificationBuilder<'a> for DefaultNotificationBuilder<'a> {
                     false => None,
                 },
                 badge: self.badge,
-                sound: self.sound,
+                sound: match self.has_edited_sound {
+                    true => Some(APSSound::Default(self.sound)),
+                    false => None,
+                },
                 content_available: self.content_available,
                 category: self.category,
                 mutable_content: Some(self.mutable_content),
@@ -486,6 +543,7 @@ mod tests {
             .set_badge(420)
             .set_category("cat1")
             .set_sound("prööt")
+            .set_critical(true, Some(1.0))
             .set_mutable_content()
             .set_action_loc_key("PLAY")
             .set_launch_image("foo.jpg")
@@ -515,7 +573,11 @@ mod tests {
                 "badge": 420,
                 "category": "cat1",
                 "mutable-content": 1,
-                "sound": "prööt"
+                "sound": {
+                    "critical": 1,
+                    "name": "prööt",
+                    "volume": 1.0,
+                },
             }
         })
         .to_string();
