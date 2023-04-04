@@ -230,8 +230,8 @@ pub enum APSAlert<'a> {
 #[derive(Serialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum APSSound<'a> {
-    /// A notification that supports all of the iOS features
-    Default(DefaultSound<'a>),
-    /// Safari web push notification
-    WebPush(&'a str),
+    /// A critical notification (supported only on >= iOS 12)
+    Critical(DefaultSound<'a>),
+    /// Name for a notification sound
+    Sound(&'a str),
 }

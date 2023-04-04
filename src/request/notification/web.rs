@@ -82,7 +82,7 @@ impl<'a> NotificationBuilder<'a> for WebNotificationBuilder<'a> {
             aps: APS {
                 alert: Some(APSAlert::WebPush(self.alert)),
                 badge: None,
-                sound: self.sound.map(APSSound::WebPush),
+                sound: self.sound.map(APSSound::Sound),
                 content_available: None,
                 category: None,
                 mutable_content: None,

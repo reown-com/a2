@@ -88,7 +88,6 @@ pub struct DefaultNotificationBuilder<'a> {
     mutable_content: u8,
     content_available: Option<u8>,
     has_edited_alert: bool,
-    has_edited_sound: bool,
 }
 
 impl<'a> DefaultNotificationBuilder<'a> {
@@ -132,7 +131,6 @@ impl<'a> DefaultNotificationBuilder<'a> {
             mutable_content: 0,
             content_available: None,
             has_edited_alert: false,
-            has_edited_sound: false,
         }
     }
 
@@ -179,7 +177,6 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// # }
     /// ```
     pub fn set_critical(mut self, critical: bool, volume: Option<f64>) -> Self {
-        self.has_edited_sound = true;
         if !critical {
             self.sound.volume = None;
             self.sound.critical = 0;
@@ -267,13 +264,12 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"title\":\"a title\"},\"sound\":{\"name\":\"ping\"},\"mutable-content\":0}}",
+    ///     "{\"aps\":{\"alert\":{\"title\":\"a title\"},\"sound\":\"ping\",\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
     /// ```
     pub fn set_sound(mut self, sound: &'a str) -> Self {
-        self.has_edited_sound = true;
         self.sound.name = Some(sound);
         self
     }
@@ -503,9 +499,10 @@ impl<'a> NotificationBuilder<'a> for DefaultNotificationBuilder<'a> {
                     false => None,
                 },
                 badge: self.badge,
-                sound: match self.has_edited_sound {
-                    true => Some(APSSound::Default(self.sound)),
-                    false => None,
+                sound: if self.sound.critical != 0 {
+                    Some(APSSound::Critical(self.sound))
+                } else {
+                    self.sound.name.map(APSSound::Sound)
                 },
                 content_available: self.content_available,
                 category: self.category,
