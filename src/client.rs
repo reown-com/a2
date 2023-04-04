@@ -5,7 +5,7 @@ use crate::error::Error::ResponseError;
 use crate::signer::Signer;
 use hyper_alpn::AlpnConnector;
 
-use crate::request::payload::Payload;
+use crate::request::payload::PayloadLike;
 use crate::response::Response;
 use http::header::{AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE};
 use hyper::{self, Body, Client as HttpClient, StatusCode};
@@ -101,7 +101,7 @@ impl Client {
     ///
     /// See [ErrorReason](enum.ErrorReason.html) for possible errors.
     #[cfg_attr(feature = "tracing", ::tracing::instrument)]
-    pub async fn send(&self, payload: Payload<'_>) -> Result<Response, Error> {
+    pub async fn send<T: PayloadLike>(&self, payload: T) -> Result<Response, Error> {
         let request = self.build_request(payload);
         let requesting = self.http_client.request(request);
 
@@ -131,27 +131,28 @@ impl Client {
         }
     }
 
-    fn build_request(&self, payload: Payload<'_>) -> hyper::Request<Body> {
-        let path = format!("https://{}/3/device/{}", self.endpoint, payload.device_token);
+    fn build_request<T: PayloadLike>(&self, payload: T) -> hyper::Request<Body> {
+        let path = format!("https://{}/3/device/{}", self.endpoint, payload.get_device_token());
 
         let mut builder = hyper::Request::builder()
             .uri(&path)
             .method("POST")
             .header(CONTENT_TYPE, "application/json");
 
-        if let Some(ref apns_priority) = payload.options.apns_priority {
+        let options = payload.get_options();
+        if let Some(ref apns_priority) = options.apns_priority {
             builder = builder.header("apns-priority", apns_priority.to_string().as_bytes());
         }
-        if let Some(apns_id) = payload.options.apns_id {
+        if let Some(apns_id) = options.apns_id {
             builder = builder.header("apns-id", apns_id.as_bytes());
         }
-        if let Some(ref apns_expiration) = payload.options.apns_expiration {
+        if let Some(ref apns_expiration) = options.apns_expiration {
             builder = builder.header("apns-expiration", apns_expiration.to_string().as_bytes());
         }
-        if let Some(ref apns_collapse_id) = payload.options.apns_collapse_id {
+        if let Some(ref apns_collapse_id) = options.apns_collapse_id {
             builder = builder.header("apns-collapse-id", apns_collapse_id.value.as_bytes());
         }
-        if let Some(apns_topic) = payload.options.apns_topic {
+        if let Some(apns_topic) = options.apns_topic {
             builder = builder.header("apns-topic", apns_topic.as_bytes());
         }
         if let Some(ref signer) = self.signer {

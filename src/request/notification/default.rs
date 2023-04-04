@@ -57,6 +57,7 @@ pub struct DefaultAlert<'a> {
 ///
 /// ```rust
 /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+/// # use a2::request::payload::PayloadLike;
 /// # fn main() {
 /// let mut builder = DefaultNotificationBuilder::new()
 ///     .set_title("Hi there")
@@ -95,6 +96,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let payload = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -102,7 +104,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///     .build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"body\":\"a body\",\"title\":\"a title\"},\"mutable-content\":0}}",
+    ///     "{\"aps\":{\"alert\":{\"title\":\"a title\",\"body\":\"a body\"},\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
@@ -140,6 +142,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title");
@@ -163,13 +166,14 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_critical(true, None);
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"mutable-content\":0,\"sound\":{\"critical\":1}}}",
+    ///     "{\"aps\":{\"sound\":{\"critical\":1},\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
@@ -190,6 +194,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_subtitle("a subtitle");
@@ -211,6 +216,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_body("a body");
@@ -232,6 +238,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_badge(4);
@@ -252,6 +259,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -259,7 +267,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"title\":\"a title\"},\"mutable-content\":0,\"sound\":{\"name\":\"ping\"}}}",
+    ///     "{\"aps\":{\"alert\":{\"title\":\"a title\"},\"sound\":{\"name\":\"ping\"},\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
@@ -275,6 +283,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -296,6 +305,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -318,6 +328,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -345,6 +356,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -352,7 +364,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"action-loc-key\":\"stop\",\"title\":\"a title\"},\"mutable-content\":0}}",
+    ///     "{\"aps\":{\"alert\":{\"title\":\"a title\",\"action-loc-key\":\"stop\"},\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
@@ -367,6 +379,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -374,7 +387,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"loc-key\":\"lol\",\"title\":\"a title\"},\"mutable-content\":0}}",
+    ///     "{\"aps\":{\"alert\":{\"title\":\"a title\",\"loc-key\":\"lol\"},\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
@@ -389,6 +402,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -396,7 +410,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"loc-args\":[\"omg\",\"foo\"],\"title\":\"a title\"},\"mutable-content\":0}}",
+    ///     "{\"aps\":{\"alert\":{\"title\":\"a title\",\"loc-args\":[\"omg\",\"foo\"]},\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
@@ -416,6 +430,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -423,7 +438,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"launch-image\":\"cat.png\",\"title\":\"a title\"},\"mutable-content\":0}}",
+    ///     "{\"aps\":{\"alert\":{\"title\":\"a title\",\"launch-image\":\"cat.png\"},\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
@@ -438,6 +453,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -459,6 +475,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -511,28 +528,26 @@ impl<'a> Default for DefaultNotificationBuilder<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::value::to_value;
 
     #[test]
     fn test_default_notification_with_minimal_required_values() {
         let payload = DefaultNotificationBuilder::new()
             .set_title("the title")
             .set_body("the body")
-            .build("device-token", Default::default())
-            .to_json_string()
-            .unwrap();
+            .build("device-token", Default::default());
 
         let expected_payload = json!({
             "aps": {
                 "alert": {
-                    "title": "the title",
                     "body": "the body",
+                    "title": "the title",
                 },
                 "mutable-content": 0
             }
-        })
-        .to_string();
+        });
 
-        assert_eq!(expected_payload, payload);
+        assert_eq!(expected_payload, to_value(payload).unwrap());
     }
 
     #[test]
@@ -553,10 +568,7 @@ mod tests {
             .set_loc_key("PAUSE")
             .set_loc_args(&["narf", "derp"]);
 
-        let payload = builder
-            .build("device-token", Default::default())
-            .to_json_string()
-            .unwrap();
+        let payload = builder.build("device-token", Default::default());
 
         let expected_payload = json!({
             "aps": {
@@ -571,18 +583,17 @@ mod tests {
                     "title-loc-key": "STOP"
                 },
                 "badge": 420,
-                "category": "cat1",
-                "mutable-content": 1,
                 "sound": {
                     "critical": 1,
                     "name": "prööt",
                     "volume": 1.0,
                 },
+                "category": "cat1",
+                "mutable-content": 1,
             }
-        })
-        .to_string();
+        });
 
-        assert_eq!(expected_payload, payload);
+        assert_eq!(expected_payload, to_value(payload).unwrap());
     }
 
     #[test]
@@ -625,15 +636,14 @@ mod tests {
             },
             "aps": {
                 "alert": {
-                    "title": "the title",
                     "body": "the body",
+                    "title": "the title",
                 },
                 "mutable-content": 0,
             },
-        })
-        .to_string();
+        });
 
-        assert_eq!(expected_payload, payload.to_json_string().unwrap());
+        assert_eq!(expected_payload, to_value(payload).unwrap());
     }
 
     #[test]
@@ -664,8 +674,6 @@ mod tests {
 
         payload.add_custom_data("custom", &test_data).unwrap();
 
-        let payload_json = payload.to_json_string().unwrap();
-
         let expected_payload = json!({
             "custom": {
                 "key_str": "foo",
@@ -681,29 +689,25 @@ mod tests {
                 },
                 "mutable-content": 0
             }
-        })
-        .to_string();
+        });
 
-        assert_eq!(expected_payload, payload_json);
+        assert_eq!(expected_payload, to_value(payload).unwrap());
     }
 
     #[test]
     fn test_silent_notification_with_no_content() {
         let payload = DefaultNotificationBuilder::new()
             .set_content_available()
-            .build("device-token", Default::default())
-            .to_json_string()
-            .unwrap();
+            .build("device-token", Default::default());
 
         let expected_payload = json!({
             "aps": {
                 "content-available": 1,
                 "mutable-content": 0
             }
-        })
-        .to_string();
+        });
 
-        assert_eq!(expected_payload, payload);
+        assert_eq!(expected_payload, to_value(payload).unwrap());
     }
 
     #[test]
@@ -747,10 +751,9 @@ mod tests {
                     "nothing": "here"
                 }
             }
-        })
-        .to_string();
+        });
 
-        assert_eq!(expected_payload, payload.to_json_string().unwrap());
+        assert_eq!(expected_payload, to_value(payload).unwrap());
     }
 
     #[test]
@@ -774,9 +777,8 @@ mod tests {
                 "key_str": "foo",
                 "key_str2": "bar"
             }
-        })
-        .to_string();
+        });
 
-        assert_eq!(expected_payload, payload.to_json_string().unwrap());
+        assert_eq!(expected_payload, to_value(payload).unwrap());
     }
 }

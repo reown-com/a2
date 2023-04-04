@@ -2,6 +2,7 @@
 use crate::error::Error;
 use crate::request::notification::{DefaultAlert, DefaultSound, NotificationOptions, WebPushAlert};
 use erased_serde::Serialize;
+use serde::{ser::SerializeMap, Serializer};
 use serde_json::{self, Value};
 use std::collections::BTreeMap;
 
@@ -18,6 +19,106 @@ pub struct Payload<'a> {
     pub data: BTreeMap<&'a str, Value>,
 }
 
+/// Object that can be serialized to create an APNS request.
+/// You probably just want to use [`Payload`], which implements [`PayloadLike`].
+///
+/// # Example
+/// ```no_run
+/// use a2::client::Endpoint;
+/// use a2::request::notification::{NotificationBuilder, NotificationOptions};
+/// use a2::request::payload::{PayloadLike, APS};
+/// use a2::Client;
+/// use a2::DefaultNotificationBuilder;
+/// use serde::Serialize;
+/// use std::fs::File;
+///
+/// async fn send() -> Result<(), Box<dyn std::error::Error>> {
+///     let builder = DefaultNotificationBuilder::new()
+///         .set_body("Hi there")
+///         .set_badge(420)
+///         .set_category("cat1")
+///         .set_sound("ping.flac");
+///
+///     let payload = builder.build("device-token-from-the-user", Default::default());
+///     let mut file = File::open("/path/to/private_key.p8")?;
+///
+///     let client = Client::token(&mut file, "KEY_ID", "TEAM_ID", Endpoint::Production).unwrap();
+///
+///     let response = client.send(payload).await?;
+///     println!("Sent: {:?}", response);
+///     Ok(())
+/// }
+///
+/// #[derive(Serialize)]
+/// struct Payload<'a> {
+///     aps: APS<'a>,
+///     my_custom_value: String,
+///     #[serde(skip_serializing)]
+///     options: NotificationOptions<'a>,
+///     #[serde(skip_serializing)]
+///     device_token: &'a str,
+/// }
+///
+/// impl<'a> PayloadLike for Payload<'a> {
+///     fn get_device_token(&self) -> &'a str {
+///         self.device_token
+///     }
+///     fn get_options(&self) -> &NotificationOptions {
+///         &self.options
+///     }
+/// }
+/// ```
+pub trait PayloadLike: serde::Serialize {
+    /// Combine the APS payload and the custom data to a final payload JSON.
+    /// Returns an error if serialization fails.
+    #[allow(clippy::wrong_self_convention)]
+    fn to_json_string(&self) -> Result<String, Error> {
+        Ok(serde_json::to_string(&self)?)
+    }
+
+    /// Returns token for the device
+    fn get_device_token(&self) -> &str;
+
+    /// Gets [`NotificationOptions`] for this Payload.
+    fn get_options(&self) -> &NotificationOptions;
+}
+
+impl<'a> serde::Serialize for Payload<'a> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        // Make sure we ignore any existing aps key
+        let len = if self.data.contains_key("aps") {
+            self.data.len()
+        } else {
+            self.data.len() + 1
+        };
+        let mut state = serializer.serialize_map(Some(len))?;
+        state.serialize_entry("aps", &self.aps)?;
+
+        // Add user-defined options
+        for (key, value) in &self.data {
+            let key = *key;
+            if key != "aps" {
+                state.serialize_entry(key, value)?;
+            }
+        }
+
+        state.end()
+    }
+}
+
+impl<'a> PayloadLike for Payload<'a> {
+    fn get_device_token(&self) -> &'a str {
+        self.device_token
+    }
+
+    fn get_options(&self) -> &NotificationOptions {
+        &self.options
+    }
+}
+
 impl<'a> Payload<'a> {
     /// Client-specific custom data to be added in the payload.
     /// The `root_key` defines the JSON key in the root of the request
@@ -31,6 +132,7 @@ impl<'a> Payload<'a> {
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
     /// # use std::collections::HashMap;
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut payload = DefaultNotificationBuilder::new()
     ///     .set_content_available()
@@ -52,6 +154,7 @@ impl<'a> Payload<'a> {
     /// ```rust
     /// #[macro_use] extern crate serde;
     /// use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// use a2::request::payload::PayloadLike;
     /// fn main() {
     /// #[derive(Serialize)]
     /// struct CompanyData {
@@ -75,17 +178,6 @@ impl<'a> Payload<'a> {
         self.data.insert(root_key, serde_json::to_value(data)?);
 
         Ok(self)
-    }
-
-    /// Combine the APS payload and the custom data to a final payload JSON.
-    /// Returns an error if serialization fails.
-    #[allow(clippy::wrong_self_convention)]
-    pub fn to_json_string(mut self) -> Result<String, Error> {
-        let aps_data = serde_json::to_value(&self.aps)?;
-
-        self.data.insert("aps", aps_data);
-
-        Ok(serde_json::to_string(&self.data)?)
     }
 }
 
