@@ -224,6 +224,8 @@ pub enum APSAlert<'a> {
     Default(DefaultAlert<'a>),
     /// Safari web push notification
     WebPush(WebPushAlert<'a>),
+    /// A notification with just a body
+    Body(&'a str),
 }
 
 /// Different notification sound types.

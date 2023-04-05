@@ -220,14 +220,13 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"body\":\"a body\"},\"mutable-content\":0}}",
+    ///     "{\"aps\":{\"alert\":\"a body\",\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
     /// ```
     pub fn set_body(mut self, body: &'a str) -> Self {
         self.alert.body = Some(body);
-        self.has_edited_alert = true;
         self
     }
 
@@ -496,7 +495,7 @@ impl<'a> NotificationBuilder<'a> for DefaultNotificationBuilder<'a> {
             aps: APS {
                 alert: match self.has_edited_alert {
                     true => Some(APSAlert::Default(self.alert)),
-                    false => None,
+                    false => self.alert.body.map(APSAlert::Body),
                 },
                 badge: self.badge,
                 sound: if self.sound.critical != 0 {
@@ -681,9 +680,7 @@ mod tests {
                 }
             },
             "aps": {
-                "alert": {
-                    "body": "kulli"
-                },
+                "alert": "kulli",
                 "mutable-content": 0
             }
         });
