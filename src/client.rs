@@ -472,9 +472,9 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
     /// Try to create a test client using the unencrypted key & cert provided.
     /// These are test values that do not work with Apple, but mimic the sort
     /// of values you should get from the Apple Developer Console.
-    async fn test_cert_parts() -> Result<(), Error>{
-        let key:Vec<u8> = include_str!("../test_cert/test.key").bytes().collect();
-        let cert:Vec<u8> = include_str!("../test_cert/test.crt").bytes().collect();
+    async fn test_cert_parts() -> Result<(), Error> {
+        let key: Vec<u8> = include_str!("../test_cert/test.key").bytes().collect();
+        let cert: Vec<u8> = include_str!("../test_cert/test.crt").bytes().collect();
 
         let c = Client::certificate_parts(&cert, &key, Endpoint::Sandbox)?;
         assert!(c.signer.is_none());
