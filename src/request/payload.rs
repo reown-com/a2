@@ -2,20 +2,22 @@
 use crate::error::Error;
 use crate::request::notification::{DefaultAlert, DefaultSound, NotificationOptions, WebPushAlert};
 use erased_serde::Serialize;
-use serde::{ser::SerializeMap, Serializer};
 use serde_json::{self, Value};
 use std::collections::BTreeMap;
 
 /// The data and options for a push notification.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Payload<'a> {
     /// Send options
+    #[serde(skip)]
     pub options: NotificationOptions<'a>,
     /// The token for the receiving device
+    #[serde(skip)]
     pub device_token: &'a str,
     /// The pre-defined notification payload
     pub aps: APS<'a>,
     /// Application specific payload
+    #[serde(flatten)]
     pub data: BTreeMap<&'a str, Value>,
 }
 
@@ -81,32 +83,6 @@ pub trait PayloadLike: serde::Serialize {
 
     /// Gets [`NotificationOptions`] for this Payload.
     fn get_options(&self) -> &NotificationOptions;
-}
-
-impl<'a> serde::Serialize for Payload<'a> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        // Make sure we ignore any existing aps key
-        let len = if self.data.contains_key("aps") {
-            self.data.len()
-        } else {
-            self.data.len() + 1
-        };
-        let mut state = serializer.serialize_map(Some(len))?;
-        state.serialize_entry("aps", &self.aps)?;
-
-        // Add user-defined options
-        for (key, value) in &self.data {
-            let key = *key;
-            if key != "aps" {
-                state.serialize_entry(key, value)?;
-            }
-        }
-
-        state.end()
-    }
 }
 
 impl<'a> PayloadLike for Payload<'a> {
