@@ -80,6 +80,15 @@ impl Client {
         Ok(Self::new(connector, None, endpoint))
     }
 
+    /// Create a connection to APNs using the raw PEM-formatted certificate and
+    /// key, extracted from the provider client certificate you obtain from your
+    /// [Apple developer account](https://developer.apple.com/account/)
+    pub fn certificate_parts(cert_pem: &[u8], key_pem: &[u8], endpoint: Endpoint) -> Result<Client, Error> {
+        let connector = AlpnConnector::with_client_cert(cert_pem, key_pem)?;
+
+        Ok(Self::new(connector, None, endpoint))
+    }
+
     /// Create a connection to APNs using system certificates, signing every
     /// request with a signature using a private key, key id and team id
     /// provisioned from your [Apple developer
@@ -457,5 +466,18 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
         let body_str = String::from_utf8(body.to_vec()).unwrap();
 
         assert_eq!(payload.to_json_string().unwrap(), body_str,);
+    }
+
+    #[tokio::test]
+    /// Try to create a test client using the unencrypted key & cert provided.
+    /// These are test values that do not work with Apple, but mimic the sort
+    /// of values you should get from the Apple Developer Console.
+    async fn test_cert_parts() -> Result<(), Error>{
+        let key:Vec<u8> = include_str!("../test_cert/test.key").bytes().collect();
+        let cert:Vec<u8> = include_str!("../test_cert/test.crt").bytes().collect();
+
+        let c = Client::certificate_parts(&cert, &key, Endpoint::Sandbox)?;
+        assert!(c.signer.is_none());
+        Ok(())
     }
 }

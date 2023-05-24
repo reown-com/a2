@@ -1,6 +1,6 @@
 [package]
 name = "a2"
-version = "0.7.0"
+version = "0.8.0"
 authors = [
   "Harry Bairstow <harry@walletconnect.com>",
   "Julius de Bruijn <julius@nauk.io>",
@@ -14,6 +14,7 @@ repository  = "https://github.com/walletconnect/a2.git"
 homepage    = "https://github.com/walletconnect/a2"
 documentation = "https://docs.rs/a2"
 edition = "2021"
+rust-version = "1.60"  # set the minimum rust version we can work with.
 
 [features]
 default = ["openssl"]
