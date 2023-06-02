@@ -1,6 +1,6 @@
 [package]
 name = "a2"
-version = "0.8.0"
+version = "0.7.1"
 authors = [
   "Harry Bairstow <harry@walletconnect.com>",
   "Julius de Bruijn <julius@nauk.io>",
