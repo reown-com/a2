@@ -1,6 +1,5 @@
 use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
 use std::fs::File;
-use tokio;
 
 use a2::{Client, DefaultNotificationBuilder, Endpoint, NotificationBuilder, NotificationOptions};
 

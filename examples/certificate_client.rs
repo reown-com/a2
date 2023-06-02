@@ -1,6 +1,5 @@
 use a2::{Client, DefaultNotificationBuilder, NotificationBuilder, NotificationOptions};
 use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
-use tokio;
 
 // An example client connectiong to APNs with a certificate and key
 #[tokio::main]
