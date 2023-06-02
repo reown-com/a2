@@ -1,4 +1,4 @@
-///! Payload with `aps` and custom data
+/// Payload with `aps` and custom data
 use crate::error::Error;
 use crate::request::notification::{DefaultAlert, NotificationOptions, WebPushAlert};
 use erased_serde::Serialize;
