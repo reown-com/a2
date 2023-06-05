@@ -3,15 +3,44 @@ use crate::request::payload::{APSAlert, APSSound, Payload, APS};
 
 use std::{borrow::Cow, collections::BTreeMap};
 
-fn is_zero(value: &u8) -> bool {
-    *value == 0
+/// Represents a bool that serializes as a u8 0/1 for false/true respectively
+mod bool_as_u8 {
+    use serde::{
+        de::{self, Deserializer, Unexpected},
+        ser::Serializer,
+        Deserialize,
+    };
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<bool, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        match u8::deserialize(deserializer)? {
+            0 => Ok(false),
+            1 => Ok(true),
+            other => Err(de::Error::invalid_value(
+                Unexpected::Unsigned(other as u64),
+                &"zero or one",
+            )),
+        }
+    }
+
+    pub fn serialize<S>(value: &bool, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_u8(match value {
+            false => 0,
+            true => 1,
+        })
+    }
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "kebab-case")]
 pub struct DefaultSound<'a> {
-    #[serde(skip_serializing_if = "is_zero")]
-    critical: u8,
+    #[serde(skip_serializing_if = "std::ops::Not::not", with = "bool_as_u8")]
+    critical: bool,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
@@ -123,7 +152,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
             },
             badge: None,
             sound: DefaultSound {
-                critical: 0,
+                critical: false,
                 name: None,
                 volume: None,
             },
@@ -179,10 +208,10 @@ impl<'a> DefaultNotificationBuilder<'a> {
     pub fn set_critical(mut self, critical: bool, volume: Option<f64>) -> Self {
         if !critical {
             self.sound.volume = None;
-            self.sound.critical = 0;
+            self.sound.critical = false;
         } else {
             self.sound.volume = volume;
-            self.sound.critical = 1;
+            self.sound.critical = true;
         }
         self
     }
@@ -498,7 +527,7 @@ impl<'a> NotificationBuilder<'a> for DefaultNotificationBuilder<'a> {
                     false => self.alert.body.map(APSAlert::Body),
                 },
                 badge: self.badge,
-                sound: if self.sound.critical != 0 {
+                sound: if self.sound.critical {
                     Some(APSSound::Critical(self.sound))
                 } else {
                     self.sound.name.map(APSSound::Sound)
