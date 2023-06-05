@@ -240,8 +240,9 @@ dependencies = [
 
 [[package]]
 name = "hyper-alpn"
-version = "0.4.0"
-source = "git+https://github.com/WalletConnect/hyper-alpn#0030fd02266f761db7770412b4efa051af76c23d"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bafa0c8f13da51d474d0c0933c7abe8c50e5f8c7ad72ea34ba998104d9190760"
 dependencies = [
  "hyper",
  "log",
