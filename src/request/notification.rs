@@ -1,4 +1,4 @@
-///! The `aps` notification content builders
+/// The `aps` notification content builders
 mod default;
 mod options;
 mod web;
