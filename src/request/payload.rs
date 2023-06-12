@@ -4,6 +4,7 @@ use crate::request::notification::{DefaultAlert, DefaultSound, NotificationOptio
 use erased_serde::Serialize;
 use serde_json::{self, Value};
 use std::collections::BTreeMap;
+use std::fmt::Debug;
 
 /// The data and options for a push notification.
 #[derive(Debug, Clone, Serialize)]
@@ -51,7 +52,7 @@ pub struct Payload<'a> {
 ///     Ok(())
 /// }
 ///
-/// #[derive(Serialize)]
+/// #[derive(Serialize, Debug)]
 /// struct Payload<'a> {
 ///     aps: APS<'a>,
 ///     my_custom_value: String,
@@ -70,7 +71,7 @@ pub struct Payload<'a> {
 ///     }
 /// }
 /// ```
-pub trait PayloadLike: serde::Serialize {
+pub trait PayloadLike: serde::Serialize + Debug {
     /// Combine the APS payload and the custom data to a final payload JSON.
     /// Returns an error if serialization fails.
     #[allow(clippy::wrong_self_convention)]
