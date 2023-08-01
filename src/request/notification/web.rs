@@ -1,5 +1,5 @@
 use crate::request::notification::{NotificationBuilder, NotificationOptions};
-use crate::request::payload::{APSAlert, Payload, APS};
+use crate::request::payload::{APSAlert, APSSound, Payload, APS};
 use std::collections::BTreeMap;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -16,6 +16,7 @@ pub struct WebPushAlert<'a> {
 ///
 /// ```rust
 /// # use a2::request::notification::{NotificationBuilder, WebNotificationBuilder, WebPushAlert};
+/// # use a2::request::payload::PayloadLike;
 /// # fn main() {
 /// let mut builder = WebNotificationBuilder::new(WebPushAlert {title: "Hello", body: "World", action: "View"}, &["arg1"]);
 /// builder.set_sound("prööt");
@@ -34,12 +35,13 @@ impl<'a> WebNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{WebNotificationBuilder, NotificationBuilder, WebPushAlert};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = WebNotificationBuilder::new(WebPushAlert {title: "Hello", body: "World", action: "View"}, &["arg1"]);
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"action\":\"View\",\"body\":\"World\",\"title\":\"Hello\"},\"url-args\":[\"arg1\"]}}",
+    ///     "{\"aps\":{\"alert\":{\"title\":\"Hello\",\"body\":\"World\",\"action\":\"View\"},\"url-args\":[\"arg1\"]}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
@@ -56,13 +58,14 @@ impl<'a> WebNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{WebNotificationBuilder, NotificationBuilder, WebPushAlert};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = WebNotificationBuilder::new(WebPushAlert {title: "Hello", body: "World", action: "View"}, &["arg1"]);
     /// builder.set_sound("meow");
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"action\":\"View\",\"body\":\"World\",\"title\":\"Hello\"},\"sound\":\"meow\",\"url-args\":[\"arg1\"]}}",
+    ///     "{\"aps\":{\"alert\":{\"title\":\"Hello\",\"body\":\"World\",\"action\":\"View\"},\"sound\":\"meow\",\"url-args\":[\"arg1\"]}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
@@ -79,7 +82,7 @@ impl<'a> NotificationBuilder<'a> for WebNotificationBuilder<'a> {
             aps: APS {
                 alert: Some(APSAlert::WebPush(self.alert)),
                 badge: None,
-                sound: self.sound,
+                sound: self.sound.map(APSSound::Sound),
                 content_available: None,
                 category: None,
                 mutable_content: None,
@@ -95,6 +98,8 @@ impl<'a> NotificationBuilder<'a> for WebNotificationBuilder<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::request::payload::PayloadLike;
+    use serde_json::Value;
 
     #[test]
     fn test_webpush_notification() {
@@ -113,15 +118,14 @@ mod tests {
         let expected_payload = json!({
             "aps": {
                 "alert": {
+                    "title": "Hello",
                     "body": "world",
                     "action": "View",
-                    "title": "Hello"
                 },
                 "url-args": ["arg1"]
             }
-        })
-        .to_string();
+        });
 
-        assert_eq!(expected_payload, payload);
+        assert_eq!(expected_payload, serde_json::from_str::<Value>(&payload).unwrap());
     }
 }

@@ -1,7 +1,53 @@
 use crate::request::notification::{NotificationBuilder, NotificationOptions};
-use crate::request::payload::{APSAlert, Payload, APS};
+use crate::request::payload::{APSAlert, APSSound, Payload, APS};
 
 use std::{borrow::Cow, collections::BTreeMap};
+
+/// Represents a bool that serializes as a u8 0/1 for false/true respectively
+mod bool_as_u8 {
+    use serde::{
+        de::{self, Deserializer, Unexpected},
+        ser::Serializer,
+        Deserialize,
+    };
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<bool, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        match u8::deserialize(deserializer)? {
+            0 => Ok(false),
+            1 => Ok(true),
+            other => Err(de::Error::invalid_value(
+                Unexpected::Unsigned(other as u64),
+                &"zero or one",
+            )),
+        }
+    }
+
+    pub fn serialize<S>(value: &bool, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_u8(match value {
+            false => 0,
+            true => 1,
+        })
+    }
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+#[serde(rename_all = "kebab-case")]
+pub struct DefaultSound<'a> {
+    #[serde(skip_serializing_if = "std::ops::Not::not", with = "bool_as_u8")]
+    critical: bool,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    name: Option<&'a str>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    volume: Option<f64>,
+}
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "kebab-case")]
@@ -40,6 +86,7 @@ pub struct DefaultAlert<'a> {
 ///
 /// ```rust
 /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+/// # use a2::request::payload::PayloadLike;
 /// # fn main() {
 /// let mut builder = DefaultNotificationBuilder::new()
 ///     .set_title("Hi there")
@@ -48,6 +95,7 @@ pub struct DefaultAlert<'a> {
 ///     .set_badge(420)
 ///     .set_category("cat1")
 ///     .set_sound("prööt")
+///     .set_critical(false, None)
 ///     .set_mutable_content()
 ///     .set_action_loc_key("PLAY")
 ///     .set_launch_image("foo.jpg")
@@ -64,7 +112,7 @@ pub struct DefaultAlert<'a> {
 pub struct DefaultNotificationBuilder<'a> {
     alert: DefaultAlert<'a>,
     badge: Option<u32>,
-    sound: Option<&'a str>,
+    sound: DefaultSound<'a>,
     category: Option<&'a str>,
     mutable_content: u8,
     content_available: Option<u8>,
@@ -76,6 +124,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let payload = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -83,7 +132,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///     .build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"body\":\"a body\",\"title\":\"a title\"},\"mutable-content\":0}}",
+    ///     "{\"aps\":{\"alert\":{\"title\":\"a title\",\"body\":\"a body\"},\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
@@ -102,7 +151,11 @@ impl<'a> DefaultNotificationBuilder<'a> {
                 launch_image: None,
             },
             badge: None,
-            sound: None,
+            sound: DefaultSound {
+                critical: false,
+                name: None,
+                volume: None,
+            },
             category: None,
             mutable_content: 0,
             content_available: None,
@@ -116,6 +169,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title");
@@ -133,10 +187,40 @@ impl<'a> DefaultNotificationBuilder<'a> {
         self
     }
 
+    /// Set critical alert value for this notification
+    /// Volume can only be set when the notification is marked as critcial
+    /// Note: You'll need the [critical alerts entitlement](https://developer.apple.com/contact/request/notifications-critical-alerts-entitlement/) to use `true`!
+    ///
+    /// ```rust
+    /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
+    /// # fn main() {
+    /// let mut builder = DefaultNotificationBuilder::new()
+    ///     .set_critical(true, None);
+    /// let payload = builder.build("token", Default::default());
+    ///
+    /// assert_eq!(
+    ///     "{\"aps\":{\"sound\":{\"critical\":1},\"mutable-content\":0}}",
+    ///     &payload.to_json_string().unwrap()
+    /// );
+    /// # }
+    /// ```
+    pub fn set_critical(mut self, critical: bool, volume: Option<f64>) -> Self {
+        if !critical {
+            self.sound.volume = None;
+            self.sound.critical = false;
+        } else {
+            self.sound.volume = volume;
+            self.sound.critical = true;
+        }
+        self
+    }
+
     /// Used to set the subtitle which should provide additional information that explains the purpose of the notification.
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_subtitle("a subtitle");
@@ -158,20 +242,20 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_body("a body");
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"body\":\"a body\"},\"mutable-content\":0}}",
+    ///     "{\"aps\":{\"alert\":\"a body\",\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
     /// ```
     pub fn set_body(mut self, body: &'a str) -> Self {
         self.alert.body = Some(body);
-        self.has_edited_alert = true;
         self
     }
 
@@ -179,6 +263,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_badge(4);
@@ -199,6 +284,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -206,13 +292,13 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"title\":\"a title\"},\"mutable-content\":0,\"sound\":\"ping\"}}",
+    ///     "{\"aps\":{\"alert\":{\"title\":\"a title\"},\"sound\":\"ping\",\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
     /// ```
     pub fn set_sound(mut self, sound: &'a str) -> Self {
-        self.sound = Some(sound);
+        self.sound.name = Some(sound);
         self
     }
 
@@ -221,6 +307,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -242,6 +329,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -264,6 +352,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -291,6 +380,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -298,7 +388,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"action-loc-key\":\"stop\",\"title\":\"a title\"},\"mutable-content\":0}}",
+    ///     "{\"aps\":{\"alert\":{\"title\":\"a title\",\"action-loc-key\":\"stop\"},\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
@@ -313,6 +403,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -320,7 +411,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"loc-key\":\"lol\",\"title\":\"a title\"},\"mutable-content\":0}}",
+    ///     "{\"aps\":{\"alert\":{\"title\":\"a title\",\"loc-key\":\"lol\"},\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
@@ -335,6 +426,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -342,7 +434,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"loc-args\":[\"omg\",\"foo\"],\"title\":\"a title\"},\"mutable-content\":0}}",
+    ///     "{\"aps\":{\"alert\":{\"title\":\"a title\",\"loc-args\":[\"omg\",\"foo\"]},\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
@@ -362,6 +454,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -369,7 +462,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// let payload = builder.build("token", Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"launch-image\":\"cat.png\",\"title\":\"a title\"},\"mutable-content\":0}}",
+    ///     "{\"aps\":{\"alert\":{\"title\":\"a title\",\"launch-image\":\"cat.png\"},\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
@@ -384,6 +477,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -405,6 +499,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     ///
     /// ```rust
     /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -429,10 +524,14 @@ impl<'a> NotificationBuilder<'a> for DefaultNotificationBuilder<'a> {
             aps: APS {
                 alert: match self.has_edited_alert {
                     true => Some(APSAlert::Default(self.alert)),
-                    false => None,
+                    false => self.alert.body.map(APSAlert::Body),
                 },
                 badge: self.badge,
-                sound: self.sound,
+                sound: if self.sound.critical {
+                    Some(APSSound::Critical(self.sound))
+                } else {
+                    self.sound.name.map(APSSound::Sound)
+                },
                 content_available: self.content_available,
                 category: self.category,
                 mutable_content: Some(self.mutable_content),
@@ -454,28 +553,26 @@ impl<'a> Default for DefaultNotificationBuilder<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::value::to_value;
 
     #[test]
     fn test_default_notification_with_minimal_required_values() {
         let payload = DefaultNotificationBuilder::new()
             .set_title("the title")
             .set_body("the body")
-            .build("device-token", Default::default())
-            .to_json_string()
-            .unwrap();
+            .build("device-token", Default::default());
 
         let expected_payload = json!({
             "aps": {
                 "alert": {
-                    "title": "the title",
                     "body": "the body",
+                    "title": "the title",
                 },
                 "mutable-content": 0
             }
-        })
-        .to_string();
+        });
 
-        assert_eq!(expected_payload, payload);
+        assert_eq!(expected_payload, to_value(payload).unwrap());
     }
 
     #[test]
@@ -486,6 +583,7 @@ mod tests {
             .set_badge(420)
             .set_category("cat1")
             .set_sound("prööt")
+            .set_critical(true, Some(1.0))
             .set_mutable_content()
             .set_action_loc_key("PLAY")
             .set_launch_image("foo.jpg")
@@ -495,10 +593,7 @@ mod tests {
             .set_loc_key("PAUSE")
             .set_loc_args(&["narf", "derp"]);
 
-        let payload = builder
-            .build("device-token", Default::default())
-            .to_json_string()
-            .unwrap();
+        let payload = builder.build("device-token", Default::default());
 
         let expected_payload = json!({
             "aps": {
@@ -513,14 +608,17 @@ mod tests {
                     "title-loc-key": "STOP"
                 },
                 "badge": 420,
+                "sound": {
+                    "critical": 1,
+                    "name": "prööt",
+                    "volume": 1.0,
+                },
                 "category": "cat1",
                 "mutable-content": 1,
-                "sound": "prööt"
             }
-        })
-        .to_string();
+        });
 
-        assert_eq!(expected_payload, payload);
+        assert_eq!(expected_payload, to_value(payload).unwrap());
     }
 
     #[test]
@@ -563,15 +661,14 @@ mod tests {
             },
             "aps": {
                 "alert": {
-                    "title": "the title",
                     "body": "the body",
+                    "title": "the title",
                 },
                 "mutable-content": 0,
             },
-        })
-        .to_string();
+        });
 
-        assert_eq!(expected_payload, payload.to_json_string().unwrap());
+        assert_eq!(expected_payload, to_value(payload).unwrap());
     }
 
     #[test]
@@ -602,8 +699,6 @@ mod tests {
 
         payload.add_custom_data("custom", &test_data).unwrap();
 
-        let payload_json = payload.to_json_string().unwrap();
-
         let expected_payload = json!({
             "custom": {
                 "key_str": "foo",
@@ -614,34 +709,28 @@ mod tests {
                 }
             },
             "aps": {
-                "alert": {
-                    "body": "kulli"
-                },
+                "alert": "kulli",
                 "mutable-content": 0
             }
-        })
-        .to_string();
+        });
 
-        assert_eq!(expected_payload, payload_json);
+        assert_eq!(expected_payload, to_value(payload).unwrap());
     }
 
     #[test]
     fn test_silent_notification_with_no_content() {
         let payload = DefaultNotificationBuilder::new()
             .set_content_available()
-            .build("device-token", Default::default())
-            .to_json_string()
-            .unwrap();
+            .build("device-token", Default::default());
 
         let expected_payload = json!({
             "aps": {
                 "content-available": 1,
                 "mutable-content": 0
             }
-        })
-        .to_string();
+        });
 
-        assert_eq!(expected_payload, payload);
+        assert_eq!(expected_payload, to_value(payload).unwrap());
     }
 
     #[test]
@@ -685,10 +774,9 @@ mod tests {
                     "nothing": "here"
                 }
             }
-        })
-        .to_string();
+        });
 
-        assert_eq!(expected_payload, payload.to_json_string().unwrap());
+        assert_eq!(expected_payload, to_value(payload).unwrap());
     }
 
     #[test]
@@ -712,9 +800,8 @@ mod tests {
                 "key_str": "foo",
                 "key_str2": "bar"
             }
-        })
-        .to_string();
+        });
 
-        assert_eq!(expected_payload, payload.to_json_string().unwrap());
+        assert_eq!(expected_payload, to_value(payload).unwrap());
     }
 }
