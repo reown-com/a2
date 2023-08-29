@@ -4,7 +4,7 @@ version = 3
 
 [[package]]
 name = "a2"
-version = "0.7.1"
+version = "0.8.0"
 dependencies = [
  "argparse",
  "base64 0.20.0",
