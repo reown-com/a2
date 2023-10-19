@@ -155,6 +155,9 @@ impl Client {
         if let Some(apns_id) = options.apns_id {
             builder = builder.header("apns-id", apns_id.as_bytes());
         }
+        if let Some(apns_push_type) = options.apns_push_type.as_ref() {
+            builder = builder.header("apns-push-type", apns_push_type.to_string().as_bytes());
+        }
         if let Some(ref apns_expiration) = options.apns_expiration {
             builder = builder.header("apns-expiration", apns_expiration.to_string().as_bytes());
         }
