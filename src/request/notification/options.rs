@@ -19,7 +19,7 @@ impl<'a> CollapseId<'a> {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
 /// The apns-push-type header field has the following valid values.
 /// The descriptions below describe when and how to use these values.
 /// Send an apns-push-type header with each push. Recent and upcoming features
