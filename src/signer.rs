@@ -75,8 +75,8 @@ impl Secret {
     fn new_ring(pem_key: &[u8]) -> Result<Self, Error> {
         let der = pem::parse(pem_key).map_err(SignerError::Pem)?;
         let alg = &signature::ECDSA_P256_SHA256_FIXED_SIGNING;
-        let signing_key = signature::EcdsaKeyPair::from_pkcs8(alg, &der.contents)?;
         let rng = rand::SystemRandom::new();
+        let signing_key = signature::EcdsaKeyPair::from_pkcs8(alg, der.contents(), &rng)?;
         Ok(Self::Ring { signing_key, rng })
     }
 
