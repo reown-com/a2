@@ -27,7 +27,7 @@ erased-serde = "0.3"
 serde_json = "1"
 thiserror = "1"
 openssl = { version = "0.10", optional = true }
-hyper = { version = "0.14", default-features = false, features = ["client", "http2"] }
+hyper = { version = "0.14", default-features = false, features = ["client", "http2", "tcp"] }
 hyper-alpn = "0.4"
 http = "0.2"
 base64 = "0.20"
@@ -39,4 +39,3 @@ ring = { version = "0.16", features = ["std"], optional = true }
 argparse = "0.2"
 tracing-subscriber = "0.3"
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
-hyper = { version = "0.14", features = ["client", "http2", "tcp"] }
