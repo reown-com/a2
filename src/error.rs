@@ -48,6 +48,10 @@ pub enum Error {
     #[error("Failed to construct HTTP request: {0}")]
     BuildRequestError(#[source] http::Error),
 
+    /// No repsonse from APNs after the given amount of time
+    #[error("The request timed out after {0} s")]
+    RequestTimeout(u64),
+
     /// Unexpected private key (only EC keys are supported).
     #[cfg(all(not(feature = "openssl"), feature = "ring"))]
     #[error("Unexpected private key: {0}")]
