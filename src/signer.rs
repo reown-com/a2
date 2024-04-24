@@ -1,10 +1,8 @@
 use crate::error::Error;
+use parking_lot::RwLock;
 use std::io::Read;
 use std::sync::Arc;
-use std::{
-    sync::RwLock,
-    time::{Duration, SystemTime, UNIX_EPOCH},
-};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use base64::prelude::*;
 #[cfg(feature = "openssl")]
@@ -138,7 +136,7 @@ impl Signer {
             self.renew()?;
         }
 
-        let signature = self.signature.read().unwrap();
+        let signature = self.signature.read();
 
         #[cfg(feature = "tracing")]
         {
@@ -191,7 +189,7 @@ impl Signer {
             );
         }
 
-        let mut signature = self.signature.write().unwrap();
+        let mut signature = self.signature.write();
 
         *signature = Signature {
             key: Self::create_signature(&self.secret, &self.key_id, &self.team_id, issued_at)?,
@@ -202,7 +200,7 @@ impl Signer {
     }
 
     fn is_expired(&self) -> bool {
-        let sig = self.signature.read().unwrap();
+        let sig = self.signature.read();
         let expiry = get_time() - sig.issued_at;
         expiry >= self.expire_after_s.as_secs() as i64
     }
