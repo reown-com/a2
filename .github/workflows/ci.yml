@@ -7,7 +7,7 @@ on:
       - 'README.md'
 
   push:
-    branches: ['main']
+    branches: ['master']
     paths-ignore:
       - '.github/**'
       - 'README.md'

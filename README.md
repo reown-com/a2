@@ -3,17 +3,13 @@
 [![CI Status](https://github.com/walletconnect/a2/actions/workflows/ci.yml/badge.svg)](https://github.com/walletconnect/a2/actions/workflows/ci.yml)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![crates.io](https://img.shields.io/crates/v/a2)](https://crates.io/crates/a2)
+[![docs.rs](https://img.shields.io/badge/docs.rs-a2-blue)](https://docs.rs/a2/)
 
 HTTP/2 Apple Push Notification Service for Rust using Tokio and async sending.
 
 ## Requirements
 
 Needs a Tokio executor version 1.0 or later and Rust compiler version 1.60.0 or later.
-
-## Documentation
-
-* [Released](https://docs.rs/a2/)
-* [Master](https://walletconnect.github.io/a2/master/)
 
 ## Features
 
