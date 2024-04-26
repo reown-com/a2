@@ -37,7 +37,7 @@ pem = { version = "3.0", optional = true }
 ring = { version = "0.17", features = ["std"], optional = true }
 hyper-rustls = { version = "0.26.0", default-features = false, features = ["http2", "webpki-roots", "ring"] }
 rustls-pemfile = "2.1.1"
-rustls = "0.22.0"
+rustls = "0.22.4"
 parking_lot = "0.12"
 
 [dev-dependencies]
