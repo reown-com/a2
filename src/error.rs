@@ -44,6 +44,10 @@ pub enum Error {
     #[error("Error building TLS config: {0}")]
     Tls(#[from] rustls::Error),
 
+    /// Error while creating the HTTP request
+    #[error("Failed to construct HTTP request: {0}")]
+    BuildRequestError(#[source] http::Error),
+
     /// Unexpected private key (only EC keys are supported).
     #[cfg(all(not(feature = "openssl"), feature = "ring"))]
     #[error("Unexpected private key: {0}")]

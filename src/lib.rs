@@ -106,6 +106,8 @@
 //! }
 //! # }
 //! ```
+#![warn(clippy::unwrap_used)]
+
 #[cfg(not(any(feature = "openssl", feature = "ring")))]
 compile_error!("either feature \"openssl\" or feature \"ring\" has to be enabled");
 
