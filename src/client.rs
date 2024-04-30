@@ -61,7 +61,7 @@ pub struct Client {
 
 /// Uses [`Endpoint::Production`] by default.
 #[derive(Debug, Clone)]
-pub struct ClientOptions {
+pub struct ClientBuilder {
     /// The timeout of the HTTP requests
     pub request_timeout_secs: Option<u64>,
     /// The timeout for idle sockets being kept alive
@@ -74,7 +74,7 @@ pub struct ClientOptions {
     pub connector: Option<HyperConnector>,
 }
 
-impl Default for ClientOptions {
+impl Default for ClientBuilder {
     fn default() -> Self {
         Self {
             pool_idle_timeout_secs: Some(600),
@@ -86,32 +86,49 @@ impl Default for ClientOptions {
     }
 }
 
-impl ClientOptions {
-    pub fn new(endpoint: Endpoint) -> Self {
-        Self {
-            endpoint,
-            ..Default::default()
-        }
-    }
-
-    pub fn with_connector(mut self, connector: HyperConnector) -> Self {
+impl ClientBuilder {
+    pub fn connector(mut self, connector: HyperConnector) -> Self {
         self.connector = Some(connector);
         self
     }
 
-    pub fn with_signer(mut self, signer: Signer) -> Self {
+    pub fn signer(mut self, signer: Signer) -> Self {
         self.signer = Some(signer);
         self
     }
 
-    pub fn with_request_timeout(mut self, seconds: u64) -> Self {
+    pub fn request_timeout(mut self, seconds: u64) -> Self {
         self.request_timeout_secs = Some(seconds);
         self
     }
 
-    pub fn with_pool_idle_timeout(mut self, seconds: u64) -> Self {
+    pub fn pool_idle_timeout(mut self, seconds: u64) -> Self {
         self.pool_idle_timeout_secs = Some(seconds);
         self
+    }
+
+    pub fn endpoint(mut self, endpoint: Endpoint) -> Self {
+        self.endpoint = endpoint;
+        self
+    }
+
+    pub fn build(self) -> Client {
+        let ClientBuilder {
+            request_timeout_secs,
+            pool_idle_timeout_secs,
+            endpoint,
+            signer,
+            connector,
+        } = self;
+        let http_client = HttpClient::builder(TokioExecutor::new())
+            .pool_idle_timeout(pool_idle_timeout_secs.map(Duration::from_secs))
+            .http2_only(true)
+            .build(connector.unwrap_or_else(default_connector));
+
+        Client {
+            http_client,
+            options: ConnectionOptions::new(endpoint, signer, request_timeout_secs),
+        }
     }
 }
 
@@ -134,23 +151,10 @@ impl ConnectionOptions {
 }
 
 impl Client {
-    fn new(options: ClientOptions) -> Self {
-        let ClientOptions {
-            request_timeout_secs,
-            pool_idle_timeout_secs,
-            endpoint,
-            signer,
-            connector,
-        } = options;
-        let http_client = HttpClient::builder(TokioExecutor::new())
-            .pool_idle_timeout(pool_idle_timeout_secs.map(Duration::from_secs))
-            .http2_only(true)
-            .build(connector.unwrap_or_else(default_connector));
-
-        Client {
-            http_client,
-            options: ConnectionOptions::new(endpoint, signer, request_timeout_secs),
-        }
+    /// Creates a builder for the [`Client`] that uses the default connector and
+    /// [`Endpoint::Production`]
+    fn builder() -> ClientBuilder {
+        ClientBuilder::default()
     }
 
     /// Create a connection to APNs using the provider client certificate which
@@ -172,7 +176,7 @@ impl Client {
         };
         let connector = client_cert_connector(&cert.to_pem()?, &pkey.private_key_to_pem_pkcs8()?)?;
 
-        Ok(Self::new(ClientOptions::new(endpoint).with_connector(connector)))
+        Ok(Self::builder().connector(connector).endpoint(endpoint).build())
     }
 
     /// Create a connection to APNs using the raw PEM-formatted certificate and
@@ -181,7 +185,7 @@ impl Client {
     pub fn certificate_parts(cert_pem: &[u8], key_pem: &[u8], endpoint: Endpoint) -> Result<Client, Error> {
         let connector = client_cert_connector(cert_pem, key_pem)?;
 
-        Ok(Self::new(ClientOptions::new(endpoint).with_connector(connector)))
+        Ok(Self::builder().endpoint(endpoint).connector(connector).build())
     }
 
     /// Create a connection to APNs using system certificates, signing every
@@ -195,13 +199,9 @@ impl Client {
         R: Read,
     {
         let signature_ttl = Duration::from_secs(60 * 55);
-        let signer = Some(Signer::new(pkcs8_pem, key_id, team_id, signature_ttl)?);
+        let signer = Signer::new(pkcs8_pem, key_id, team_id, signature_ttl)?;
 
-        Ok(Self::new(ClientOptions {
-            endpoint,
-            signer,
-            ..Default::default()
-        }))
+        Ok(Self::builder().endpoint(endpoint).signer(signer).build())
     }
 
     /// Send a notification payload.
@@ -334,18 +334,11 @@ lCEIvbDqlUhA5FOzcakkG90E8L+hRANCAATKS2ZExEybUvchRDuKBftotMwVEus3
 jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
 -----END PRIVATE KEY-----";
 
-    impl Client {
-        fn new_with_defaults() -> Self {
-            let options = ClientOptions::default();
-            Self::new(options)
-        }
-    }
-
     #[test]
     fn test_production_request_uri() {
         let builder = DefaultNotificationBuilder::new();
         let payload = builder.build("a_test_id", Default::default());
-        let client = Client::new_with_defaults();
+        let client = Client::builder().build();
         let request = client.build_request(payload).unwrap();
         let uri = format!("{}", request.uri());
 
@@ -356,7 +349,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
     fn test_sandbox_request_uri() {
         let builder = DefaultNotificationBuilder::new();
         let payload = builder.build("a_test_id", Default::default());
-        let client = Client::new(ClientOptions::new(Endpoint::Sandbox));
+        let client = Client::builder().endpoint(Endpoint::Sandbox).build();
         let request = client.build_request(payload).unwrap();
         let uri = format!("{}", request.uri());
 
@@ -367,7 +360,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
     fn test_request_method() {
         let builder = DefaultNotificationBuilder::new();
         let payload = builder.build("a_test_id", Default::default());
-        let client = Client::new_with_defaults();
+        let client = Client::builder().build();
         let request = client.build_request(payload).unwrap();
 
         assert_eq!(&Method::POST, request.method());
@@ -377,7 +370,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
     fn test_request_invalid() {
         let builder = DefaultNotificationBuilder::new();
         let payload = builder.build("\r\n", Default::default());
-        let client = Client::new(default_connector(), None, Endpoint::Production);
+        let client = Client::builder().endpoint(Endpoint::Production).build();
         let request = client.build_request(payload);
 
         assert!(matches!(request, Err(Error::BuildRequestError(_))));
@@ -387,7 +380,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
     fn test_request_content_type() {
         let builder = DefaultNotificationBuilder::new();
         let payload = builder.build("a_test_id", Default::default());
-        let client = Client::new_with_defaults();
+        let client = Client::builder().build();
         let request = client.build_request(payload).unwrap();
 
         assert_eq!("application/json", request.headers().get(CONTENT_TYPE).unwrap());
@@ -397,7 +390,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
     fn test_request_content_length() {
         let builder = DefaultNotificationBuilder::new();
         let payload = builder.build("a_test_id", Default::default());
-        let client = Client::new_with_defaults();
+        let client = Client::builder().build();
         let request = client.build_request(payload.clone()).unwrap();
         let payload_json = payload.to_json_string().unwrap();
         let content_length = request.headers().get(CONTENT_LENGTH).unwrap().to_str().unwrap();
@@ -409,7 +402,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
     fn test_request_authorization_with_no_signer() {
         let builder = DefaultNotificationBuilder::new();
         let payload = builder.build("a_test_id", Default::default());
-        let client = Client::new_with_defaults();
+        let client = Client::builder().build();
         let request = client.build_request(payload).unwrap();
 
         assert_eq!(None, request.headers().get(AUTHORIZATION));
@@ -427,7 +420,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
 
         let builder = DefaultNotificationBuilder::new();
         let payload = builder.build("a_test_id", Default::default());
-        let client = Client::new(ClientOptions::new(Endpoint::Production).with_signer(signer));
+        let client = Client::builder().endpoint(Endpoint::Production).signer(signer).build();
         let request = client.build_request(payload).unwrap();
 
         assert_ne!(None, request.headers().get(AUTHORIZATION));
@@ -441,7 +434,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
             ..Default::default()
         };
         let payload = builder.build("a_test_id", options);
-        let client = Client::new_with_defaults();
+        let client = Client::builder().build();
         let request = client.build_request(payload).unwrap();
         let apns_push_type = request.headers().get("apns-push-type").unwrap();
 
@@ -452,7 +445,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
     fn test_request_with_default_priority() {
         let builder = DefaultNotificationBuilder::new();
         let payload = builder.build("a_test_id", Default::default());
-        let client = Client::new_with_defaults();
+        let client = Client::builder().build();
         let request = client.build_request(payload).unwrap();
         let apns_priority = request.headers().get("apns-priority");
 
@@ -471,7 +464,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
             },
         );
 
-        let client = Client::new_with_defaults();
+        let client = Client::builder().build();
         let request = client.build_request(payload).unwrap();
         let apns_priority = request.headers().get("apns-priority").unwrap();
 
@@ -490,7 +483,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
             },
         );
 
-        let client = Client::new_with_defaults();
+        let client = Client::builder().build();
         let request = client.build_request(payload).unwrap();
         let apns_priority = request.headers().get("apns-priority").unwrap();
 
@@ -503,7 +496,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
 
         let payload = builder.build("a_test_id", Default::default());
 
-        let client = Client::new_with_defaults();
+        let client = Client::builder().build();
         let request = client.build_request(payload).unwrap();
         let apns_id = request.headers().get("apns-id");
 
@@ -522,7 +515,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
             },
         );
 
-        let client = Client::new_with_defaults();
+        let client = Client::builder().build();
         let request = client.build_request(payload).unwrap();
         let apns_id = request.headers().get("apns-id").unwrap();
 
@@ -535,7 +528,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
 
         let payload = builder.build("a_test_id", Default::default());
 
-        let client = Client::new_with_defaults();
+        let client = Client::builder().build();
         let request = client.build_request(payload).unwrap();
         let apns_expiration = request.headers().get("apns-expiration");
 
@@ -554,7 +547,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
             },
         );
 
-        let client = Client::new_with_defaults();
+        let client = Client::builder().build();
         let request = client.build_request(payload).unwrap();
         let apns_expiration = request.headers().get("apns-expiration").unwrap();
 
@@ -567,7 +560,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
 
         let payload = builder.build("a_test_id", Default::default());
 
-        let client = Client::new_with_defaults();
+        let client = Client::builder().build();
         let request = client.build_request(payload).unwrap();
         let apns_collapse_id = request.headers().get("apns-collapse-id");
 
@@ -586,7 +579,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
             },
         );
 
-        let client = Client::new_with_defaults();
+        let client = Client::builder().build();
         let request = client.build_request(payload).unwrap();
         let apns_collapse_id = request.headers().get("apns-collapse-id").unwrap();
 
@@ -599,7 +592,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
 
         let payload = builder.build("a_test_id", Default::default());
 
-        let client = Client::new_with_defaults();
+        let client = Client::builder().build();
         let request = client.build_request(payload).unwrap();
         let apns_topic = request.headers().get("apns-topic");
 
@@ -618,7 +611,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
             },
         );
 
-        let client = Client::new_with_defaults();
+        let client = Client::builder().build();
         let request = client.build_request(payload).unwrap();
         let apns_topic = request.headers().get("apns-topic").unwrap();
 
@@ -629,7 +622,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
     async fn test_request_body() {
         let builder = DefaultNotificationBuilder::new();
         let payload = builder.build("a_test_id", Default::default());
-        let client = Client::new_with_defaults();
+        let client = Client::builder().build();
         let request = client.build_request(payload.clone()).unwrap();
 
         let body = request.into_body().collect().await.unwrap().to_bytes();
