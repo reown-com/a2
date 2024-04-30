@@ -27,11 +27,9 @@ pub struct Payload<'a> {
 ///
 /// # Example
 /// ```no_run
-/// use a2::client::Endpoint;
 /// use a2::request::notification::{NotificationBuilder, NotificationOptions};
 /// use a2::request::payload::{PayloadLike, APS};
-/// use a2::Client;
-/// use a2::DefaultNotificationBuilder;
+/// use a2::{Client, ClientConfig, DefaultNotificationBuilder, Endpoint};
 /// use serde::Serialize;
 /// use std::fs::File;
 ///
@@ -45,7 +43,7 @@ pub struct Payload<'a> {
 ///     let payload = builder.build("device-token-from-the-user", Default::default());
 ///     let mut file = File::open("/path/to/private_key.p8")?;
 ///
-///     let client = Client::token(&mut file, "KEY_ID", "TEAM_ID", Endpoint::Production).unwrap();
+///     let client = Client::token(&mut file, "KEY_ID", "TEAM_ID", ClientConfig::default()).unwrap();
 ///
 ///     let response = client.send(payload).await?;
 ///     println!("Sent: {:?}", response);

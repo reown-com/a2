@@ -59,27 +59,48 @@ pub struct Client {
     http_client: HttpClient<HyperConnector, BoxBody<Bytes, Infallible>>,
 }
 
-/// Uses [`Endpoint::Production`] by default.
 #[derive(Debug, Clone)]
-pub struct ClientBuilder {
+/// The default implementation uses [`Endpoint::Production`] and can be created
+/// trough calling [`ClientConfig::default`].
+pub struct ClientConfig {
+    /// The endpoint where the requests are sent to
+    pub endpoint: Endpoint,
     /// The timeout of the HTTP requests
     pub request_timeout_secs: Option<u64>,
     /// The timeout for idle sockets being kept alive
     pub pool_idle_timeout_secs: Option<u64>,
-    /// The endpoint where the requests are sent to
-    pub endpoint: Endpoint,
-    /// See [`crate::signer::Signer`]
-    pub signer: Option<Signer>,
-    /// The HTTPS connector used to connect to APNs
-    pub connector: Option<HyperConnector>,
+}
+
+impl Default for ClientConfig {
+    fn default() -> Self {
+        Self {
+            endpoint: Endpoint::Production,
+            request_timeout_secs: Some(DEFAULT_REQUEST_TIMEOUT_SECS),
+            pool_idle_timeout_secs: Some(600),
+        }
+    }
+}
+
+impl ClientConfig {
+    pub fn new(endpoint: Endpoint) -> Self {
+        ClientConfig {
+            endpoint,
+            ..Default::default()
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+struct ClientBuilder {
+    config: ClientConfig,
+    signer: Option<Signer>,
+    connector: Option<HyperConnector>,
 }
 
 impl Default for ClientBuilder {
     fn default() -> Self {
         Self {
-            pool_idle_timeout_secs: Some(600),
-            request_timeout_secs: Some(DEFAULT_REQUEST_TIMEOUT_SECS),
-            endpoint: Endpoint::Production,
+            config: Default::default(),
             signer: None,
             connector: Some(default_connector()),
         }
@@ -87,36 +108,29 @@ impl Default for ClientBuilder {
 }
 
 impl ClientBuilder {
-    pub fn connector(mut self, connector: HyperConnector) -> Self {
+    fn connector(mut self, connector: HyperConnector) -> Self {
         self.connector = Some(connector);
         self
     }
 
-    pub fn signer(mut self, signer: Signer) -> Self {
+    fn signer(mut self, signer: Signer) -> Self {
         self.signer = Some(signer);
         self
     }
 
-    pub fn request_timeout(mut self, seconds: u64) -> Self {
-        self.request_timeout_secs = Some(seconds);
+    fn config(mut self, config: ClientConfig) -> Self {
+        self.config = config;
         self
     }
 
-    pub fn pool_idle_timeout(mut self, seconds: u64) -> Self {
-        self.pool_idle_timeout_secs = Some(seconds);
-        self
-    }
-
-    pub fn endpoint(mut self, endpoint: Endpoint) -> Self {
-        self.endpoint = endpoint;
-        self
-    }
-
-    pub fn build(self) -> Client {
+    fn build(self) -> Client {
         let ClientBuilder {
-            request_timeout_secs,
-            pool_idle_timeout_secs,
-            endpoint,
+            config:
+                ClientConfig {
+                    endpoint,
+                    request_timeout_secs,
+                    pool_idle_timeout_secs,
+                },
             signer,
             connector,
         } = self;
@@ -163,7 +177,7 @@ impl Client {
     ///
     /// Only works with the `openssl` feature.
     #[cfg(feature = "openssl")]
-    pub fn certificate<R>(certificate: &mut R, password: &str, endpoint: Endpoint) -> Result<Client, Error>
+    pub fn certificate<R>(certificate: &mut R, password: &str, config: ClientConfig) -> Result<Client, Error>
     where
         R: Read,
     {
@@ -176,23 +190,23 @@ impl Client {
         };
         let connector = client_cert_connector(&cert.to_pem()?, &pkey.private_key_to_pem_pkcs8()?)?;
 
-        Ok(Self::builder().connector(connector).endpoint(endpoint).build())
+        Ok(Self::builder().connector(connector).config(config).build())
     }
 
     /// Create a connection to APNs using the raw PEM-formatted certificate and
     /// key, extracted from the provider client certificate you obtain from your
     /// [Apple developer account](https://developer.apple.com/account/)
-    pub fn certificate_parts(cert_pem: &[u8], key_pem: &[u8], endpoint: Endpoint) -> Result<Client, Error> {
+    pub fn certificate_parts(cert_pem: &[u8], key_pem: &[u8], config: ClientConfig) -> Result<Client, Error> {
         let connector = client_cert_connector(cert_pem, key_pem)?;
 
-        Ok(Self::builder().endpoint(endpoint).connector(connector).build())
+        Ok(Self::builder().config(config).connector(connector).build())
     }
 
     /// Create a connection to APNs using system certificates, signing every
     /// request with a signature using a private key, key id and team id
     /// provisioned from your [Apple developer
     /// account](https://developer.apple.com/account/).
-    pub fn token<S, T, R>(pkcs8_pem: R, key_id: S, team_id: T, endpoint: Endpoint) -> Result<Client, Error>
+    pub fn token<S, T, R>(pkcs8_pem: R, key_id: S, team_id: T, config: ClientConfig) -> Result<Client, Error>
     where
         S: Into<String>,
         T: Into<String>,
@@ -201,7 +215,7 @@ impl Client {
         let signature_ttl = Duration::from_secs(60 * 55);
         let signer = Signer::new(pkcs8_pem, key_id, team_id, signature_ttl)?;
 
-        Ok(Self::builder().endpoint(endpoint).signer(signer).build())
+        Ok(Self::builder().config(config).signer(signer).build())
     }
 
     /// Send a notification payload.
@@ -349,7 +363,12 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
     fn test_sandbox_request_uri() {
         let builder = DefaultNotificationBuilder::new();
         let payload = builder.build("a_test_id", Default::default());
-        let client = Client::builder().endpoint(Endpoint::Sandbox).build();
+        let client = Client::builder()
+            .config(ClientConfig {
+                endpoint: Endpoint::Sandbox,
+                ..Default::default()
+            })
+            .build();
         let request = client.build_request(payload).unwrap();
         let uri = format!("{}", request.uri());
 
@@ -370,7 +389,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
     fn test_request_invalid() {
         let builder = DefaultNotificationBuilder::new();
         let payload = builder.build("\r\n", Default::default());
-        let client = Client::builder().endpoint(Endpoint::Production).build();
+        let client = Client::builder().build();
         let request = client.build_request(payload);
 
         assert!(matches!(request, Err(Error::BuildRequestError(_))));
@@ -420,7 +439,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
 
         let builder = DefaultNotificationBuilder::new();
         let payload = builder.build("a_test_id", Default::default());
-        let client = Client::builder().endpoint(Endpoint::Production).signer(signer).build();
+        let client = Client::builder().signer(signer).build();
         let request = client.build_request(payload).unwrap();
 
         assert_ne!(None, request.headers().get(AUTHORIZATION));
@@ -639,7 +658,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
         let key: Vec<u8> = include_str!("../test_cert/test.key").bytes().collect();
         let cert: Vec<u8> = include_str!("../test_cert/test.crt").bytes().collect();
 
-        let c = Client::certificate_parts(&cert, &key, Endpoint::Sandbox)?;
+        let c = Client::certificate_parts(&cert, &key, ClientConfig::default())?;
         assert!(c.options.signer.is_none());
         Ok(())
     }
