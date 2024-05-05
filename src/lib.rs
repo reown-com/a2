@@ -31,7 +31,7 @@
 //! ## Example sending a plain notification using token authentication:
 //!
 //! ```no_run
-//! # use a2::{DefaultNotificationBuilder, NotificationBuilder, Client, Endpoint};
+//! # use a2::{DefaultNotificationBuilder, NotificationBuilder, Client, ClientConfig, Endpoint};
 //! # use std::fs::File;
 //! # #[tokio::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -48,7 +48,7 @@
 //!     &mut file,
 //!     "KEY_ID",
 //!     "TEAM_ID",
-//!     Endpoint::Production).unwrap();
+//!     ClientConfig::default()).unwrap();
 //!
 //! let response = client.send(payload).await?;
 //! println!("Sent: {:?}", response);
@@ -64,7 +64,7 @@
 //! # {
 //!
 //! use a2::{
-//!     Client, Endpoint, DefaultNotificationBuilder, NotificationBuilder, NotificationOptions,
+//!     Client, ClientConfig, Endpoint, DefaultNotificationBuilder, NotificationBuilder, NotificationOptions,
 //!     Priority,
 //! };
 //! use std::fs::File;
@@ -97,7 +97,7 @@
 //!     let client = Client::certificate(
 //!         &mut file,
 //!         "Correct Horse Battery Stable",
-//!         Endpoint::Production)?;
+//!         ClientConfig::default())?;
 //!
 //!     let response = client.send(payload).await?;
 //!     println!("Sent: {:?}", response);
@@ -131,6 +131,6 @@ pub use crate::request::notification::{
 
 pub use crate::response::{ErrorBody, ErrorReason, Response};
 
-pub use crate::client::{Client, Endpoint};
+pub use crate::client::{Client, ClientConfig, Endpoint};
 
 pub use crate::error::Error;

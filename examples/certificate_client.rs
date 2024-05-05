@@ -43,7 +43,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             };
 
             let mut certificate = std::fs::File::open(certificate_file)?;
-            Ok(Client::certificate(&mut certificate, &password, endpoint)?)
+
+            // Create config with the given endpoint and default timeouts
+            let client_config = a2::ClientConfig::new(endpoint);
+
+            Ok(Client::certificate(&mut certificate, &password, client_config)?)
         }
         #[cfg(all(not(feature = "openssl"), feature = "ring"))]
         {
