@@ -176,6 +176,8 @@ impl Signer {
     }
 
     fn renew_if_expired(&self) -> Result<(), Error> {
+        let mut signature = self.signature.write();
+
         let issued_at = get_time();
 
         #[cfg(feature = "tracing")]
@@ -189,14 +191,12 @@ impl Signer {
             );
         }
 
-        let mut signature = self.signature.write();
-
-        if get_time() - signature.issued_at >= self.expire_after_s.as_secs() as i64 {
+        if issued_at - signature.issued_at >= self.expire_after_s.as_secs() as i64 {
             *signature = Signature {
                 key: Self::create_signature(&self.secret, &self.key_id, &self.team_id, issued_at)?,
                 issued_at,
             };
-        }       
+        }
 
         Ok(())
     }
@@ -319,7 +319,6 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
             let now = now.clone();
             let signer = signer.clone();
             threads.push(std::thread::spawn(move || {
-
                 let mut sig = String::new();
                 loop {
                     let mut sig1 = String::new();
@@ -334,9 +333,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
                     if now.elapsed() > Duration::from_secs(4) {
                         break;
                     }
-
                 }
-                
             }));
         }
 
@@ -344,6 +341,6 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
             let _ = th.join();
         }
 
-        assert_eq!(created_sign.lock().unwrap().len() , 2);
+        assert_eq!(created_sign.lock().unwrap().len(), 2);
     }
 }
