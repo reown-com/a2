@@ -173,6 +173,10 @@ pub struct APS<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sound: Option<APSSound<'a>>,
 
+    /// An app-specific identifier for grouping related notifications.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub thread_id: Option<&'a str>,
+
     /// Set to one for silent notifications.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content_available: Option<u8>,

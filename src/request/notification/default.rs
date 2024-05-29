@@ -95,6 +95,7 @@ pub struct DefaultAlert<'a> {
 ///     .set_badge(420)
 ///     .set_category("cat1")
 ///     .set_sound("prööt")
+///     .set_thread_id("my-thread")
 ///     .set_critical(false, None)
 ///     .set_mutable_content()
 ///     .set_action_loc_key("PLAY")
@@ -113,6 +114,7 @@ pub struct DefaultNotificationBuilder<'a> {
     alert: DefaultAlert<'a>,
     badge: Option<u32>,
     sound: DefaultSound<'a>,
+    thread_id: Option<&'a str>,
     category: Option<&'a str>,
     mutable_content: u8,
     content_available: Option<u8>,
@@ -156,6 +158,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
                 name: None,
                 volume: None,
             },
+            thread_id: None,
             category: None,
             mutable_content: 0,
             content_available: None,
@@ -299,6 +302,28 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// ```
     pub fn set_sound(mut self, sound: &'a str) -> Self {
         self.sound.name = Some(sound);
+        self
+    }
+
+    /// An application-specific name that allows notifications to be grouped together.
+    ///
+    /// ```rust
+    /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use a2::request::payload::PayloadLike;
+    /// # fn main() {
+    /// let mut builder = DefaultNotificationBuilder::new()
+    ///     .set_title("a title")
+    ///     .set_thread_id("my-thread");
+    /// let payload = builder.build("token", Default::default());
+    ///
+    /// assert_eq!(
+    ///     "{\"aps\":{\"alert\":{\"title\":\"a title\"},\"thread-id\":\"my-thread\",\"mutable-content\":0}}",
+    ///     &payload.to_json_string().unwrap()
+    /// );
+    /// # }
+    /// ```
+    pub fn set_thread_id(mut self, thread_id: &'a str) -> Self {
+        self.thread_id = Some(thread_id);
         self
     }
 
@@ -532,6 +557,7 @@ impl<'a> NotificationBuilder<'a> for DefaultNotificationBuilder<'a> {
                 } else {
                     self.sound.name.map(APSSound::Sound)
                 },
+                thread_id: self.thread_id,
                 content_available: self.content_available,
                 category: self.category,
                 mutable_content: Some(self.mutable_content),
