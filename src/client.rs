@@ -69,6 +69,9 @@ pub struct ClientConfig {
     pub request_timeout_secs: Option<u64>,
     /// The timeout for idle sockets being kept alive
     pub pool_idle_timeout_secs: Option<u64>,
+    /// We use TLS 1.3 by default, setting this to `true` overrides it to use TLS 1.2.
+    /// Defaults to `false`.
+    pub use_tls_12_override: bool,
 }
 
 impl Default for ClientConfig {
@@ -77,6 +80,7 @@ impl Default for ClientConfig {
             endpoint: Endpoint::Production,
             request_timeout_secs: Some(DEFAULT_REQUEST_TIMEOUT_SECS),
             pool_idle_timeout_secs: Some(600),
+            use_tls_12_override: false,
         }
     }
 }
@@ -130,6 +134,7 @@ impl ClientBuilder {
                     endpoint,
                     request_timeout_secs,
                     pool_idle_timeout_secs,
+                    use_tls_12_override: _,
                 },
             signer,
             connector,
@@ -188,7 +193,7 @@ impl Client {
         let Some((cert, pkey)) = pkcs.cert.zip(pkcs.pkey) else {
             return Err(Error::InvalidCertificate);
         };
-        let connector = client_cert_connector(&cert.to_pem()?, &pkey.private_key_to_pem_pkcs8()?)?;
+        let connector = client_cert_connector(&cert.to_pem()?, &pkey.private_key_to_pem_pkcs8()?, &config)?;
 
         Ok(Self::builder().connector(connector).config(config).build())
     }
@@ -197,7 +202,7 @@ impl Client {
     /// key, extracted from the provider client certificate you obtain from your
     /// [Apple developer account](https://developer.apple.com/account/)
     pub fn certificate_parts(cert_pem: &[u8], key_pem: &[u8], config: ClientConfig) -> Result<Client, Error> {
-        let connector = client_cert_connector(cert_pem, key_pem)?;
+        let connector = client_cert_connector(cert_pem, key_pem, &config)?;
 
         Ok(Self::builder().config(config).connector(connector).build())
     }
@@ -309,7 +314,11 @@ fn default_connector() -> HyperConnector {
         .build()
 }
 
-fn client_cert_connector(mut cert_pem: &[u8], mut key_pem: &[u8]) -> Result<HyperConnector, Error> {
+fn client_cert_connector(
+    mut cert_pem: &[u8],
+    mut key_pem: &[u8],
+    client_config: &ClientConfig,
+) -> Result<HyperConnector, Error> {
     let private_key_error = || io::Error::new(io::ErrorKind::InvalidData, "private key");
 
     let key = rustls_pemfile::pkcs8_private_keys(&mut key_pem)
@@ -320,9 +329,13 @@ fn client_cert_connector(mut cert_pem: &[u8], mut key_pem: &[u8]) -> Result<Hype
     let cert_chain: Result<Vec<_>, _> = rustls_pemfile::certs(&mut cert_pem).collect();
     let cert_chain = cert_chain.map_err(|_| private_key_error())?;
 
-    let config = rustls::client::ClientConfig::builder()
-        .with_webpki_roots()
-        .with_client_auth_cert(cert_chain, key.into())?;
+    let config = if client_config.use_tls_12_override {
+        rustls::client::ClientConfig::builder_with_protocol_versions(&[&rustls::version::TLS12])
+    } else {
+        rustls::client::ClientConfig::builder()
+    }
+    .with_webpki_roots()
+    .with_client_auth_cert(cert_chain, key.into())?;
 
     Ok(HttpsConnectorBuilder::new()
         .with_tls_config(config)
