@@ -16,7 +16,7 @@ use hyper_rustls::{ConfigBuilderExt, HttpsConnector, HttpsConnectorBuilder};
 use hyper_util::client::legacy::connect::HttpConnector;
 use hyper_util::client::legacy::Client as HttpClient;
 use hyper_util::rt::TokioExecutor;
-use rustls::client::ResolvesClientCert;
+pub use rustls::client::ResolvesClientCert;
 use std::convert::Infallible;
 use std::io::Read;
 use std::sync::Arc;
