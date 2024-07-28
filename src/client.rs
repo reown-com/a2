@@ -16,8 +16,10 @@ use hyper_rustls::{ConfigBuilderExt, HttpsConnector, HttpsConnectorBuilder};
 use hyper_util::client::legacy::connect::HttpConnector;
 use hyper_util::client::legacy::Client as HttpClient;
 use hyper_util::rt::TokioExecutor;
+use rustls::client::ResolvesClientCert;
 use std::convert::Infallible;
 use std::io::Read;
+use std::sync::Arc;
 use std::time::Duration;
 use std::{fmt, io};
 
@@ -194,6 +196,29 @@ impl Client {
             return Err(Error::InvalidCertificate);
         };
         let connector = client_cert_connector(&cert.to_pem()?, &pkey.private_key_to_pem_pkcs8()?, &config)?;
+
+        Ok(Self::builder().connector(connector).config(config).build())
+    }
+
+    /// Create a connection to APNs using the provider client certificate which
+    /// you obtain from your [Apple developer
+    /// account](https://developer.apple.com/account/), chosen dynamically via
+    /// the rustls `ResolvesClientCert` trait. Prefer certificate() over this; use
+    /// this if you're using a key management service and don't have the private
+    /// key available.
+    pub fn certificate_resolver(
+        client_auth_cert_resolver: Arc<dyn ResolvesClientCert>,
+        config: ClientConfig,
+    ) -> Result<Client, Error> {
+        let tls_config = rustls::client::ClientConfig::builder()
+            .with_webpki_roots()
+            .with_client_cert_resolver(client_auth_cert_resolver);
+
+        let connector = HttpsConnectorBuilder::new()
+            .with_tls_config(tls_config)
+            .https_only()
+            .enable_http2()
+            .build();
 
         Ok(Self::builder().connector(connector).config(config).build())
     }
