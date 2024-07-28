@@ -94,6 +94,14 @@ impl ClientConfig {
             ..Default::default()
         }
     }
+
+    pub fn get_tls_config_builder(&self) -> rustls::ConfigBuilder<rustls::ClientConfig, rustls::WantsVerifier> {
+        if self.use_tls_12_override {
+            rustls::client::ClientConfig::builder_with_protocol_versions(&[&rustls::version::TLS12])
+        } else {
+            rustls::client::ClientConfig::builder()
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -210,7 +218,8 @@ impl Client {
         client_auth_cert_resolver: Arc<dyn ResolvesClientCert>,
         config: ClientConfig,
     ) -> Result<Client, Error> {
-        let tls_config = rustls::client::ClientConfig::builder()
+        let tls_config = config
+            .get_tls_config_builder()
             .with_webpki_roots()
             .with_client_cert_resolver(client_auth_cert_resolver);
 
@@ -354,13 +363,10 @@ fn client_cert_connector(
     let cert_chain: Result<Vec<_>, _> = rustls_pemfile::certs(&mut cert_pem).collect();
     let cert_chain = cert_chain.map_err(|_| private_key_error())?;
 
-    let config = if client_config.use_tls_12_override {
-        rustls::client::ClientConfig::builder_with_protocol_versions(&[&rustls::version::TLS12])
-    } else {
-        rustls::client::ClientConfig::builder()
-    }
-    .with_webpki_roots()
-    .with_client_auth_cert(cert_chain, key.into())?;
+    let config = client_config
+        .get_tls_config_builder()
+        .with_webpki_roots()
+        .with_client_auth_cert(cert_chain, key.into())?;
 
     Ok(HttpsConnectorBuilder::new()
         .with_tls_config(config)
