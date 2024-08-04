@@ -131,6 +131,6 @@ pub use crate::request::notification::{
 
 pub use crate::response::{ErrorBody, ErrorReason, Response};
 
-pub use crate::client::{Client, ClientConfig, Endpoint};
+pub use crate::client::{Client, ClientConfig, Endpoint, ResolvesClientCert};
 
 pub use crate::error::Error;
