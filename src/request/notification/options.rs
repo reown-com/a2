@@ -40,6 +40,8 @@ pub enum PushType {
     /// The push type for notifications that provide information about an incoming
     /// Voice-over-IP (VoIP) call.
     Voip,
+    /// The push type for notifications that contain update information for a watchOS app’s complications
+    Complication,
     /// The push type to signal changes to a File Provider extension.
     FileProvider,
     /// The push type for notifications that tell managed devices to contact the
@@ -59,6 +61,7 @@ impl fmt::Display for PushType {
             PushType::Background => "background",
             PushType::Location => "location",
             PushType::Voip => "voip",
+            PushType::Complication => "complication",
             PushType::FileProvider => "fileprovider",
             PushType::Mdm => "mdm",
             PushType::LiveActivity => "liveactivity",
