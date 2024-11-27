@@ -16,6 +16,7 @@ use hyper_rustls::{ConfigBuilderExt, HttpsConnector, HttpsConnectorBuilder};
 use hyper_util::client::legacy::connect::HttpConnector;
 use hyper_util::client::legacy::Client as HttpClient;
 use hyper_util::rt::TokioExecutor;
+use std::borrow::Cow;
 use std::convert::Infallible;
 use std::io::Read;
 use std::time::Duration;
@@ -28,6 +29,8 @@ type HyperConnector = HttpsConnector<HttpConnector>;
 /// The APNs service endpoint to connect.
 #[derive(Debug, Clone)]
 pub enum Endpoint {
+    /// Custom endpoint.
+    Custom(Cow<'static, str>),
     /// The production environment (api.push.apple.com)
     Production,
     /// The development/test environment (api.development.push.apple.com)
@@ -37,11 +40,12 @@ pub enum Endpoint {
 impl fmt::Display for Endpoint {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let host = match self {
+            Endpoint::Custom(host) => host.as_ref(),
             Endpoint::Production => "api.push.apple.com",
             Endpoint::Sandbox => "api.development.push.apple.com",
         };
 
-        write!(f, "{}", host)
+        write!(f, "{host}")
     }
 }
 
