@@ -8,6 +8,7 @@ use tokio::time::timeout;
 use crate::request::payload::PayloadLike;
 use crate::response::Response;
 use http::header::{AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE};
+use http::Uri;
 use http_body_util::combinators::BoxBody;
 use http_body_util::{BodyExt, Full};
 use hyper::body::Bytes;
@@ -16,7 +17,6 @@ use hyper_rustls::{ConfigBuilderExt, HttpsConnector, HttpsConnectorBuilder};
 use hyper_util::client::legacy::connect::HttpConnector;
 use hyper_util::client::legacy::Client as HttpClient;
 use hyper_util::rt::TokioExecutor;
-use std::borrow::Cow;
 use std::convert::Infallible;
 use std::io::Read;
 use std::time::Duration;
@@ -26,26 +26,32 @@ const DEFAULT_REQUEST_TIMEOUT_SECS: u64 = 20;
 
 type HyperConnector = HttpsConnector<HttpConnector>;
 
-/// The APNs service endpoint to connect.
+/// The APNs service endpoint to send requests to.
+///
+/// Being appended with device token the notification
+/// is sent to in `[endpoint]/[device_token]` format.
 #[derive(Debug, Clone)]
 pub enum Endpoint {
-    /// Custom endpoint.
-    Custom(Cow<'static, str>),
-    /// The production environment (api.push.apple.com)
+    /// Custom endpoint [`Uri`].
+    ///
+    /// [`Uri::path`] should not contains trailing `/`.
+    Custom(Uri),
+
+    /// The production environment (`https://api.push.apple.com/3/device`).
     Production,
-    /// The development/test environment (api.development.push.apple.com)
+
+    /// The development/test environment
+    /// (`https://api.development.push.apple.com/3/device`).
     Sandbox,
 }
 
 impl fmt::Display for Endpoint {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let host = match self {
-            Endpoint::Custom(host) => host.as_ref(),
-            Endpoint::Production => "api.push.apple.com",
-            Endpoint::Sandbox => "api.development.push.apple.com",
-        };
-
-        write!(f, "{host}")
+        match self {
+            Endpoint::Custom(uri) => write!(f, "{uri}"),
+            Endpoint::Production => write!(f, "https://api.push.apple.com/3/device"),
+            Endpoint::Sandbox => write!(f, "https://api.development.push.apple.com/3/device"),
+        }
     }
 }
 
@@ -261,11 +267,7 @@ impl Client {
     }
 
     fn build_request<T: PayloadLike>(&self, payload: T) -> Result<hyper::Request<BoxBody<Bytes, Infallible>>, Error> {
-        let path = format!(
-            "https://{}/3/device/{}",
-            self.options.endpoint,
-            payload.get_device_token()
-        );
+        let path = format!("{}/{}", self.options.endpoint, payload.get_device_token());
 
         let mut builder = hyper::Request::builder()
             .uri(&path)
