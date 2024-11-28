@@ -29,19 +29,19 @@ type HyperConnector = HttpsConnector<HttpConnector>;
 /// The APNs service endpoint to send requests to.
 ///
 /// Being appended with device token the notification
-/// is sent to in `[endpoint]/[device_token]` format.
+/// is sent to in a `[endpoint]/[device_token]` format.
 #[derive(Debug, Clone)]
 pub enum Endpoint {
     /// Custom endpoint [`Uri`].
     ///
-    /// [`Uri::path`] should not contains trailing `/`.
+    /// [`Uri::path`] should not contain trailing `/`.
     Custom(Uri),
 
-    /// The production environment (`https://api.push.apple.com/3/device`).
+    /// The production environment (`https://api.push.apple.com`).
     Production,
 
     /// The development/test environment
-    /// (`https://api.development.push.apple.com/3/device`).
+    /// (`https://api.development.push.apple.com`).
     Sandbox,
 }
 
@@ -49,8 +49,8 @@ impl fmt::Display for Endpoint {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Endpoint::Custom(uri) => write!(f, "{uri}"),
-            Endpoint::Production => write!(f, "https://api.push.apple.com/3/device"),
-            Endpoint::Sandbox => write!(f, "https://api.development.push.apple.com/3/device"),
+            Endpoint::Production => write!(f, "https://api.push.apple.com"),
+            Endpoint::Sandbox => write!(f, "https://api.development.push.apple.com"),
         }
     }
 }
@@ -267,7 +267,7 @@ impl Client {
     }
 
     fn build_request<T: PayloadLike>(&self, payload: T) -> Result<hyper::Request<BoxBody<Bytes, Infallible>>, Error> {
-        let path = format!("{}/{}", self.options.endpoint, payload.get_device_token());
+        let path = format!("{}/3/device/{}", self.options.endpoint, payload.get_device_token());
 
         let mut builder = hyper::Request::builder()
             .uri(&path)
