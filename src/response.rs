@@ -102,6 +102,9 @@ pub enum ErrorReason {
     /// The provider token is not valid or the token signature could not be verified.
     InvalidProviderToken,
 
+    /// The `apns-push-type` attribute is set to an incorrect value.
+    InvalidPushType,
+
     /// No provider certificate was used to connect to APNs and Authorization
     /// header was missing or no provider token was specified.
     MissingProviderToken,
@@ -174,6 +177,8 @@ impl fmt::Display for ErrorReason {
                 "The specified action is not allowed.",
             ErrorReason::InvalidProviderToken =>
                 "The provider token is not valid or the token signature could not be verified.",
+            ErrorReason::InvalidPushType =>
+                "The `apns-push-type` attribute is set to an incorrect value.",
             ErrorReason::MissingProviderToken =>
                 "No provider certificate was used to connect to APNs and Authorization header was missing or no provider token was specified.",
             ErrorReason::BadPath =>
