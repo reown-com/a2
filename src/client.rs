@@ -30,7 +30,7 @@ type HyperConnector = HttpsConnector<HttpConnector>;
 pub enum Endpoint {
     /// The production environment (api.push.apple.com)
     Production,
-    /// The development/test environment (api.development.push.apple.com)
+    /// The development/test environment (api.sandbox.push.apple.com)
     Sandbox,
 }
 
@@ -38,7 +38,7 @@ impl fmt::Display for Endpoint {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let host = match self {
             Endpoint::Production => "api.push.apple.com",
-            Endpoint::Sandbox => "api.development.push.apple.com",
+            Endpoint::Sandbox => "api.sandbox.push.apple.com",
         };
 
         write!(f, "{}", host)
@@ -372,7 +372,7 @@ jDwmlD1Gg0yJt1e38djFwsxsfr5q2hv0Rj9fTEqAPr8H7mGm0wKxZ7iQ
         let request = client.build_request(payload).unwrap();
         let uri = format!("{}", request.uri());
 
-        assert_eq!("https://api.development.push.apple.com/3/device/a_test_id", &uri);
+        assert_eq!("https://api.sandbox.push.apple.com/3/device/a_test_id", &uri);
     }
 
     #[test]
