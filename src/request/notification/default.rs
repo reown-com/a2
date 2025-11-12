@@ -1,7 +1,7 @@
 use crate::request::notification::{NotificationBuilder, NotificationOptions};
 use crate::request::payload::{APSAlert, APSSound, Payload, APS};
 
-use std::{borrow::Cow, collections::BTreeMap};
+use std::collections::BTreeMap;
 
 /// Represents a bool that serializes as a u8 0/1 for false/true respectively
 mod bool_as_u8 {
@@ -38,12 +38,12 @@ mod bool_as_u8 {
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "kebab-case")]
-pub struct DefaultSound<'a> {
+pub struct DefaultSound {
     #[serde(skip_serializing_if = "std::ops::Not::not", with = "bool_as_u8")]
     critical: bool,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    name: Option<&'a str>,
+    name: Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     volume: Option<f64>,
@@ -51,33 +51,33 @@ pub struct DefaultSound<'a> {
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "kebab-case")]
-pub struct DefaultAlert<'a> {
+pub struct DefaultAlert {
     #[serde(skip_serializing_if = "Option::is_none")]
-    title: Option<&'a str>,
+    title: Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    subtitle: Option<&'a str>,
+    subtitle: Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    body: Option<&'a str>,
+    body: Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    title_loc_key: Option<&'a str>,
+    title_loc_key: Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    title_loc_args: Option<Vec<Cow<'a, str>>>,
+    title_loc_args: Option<Vec<String>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    action_loc_key: Option<&'a str>,
+    action_loc_key: Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    loc_key: Option<&'a str>,
+    loc_key: Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    loc_args: Option<Vec<Cow<'a, str>>>,
+    loc_args: Option<Vec<String>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    launch_image: Option<&'a str>,
+    launch_image: Option<String>,
 }
 
 /// A builder to create an APNs payload.
@@ -89,37 +89,37 @@ pub struct DefaultAlert<'a> {
 /// # use a2::request::payload::PayloadLike;
 /// # fn main() {
 /// let mut builder = DefaultNotificationBuilder::new()
-///     .set_title("Hi there")
-///     .set_subtitle("From bob")
-///     .set_body("What's up?")
+///     .set_title("Hi there".to_owned())
+///     .set_subtitle("From bob".to_owned())
+///     .set_body("What's up?".to_owned())
 ///     .set_badge(420)
-///     .set_category("cat1")
-///     .set_sound("prööt")
+///     .set_category("cat1".to_owned())
+///     .set_sound("prööt".to_owned())
 ///     .set_critical(false, None)
 ///     .set_mutable_content()
-///     .set_action_loc_key("PLAY")
-///     .set_launch_image("foo.jpg")
-///     .set_loc_args(&["argh", "narf"])
-///     .set_title_loc_key("STOP")
-///     .set_title_loc_args(&["herp", "derp"])
-///     .set_loc_key("PAUSE")
-///     .set_loc_args(&["narf", "derp"]);
-/// let payload = builder.build("device_id", Default::default())
+///     .set_action_loc_key("PLAY".to_owned())
+///     .set_launch_image("foo.jpg".to_owned())
+///     .set_loc_args(vec!["argh".to_owned(), "narf".to_owned()])
+///     .set_title_loc_key("STOP".to_owned())
+///     .set_title_loc_args(vec!["herp".to_owned(), "derp".to_owned()])
+///     .set_loc_key("PAUSE".to_owned())
+///     .set_loc_args(vec!["narf".to_owned(), "derp".to_owned()]);
+/// let payload = builder.build("device_id".to_owned(), Default::default())
 ///   .to_json_string().unwrap();
 /// # }
 /// ```
 #[derive(Debug, Clone)]
-pub struct DefaultNotificationBuilder<'a> {
-    alert: DefaultAlert<'a>,
+pub struct DefaultNotificationBuilder {
+    alert: DefaultAlert,
     badge: Option<u32>,
-    sound: DefaultSound<'a>,
-    category: Option<&'a str>,
+    sound: DefaultSound,
+    category: Option<String>,
     mutable_content: u8,
     content_available: Option<u8>,
     has_edited_alert: bool,
 }
 
-impl<'a> DefaultNotificationBuilder<'a> {
+impl DefaultNotificationBuilder {
     /// Creates a new builder with the minimum amount of content.
     ///
     /// ```rust
@@ -127,9 +127,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let payload = DefaultNotificationBuilder::new()
-    ///     .set_title("a title")
-    ///     .set_body("a body")
-    ///     .build("token", Default::default());
+    ///     .set_title("a title".to_owned())
+    ///     .set_body("a body".to_owned())
+    ///     .build("token".to_owned(), Default::default());
     ///
     /// assert_eq!(
     ///     "{\"aps\":{\"alert\":{\"title\":\"a title\",\"body\":\"a body\"},\"mutable-content\":0}}",
@@ -137,7 +137,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn new() -> DefaultNotificationBuilder<'a> {
+    pub fn new() -> DefaultNotificationBuilder {
         DefaultNotificationBuilder {
             alert: DefaultAlert {
                 title: None,
@@ -172,8 +172,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
-    ///     .set_title("a title");
-    /// let payload = builder.build("token", Default::default());
+    ///     .set_title("a title".to_owned());
+    /// let payload = builder.build("token".to_owned(), Default::default());
     ///
     /// assert_eq!(
     ///     "{\"aps\":{\"alert\":{\"title\":\"a title\"},\"mutable-content\":0}}",
@@ -181,8 +181,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_title(mut self, title: &'a str) -> Self {
-        self.alert.title = Some(title);
+    pub fn set_title(mut self, title: impl Into<String>) -> Self {
+        self.alert.title = Some(title.into());
         self.has_edited_alert = true;
         self
     }
@@ -197,7 +197,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_critical(true, None);
-    /// let payload = builder.build("token", Default::default());
+    /// let payload = builder.build("token".to_owned(), Default::default());
     ///
     /// assert_eq!(
     ///     "{\"aps\":{\"sound\":{\"critical\":1},\"mutable-content\":0}}",
@@ -223,8 +223,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
-    ///     .set_subtitle("a subtitle");
-    /// let payload = builder.build("token", Default::default());
+    ///     .set_subtitle("a subtitle".to_owned());
+    /// let payload = builder.build("token".to_owned(), Default::default());
     ///
     /// assert_eq!(
     ///     "{\"aps\":{\"alert\":{\"subtitle\":\"a subtitle\"},\"mutable-content\":0}}",
@@ -232,8 +232,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_subtitle(mut self, subtitle: &'a str) -> Self {
-        self.alert.subtitle = Some(subtitle);
+    pub fn set_subtitle(mut self, subtitle: impl Into<String>) -> Self {
+        self.alert.subtitle = Some(subtitle.into());
         self.has_edited_alert = true;
         self
     }
@@ -245,8 +245,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
-    ///     .set_body("a body");
-    /// let payload = builder.build("token", Default::default());
+    ///     .set_body("a body".to_owned());
+    /// let payload = builder.build("token".to_owned(), Default::default());
     ///
     /// assert_eq!(
     ///     "{\"aps\":{\"alert\":\"a body\",\"mutable-content\":0}}",
@@ -254,8 +254,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_body(mut self, body: &'a str) -> Self {
-        self.alert.body = Some(body);
+    pub fn set_body(mut self, body: impl Into<String>) -> Self {
+        self.alert.body = Some(body.into());
         self
     }
 
@@ -267,7 +267,7 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_badge(4);
-    /// let payload = builder.build("token", Default::default());
+    /// let payload = builder.build("token".to_owned(), Default::default());
     ///
     /// assert_eq!(
     ///     "{\"aps\":{\"badge\":4,\"mutable-content\":0}}",
@@ -287,9 +287,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
-    ///     .set_title("a title")
-    ///     .set_sound("ping");
-    /// let payload = builder.build("token", Default::default());
+    ///     .set_title("a title".to_owned())
+    ///     .set_sound("ping".to_owned());
+    /// let payload = builder.build("token".to_owned(), Default::default());
     ///
     /// assert_eq!(
     ///     "{\"aps\":{\"alert\":{\"title\":\"a title\"},\"sound\":\"ping\",\"mutable-content\":0}}",
@@ -297,8 +297,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_sound(mut self, sound: &'a str) -> Self {
-        self.sound.name = Some(sound);
+    pub fn set_sound(mut self, sound: impl Into<String>) -> Self {
+        self.sound.name = Some(sound.into());
         self
     }
 
@@ -310,9 +310,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
-    ///     .set_title("a title")
-    ///     .set_category("cat1");
-    /// let payload = builder.build("token", Default::default());
+    ///     .set_title("a title".to_owned())
+    ///     .set_category("cat1".to_owned());
+    /// let payload = builder.build("token".to_owned(), Default::default());
     ///
     /// assert_eq!(
     ///     "{\"aps\":{\"alert\":{\"title\":\"a title\"},\"category\":\"cat1\",\"mutable-content\":0}}",
@@ -320,8 +320,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_category(mut self, category: &'a str) -> Self {
-        self.category = Some(category);
+    pub fn set_category(mut self, category: impl Into<String>) -> Self {
+        self.category = Some(category.into());
         self
     }
 
@@ -332,9 +332,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
-    ///     .set_title("a title")
-    ///     .set_title_loc_key("play");
-    /// let payload = builder.build("token", Default::default());
+    ///     .set_title("a title".to_owned())
+    ///     .set_title_loc_key("play".to_owned());
+    /// let payload = builder.build("token".to_owned(), Default::default());
     ///
     /// assert_eq!(
     ///     "{\"aps\":{\"alert\":{\"title\":\"a title\",\"title-loc-key\":\"play\"},\"mutable-content\":0}}",
@@ -342,8 +342,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_title_loc_key(mut self, key: &'a str) -> Self {
-        self.alert.title_loc_key = Some(key);
+    pub fn set_title_loc_key(mut self, key: impl Into<String>) -> Self {
+        self.alert.title_loc_key = Some(key.into());
         self.has_edited_alert = true;
         self
     }
@@ -355,9 +355,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
-    ///     .set_title("a title")
-    ///     .set_title_loc_args(&["foo", "bar"]);
-    /// let payload = builder.build("token", Default::default());
+    ///     .set_title("a title".to_owned())
+    ///     .set_title_loc_args(vec!["foo".to_owned(), "bar".to_owned()]);
+    /// let payload = builder.build("token".to_owned(), Default::default());
     ///
     /// assert_eq!(
     ///     "{\"aps\":{\"alert\":{\"title\":\"a title\",\"title-loc-args\":[\"foo\",\"bar\"]},\"mutable-content\":0}}",
@@ -365,9 +365,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_title_loc_args<S>(mut self, args: &'a [S]) -> Self
+    pub fn set_title_loc_args<S>(mut self, args: Vec<S>) -> Self
     where
-        S: Into<Cow<'a, str>> + AsRef<str>,
+        S: Into<String> + AsRef<str>,
     {
         let converted = args.iter().map(|a| a.as_ref().into()).collect();
 
@@ -383,9 +383,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
-    ///     .set_title("a title")
-    ///     .set_action_loc_key("stop");
-    /// let payload = builder.build("token", Default::default());
+    ///     .set_title("a title".to_owned())
+    ///     .set_action_loc_key("stop".to_owned());
+    /// let payload = builder.build("token".to_owned(), Default::default());
     ///
     /// assert_eq!(
     ///     "{\"aps\":{\"alert\":{\"title\":\"a title\",\"action-loc-key\":\"stop\"},\"mutable-content\":0}}",
@@ -393,8 +393,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_action_loc_key(mut self, key: &'a str) -> Self {
-        self.alert.action_loc_key = Some(key);
+    pub fn set_action_loc_key(mut self, key: impl Into<String>) -> Self {
+        self.alert.action_loc_key = Some(key.into());
         self.has_edited_alert = true;
         self
     }
@@ -406,9 +406,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
-    ///     .set_title("a title")
-    ///     .set_loc_key("lol");
-    /// let payload = builder.build("token", Default::default());
+    ///     .set_title("a title".to_owned())
+    ///     .set_loc_key("lol".to_owned());
+    /// let payload = builder.build("token".to_owned(), Default::default());
     ///
     /// assert_eq!(
     ///     "{\"aps\":{\"alert\":{\"title\":\"a title\",\"loc-key\":\"lol\"},\"mutable-content\":0}}",
@@ -416,8 +416,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_loc_key(mut self, key: &'a str) -> Self {
-        self.alert.loc_key = Some(key);
+    pub fn set_loc_key(mut self, key: impl Into<String>) -> Self {
+        self.alert.loc_key = Some(key.into());
         self.has_edited_alert = true;
         self
     }
@@ -429,19 +429,20 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
-    ///     .set_title("a title")
-    ///     .set_loc_args(&["omg", "foo"]);
-    /// let payload = builder.build("token", Default::default());
+    ///     .set_title("a title".to_owned())
+    ///     .set_loc_key("lol".to_owned())
+    ///     .set_loc_args(vec!["omg".to_owned(), "foo".to_owned()]);
+    /// let payload = builder.build("token".to_owned(), Default::default());
     ///
     /// assert_eq!(
-    ///     "{\"aps\":{\"alert\":{\"title\":\"a title\",\"loc-args\":[\"omg\",\"foo\"]},\"mutable-content\":0}}",
+    ///     "{\"aps\":{\"alert\":{\"title\":\"a title\",\"loc-key\":\"lol\",\"loc-args\":[\"omg\",\"foo\"]},\"mutable-content\":0}}",
     ///     &payload.to_json_string().unwrap()
     /// );
     /// # }
     /// ```
-    pub fn set_loc_args<S>(mut self, args: &'a [S]) -> Self
+    pub fn set_loc_args<S>(mut self, args: Vec<S>) -> Self
     where
-        S: Into<Cow<'a, str>> + AsRef<str>,
+        S: Into<String> + AsRef<str>,
     {
         let converted = args.iter().map(|a| a.as_ref().into()).collect();
 
@@ -457,9 +458,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
-    ///     .set_title("a title")
-    ///     .set_launch_image("cat.png");
-    /// let payload = builder.build("token", Default::default());
+    ///     .set_title("a title".to_owned())
+    ///     .set_launch_image("cat.png".to_owned());
+    /// let payload = builder.build("token".to_owned(), Default::default());
     ///
     /// assert_eq!(
     ///     "{\"aps\":{\"alert\":{\"title\":\"a title\",\"launch-image\":\"cat.png\"},\"mutable-content\":0}}",
@@ -467,8 +468,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_launch_image(mut self, image: &'a str) -> Self {
-        self.alert.launch_image = Some(image);
+    pub fn set_launch_image(mut self, image: impl Into<String>) -> Self {
+        self.alert.launch_image = Some(image.into());
         self.has_edited_alert = true;
         self
     }
@@ -480,9 +481,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
-    ///     .set_title("a title")
+    ///     .set_title("a title".to_owned())
     ///     .set_mutable_content();
-    /// let payload = builder.build("token", Default::default());
+    /// let payload = builder.build("token".to_owned(), Default::default());
     ///
     /// assert_eq!(
     ///     "{\"aps\":{\"alert\":{\"title\":\"a title\"},\"mutable-content\":1}}",
@@ -502,9 +503,9 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
-    ///     .set_title("a title")
+    ///     .set_title("a title".to_owned())
     ///     .set_content_available();
-    /// let payload = builder.build("token", Default::default());
+    /// let payload = builder.build("token".to_owned(), Default::default());
     ///
     /// assert_eq!(
     ///     "{\"aps\":{\"alert\":{\"title\":\"a title\"},\"content-available\":1,\"mutable-content\":0}}",
@@ -518,8 +519,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     }
 }
 
-impl<'a> NotificationBuilder<'a> for DefaultNotificationBuilder<'a> {
-    fn build(self, device_token: &'a str, options: NotificationOptions<'a>) -> Payload<'a> {
+impl NotificationBuilder for DefaultNotificationBuilder {
+    fn build(self, device_token: impl Into<String>, options: NotificationOptions) -> Payload {
         Payload {
             aps: APS {
                 alert: match self.has_edited_alert {
@@ -537,14 +538,14 @@ impl<'a> NotificationBuilder<'a> for DefaultNotificationBuilder<'a> {
                 mutable_content: Some(self.mutable_content),
                 url_args: None,
             },
-            device_token,
+            device_token: device_token.into(),
             options,
             data: BTreeMap::new(),
         }
     }
 }
 
-impl<'a> Default for DefaultNotificationBuilder<'a> {
+impl Default for DefaultNotificationBuilder {
     fn default() -> Self {
         Self::new()
     }
@@ -558,9 +559,9 @@ mod tests {
     #[test]
     fn test_default_notification_with_minimal_required_values() {
         let payload = DefaultNotificationBuilder::new()
-            .set_title("the title")
-            .set_body("the body")
-            .build("device-token", Default::default());
+            .set_title("the title".to_string())
+            .set_body("the body".to_string())
+            .build("device-token".to_string(), Default::default());
 
         let expected_payload = json!({
             "aps": {
@@ -578,22 +579,22 @@ mod tests {
     #[test]
     fn test_default_notification_with_full_data() {
         let builder = DefaultNotificationBuilder::new()
-            .set_title("the title")
-            .set_body("the body")
+            .set_title("the title".to_string())
+            .set_body("the body".to_string())
             .set_badge(420)
-            .set_category("cat1")
-            .set_sound("prööt")
+            .set_category("cat1".to_string())
+            .set_sound("prööt".to_string())
             .set_critical(true, Some(1.0))
             .set_mutable_content()
-            .set_action_loc_key("PLAY")
-            .set_launch_image("foo.jpg")
-            .set_loc_args(&["argh", "narf"])
-            .set_title_loc_key("STOP")
-            .set_title_loc_args(&["herp", "derp"])
-            .set_loc_key("PAUSE")
-            .set_loc_args(&["narf", "derp"]);
+            .set_action_loc_key("PLAY".to_string())
+            .set_launch_image("foo.jpg".to_string())
+            .set_loc_args(vec!["argh".to_string(), "narf".to_string()])
+            .set_title_loc_key("STOP".to_string())
+            .set_title_loc_args(vec!["herp".to_string(), "derp".to_string()])
+            .set_loc_key("PAUSE".to_string())
+            .set_loc_args(vec!["narf".to_string(), "derp".to_string()]);
 
-        let payload = builder.build("device-token", Default::default());
+        let payload = builder.build("device-token".to_string(), Default::default());
 
         let expected_payload = json!({
             "aps": {
@@ -625,30 +626,32 @@ mod tests {
     fn test_notification_with_custom_data_1() {
         #[derive(Serialize, Debug)]
         struct SubData {
-            nothing: &'static str,
+            nothing: String,
         }
 
         #[derive(Serialize, Debug)]
         struct TestData {
-            key_str: &'static str,
+            key_str: String,
             key_num: u32,
             key_bool: bool,
             key_struct: SubData,
         }
 
         let test_data = TestData {
-            key_str: "foo",
+            key_str: "foo".to_owned(),
             key_num: 42,
             key_bool: false,
-            key_struct: SubData { nothing: "here" },
+            key_struct: SubData {
+                nothing: "here".to_owned(),
+            },
         };
 
         let mut payload = DefaultNotificationBuilder::new()
-            .set_title("the title")
-            .set_body("the body")
-            .build("device-token", Default::default());
+            .set_title("the title".to_string())
+            .set_body("the body".to_string())
+            .build("device-token".to_string(), Default::default());
 
-        payload.add_custom_data("custom", &test_data).unwrap();
+        payload.add_custom_data("custom".to_string(), &test_data).unwrap();
 
         let expected_payload = json!({
             "custom": {
@@ -675,29 +678,31 @@ mod tests {
     fn test_notification_with_custom_data_2() {
         #[derive(Serialize, Debug)]
         struct SubData {
-            nothing: &'static str,
+            nothing: String,
         }
 
         #[derive(Serialize, Debug)]
         struct TestData {
-            key_str: &'static str,
+            key_str: String,
             key_num: u32,
             key_bool: bool,
             key_struct: SubData,
         }
 
         let test_data = TestData {
-            key_str: "foo",
+            key_str: "foo".to_owned(),
             key_num: 42,
             key_bool: false,
-            key_struct: SubData { nothing: "here" },
+            key_struct: SubData {
+                nothing: "here".to_owned(),
+            },
         };
 
         let mut payload = DefaultNotificationBuilder::new()
-            .set_body("kulli")
-            .build("device-token", Default::default());
+            .set_body("kulli".to_string())
+            .build("device-token".to_string(), Default::default());
 
-        payload.add_custom_data("custom", &test_data).unwrap();
+        payload.add_custom_data("custom".to_string(), &test_data).unwrap();
 
         let expected_payload = json!({
             "custom": {
@@ -721,7 +726,7 @@ mod tests {
     fn test_silent_notification_with_no_content() {
         let payload = DefaultNotificationBuilder::new()
             .set_content_available()
-            .build("device-token", Default::default());
+            .build("device-token".to_string(), Default::default());
 
         let expected_payload = json!({
             "aps": {
@@ -737,29 +742,31 @@ mod tests {
     fn test_silent_notification_with_custom_data() {
         #[derive(Serialize, Debug)]
         struct SubData {
-            nothing: &'static str,
+            nothing: String,
         }
 
         #[derive(Serialize, Debug)]
         struct TestData {
-            key_str: &'static str,
+            key_str: String,
             key_num: u32,
             key_bool: bool,
             key_struct: SubData,
         }
 
         let test_data = TestData {
-            key_str: "foo",
+            key_str: "foo".to_owned(),
             key_num: 42,
             key_bool: false,
-            key_struct: SubData { nothing: "here" },
+            key_struct: SubData {
+                nothing: "here".to_owned(),
+            },
         };
 
         let mut payload = DefaultNotificationBuilder::new()
             .set_content_available()
-            .build("device-token", Default::default());
+            .build("device-token".to_string(), Default::default());
 
-        payload.add_custom_data("custom", &test_data).unwrap();
+        payload.add_custom_data("custom".to_string(), &test_data).unwrap();
 
         let expected_payload = json!({
             "aps": {
@@ -787,9 +794,9 @@ mod tests {
 
         let mut payload = DefaultNotificationBuilder::new()
             .set_content_available()
-            .build("device-token", Default::default());
+            .build("device-token".to_string(), Default::default());
 
-        payload.add_custom_data("custom", &test_data).unwrap();
+        payload.add_custom_data("custom".to_string(), &test_data).unwrap();
 
         let expected_payload = json!({
             "aps": {

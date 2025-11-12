@@ -4,10 +4,10 @@ use std::collections::BTreeMap;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "kebab-case")]
-pub struct WebPushAlert<'a> {
-    pub title: &'a str,
-    pub body: &'a str,
-    pub action: &'a str,
+pub struct WebPushAlert {
+    pub title: String,
+    pub body: String,
+    pub action: String,
 }
 
 /// A builder to create a simple APNs notification payload.
@@ -18,27 +18,27 @@ pub struct WebPushAlert<'a> {
 /// # use a2::request::notification::{NotificationBuilder, WebNotificationBuilder, WebPushAlert};
 /// # use a2::request::payload::PayloadLike;
 /// # fn main() {
-/// let mut builder = WebNotificationBuilder::new(WebPushAlert {title: "Hello", body: "World", action: "View"}, &["arg1"]);
-/// builder.set_sound("prööt");
-/// let payload = builder.build("device_id", Default::default())
+/// let mut builder = WebNotificationBuilder::new(WebPushAlert {title: "Hello".to_owned(), body: "World".to_owned(), action: "View".to_owned()}, vec!["arg1".to_owned()]);
+/// builder.set_sound("prööt".to_owned());
+/// let payload = builder.build("device_id".to_owned(), Default::default())
 ///    .to_json_string().unwrap();
 /// # }
 /// ```
-pub struct WebNotificationBuilder<'a> {
-    alert: WebPushAlert<'a>,
-    sound: Option<&'a str>,
-    url_args: &'a [&'a str],
+pub struct WebNotificationBuilder {
+    alert: WebPushAlert,
+    sound: Option<String>,
+    url_args: Vec<String>,
 }
 
-impl<'a> WebNotificationBuilder<'a> {
+impl WebNotificationBuilder {
     /// Creates a new builder with the minimum amount of content.
     ///
     /// ```rust
     /// # use a2::request::notification::{WebNotificationBuilder, NotificationBuilder, WebPushAlert};
     /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
-    /// let mut builder = WebNotificationBuilder::new(WebPushAlert {title: "Hello", body: "World", action: "View"}, &["arg1"]);
-    /// let payload = builder.build("token", Default::default());
+    /// let mut builder = WebNotificationBuilder::new(WebPushAlert {title: "Hello".to_owned(), body: "World".to_owned(), action: "View".to_owned()}, vec!["arg1".to_owned()]);
+    /// let payload = builder.build("token".to_owned(), Default::default());
     ///
     /// assert_eq!(
     ///     "{\"aps\":{\"alert\":{\"title\":\"Hello\",\"body\":\"World\",\"action\":\"View\"},\"url-args\":[\"arg1\"]}}",
@@ -46,7 +46,7 @@ impl<'a> WebNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn new(alert: WebPushAlert<'a>, url_args: &'a [&'a str]) -> WebNotificationBuilder<'a> {
+    pub fn new(alert: WebPushAlert, url_args: Vec<String>) -> WebNotificationBuilder {
         WebNotificationBuilder {
             alert,
             sound: None,
@@ -60,9 +60,9 @@ impl<'a> WebNotificationBuilder<'a> {
     /// # use a2::request::notification::{WebNotificationBuilder, NotificationBuilder, WebPushAlert};
     /// # use a2::request::payload::PayloadLike;
     /// # fn main() {
-    /// let mut builder = WebNotificationBuilder::new(WebPushAlert {title: "Hello", body: "World", action: "View"}, &["arg1"]);
-    /// builder.set_sound("meow");
-    /// let payload = builder.build("token", Default::default());
+    /// let mut builder = WebNotificationBuilder::new(WebPushAlert {title: "Hello".to_owned(), body: "World".to_owned(), action: "View".to_owned()}, vec!["arg1".to_owned()]);
+    /// builder.set_sound("meow".to_owned());
+    /// let payload = builder.build("token".to_owned(), Default::default());
     ///
     /// assert_eq!(
     ///     "{\"aps\":{\"alert\":{\"title\":\"Hello\",\"body\":\"World\",\"action\":\"View\"},\"sound\":\"meow\",\"url-args\":[\"arg1\"]}}",
@@ -70,14 +70,14 @@ impl<'a> WebNotificationBuilder<'a> {
     /// );
     /// # }
     /// ```
-    pub fn set_sound(&mut self, sound: &'a str) -> &mut Self {
-        self.sound = Some(sound);
+    pub fn set_sound(&mut self, sound: impl Into<String>) -> &mut Self {
+        self.sound = Some(sound.into());
         self
     }
 }
 
-impl<'a> NotificationBuilder<'a> for WebNotificationBuilder<'a> {
-    fn build(self, device_token: &'a str, options: NotificationOptions<'a>) -> Payload<'a> {
+impl NotificationBuilder for WebNotificationBuilder {
+    fn build(self, device_token: impl Into<String>, options: NotificationOptions) -> Payload {
         Payload {
             aps: APS {
                 alert: Some(APSAlert::WebPush(self.alert)),
@@ -88,7 +88,7 @@ impl<'a> NotificationBuilder<'a> for WebNotificationBuilder<'a> {
                 mutable_content: None,
                 url_args: Some(self.url_args),
             },
-            device_token,
+            device_token: device_token.into(),
             options,
             data: BTreeMap::new(),
         }
@@ -105,13 +105,13 @@ mod tests {
     fn test_webpush_notification() {
         let payload = WebNotificationBuilder::new(
             WebPushAlert {
-                action: "View",
-                title: "Hello",
-                body: "world",
+                action: "View".to_string(),
+                title: "Hello".to_string(),
+                body: "world".to_string(),
             },
-            &["arg1"],
+            vec!["arg1".to_string()],
         )
-        .build("device-token", Default::default())
+        .build("device-token".to_string(), Default::default())
         .to_json_string()
         .unwrap();
 

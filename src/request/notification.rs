@@ -9,7 +9,7 @@ pub use self::web::{WebNotificationBuilder, WebPushAlert};
 
 use crate::request::payload::Payload;
 
-pub trait NotificationBuilder<'a> {
+pub trait NotificationBuilder {
     /// Generates the request payload to be send with the `Client`.
-    fn build(self, device_token: &'a str, options: NotificationOptions<'a>) -> Payload<'a>;
+    fn build(self, device_token: impl Into<String>, options: NotificationOptions) -> Payload;
 }

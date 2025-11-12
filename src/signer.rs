@@ -39,14 +39,14 @@ enum JwtAlg {
 }
 
 #[derive(Serialize, Deserialize)]
-struct JwtHeader<'a> {
+struct JwtHeader {
     alg: JwtAlg,
-    kid: &'a str,
+    kid: String,
 }
 
 #[derive(Serialize, Deserialize)]
-struct JwtPayload<'a> {
-    iss: &'a str,
+struct JwtPayload {
+    iss: String,
     iat: i64,
 }
 
@@ -111,7 +111,7 @@ impl Signer {
 
         let issued_at = get_time();
         let signature = RwLock::new(Signature {
-            key: Self::create_signature(&secret, &key_id, &team_id, issued_at)?,
+            key: Self::create_signature(&secret, key_id.clone(), team_id.clone(), issued_at)?,
             issued_at,
         });
 
@@ -151,7 +151,7 @@ impl Signer {
         Ok(f(&signature.key))
     }
 
-    fn create_signature(secret: &Secret, key_id: &str, team_id: &str, issued_at: i64) -> Result<String, Error> {
+    fn create_signature(secret: &Secret, key_id: String, team_id: String, issued_at: i64) -> Result<String, Error> {
         let headers = JwtHeader {
             alg: JwtAlg::ES256,
             kid: key_id,
@@ -192,7 +192,7 @@ impl Signer {
         let mut signature = self.signature.write();
 
         *signature = Signature {
-            key: Self::create_signature(&self.secret, &self.key_id, &self.team_id, issued_at)?,
+            key: Self::create_signature(&self.secret, self.key_id.clone(), self.team_id.clone(), issued_at)?,
             issued_at,
         };
 

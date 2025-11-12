@@ -57,17 +57,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let client = new_client()?;
 
     let options = NotificationOptions {
-        apns_topic: topic.as_deref(),
+        apns_topic: topic,
         ..Default::default()
     };
 
     // Notification payload
     let builder = DefaultNotificationBuilder::new()
-        .set_body(message.as_ref())
-        .set_sound("default")
+        .set_body(message)
+        .set_sound("default".to_string())
         .set_badge(1u32);
 
-    let payload = builder.build(device_token.as_ref(), options);
+    let payload = builder.build(device_token, options);
     let response = client.send(payload).await?;
 
     println!("Sent: {:?}", response);

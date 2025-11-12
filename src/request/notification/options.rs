@@ -2,13 +2,14 @@ use crate::error::Error;
 use std::fmt;
 
 #[derive(Debug, Clone)]
-pub struct CollapseId<'a> {
-    pub value: &'a str,
+pub struct CollapseId {
+    pub value: String,
 }
 
 /// A collapse-id container. Will not allow bigger id's than 64 bytes.
-impl<'a> CollapseId<'a> {
-    pub fn new(value: &'a str) -> Result<CollapseId<'a>, Error> {
+impl CollapseId {
+    pub fn new(value: impl Into<String>) -> Result<CollapseId, Error> {
+        let value = value.into();
         if value.len() > 64 {
             Err(Error::InvalidOptions(String::from(
                 "The collapse-id is too big. Maximum 64 bytes.",
@@ -69,11 +70,11 @@ impl fmt::Display for PushType {
 
 /// Headers to specify options to the notification.
 #[derive(Debug, Default, Clone)]
-pub struct NotificationOptions<'a> {
+pub struct NotificationOptions {
     /// A canonical UUID that identifies the notification. If there is an error
     /// sending the notification, APNs uses this value to identify the
     /// notification to your server.
-    pub apns_id: Option<&'a str>,
+    pub apns_id: Option<String>,
 
     /// The apns-push-type header field has the following valid values.
     ///
@@ -108,12 +109,12 @@ pub struct NotificationOptions<'a> {
     /// If you are using a provider token instead of a certificate, you must
     /// specify a value for this request header. The topic you provide should be
     /// provisioned for the your team named in your developer account.
-    pub apns_topic: Option<&'a str>,
+    pub apns_topic: Option<String>,
 
     /// Multiple notifications with the same collapse identifier are displayed to the
     /// user as a single notification. The value of this key must not exceed 64
     /// bytes.
-    pub apns_collapse_id: Option<CollapseId<'a>>,
+    pub apns_collapse_id: Option<CollapseId>,
 }
 
 /// The importance how fast to bring the notification for the user..
@@ -145,11 +146,10 @@ impl fmt::Display for Priority {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::str;
 
     #[test]
     fn test_collapse_id_under_64_chars() {
-        let collapse_id = CollapseId::new("foo").unwrap();
+        let collapse_id = CollapseId::new("foo".to_string()).unwrap();
         assert_eq!("foo", collapse_id.value);
     }
 
@@ -158,7 +158,7 @@ mod tests {
         let mut long_string = Vec::with_capacity(65);
         long_string.extend_from_slice(&[65; 65]);
 
-        let collapse_id = CollapseId::new(str::from_utf8(&long_string).unwrap());
+        let collapse_id = CollapseId::new(String::from_utf8(long_string).unwrap());
         assert!(collapse_id.is_err());
     }
 }

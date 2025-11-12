@@ -36,12 +36,12 @@
 //! # #[tokio::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 //! let mut builder = DefaultNotificationBuilder::new()
-//!     .set_body("Hi there")
+//!     .set_body("Hi there".to_owned())
 //!     .set_badge(420)
-//!     .set_category("cat1")
-//!     .set_sound("ping.flac");
+//!     .set_category("cat1".to_owned())
+//!     .set_sound("ping.flac".to_owned());
 //!
-//! let payload = builder.build("device-token-from-the-user", Default::default());
+//! let payload = builder.build("device-token-from-the-user".to_owned(), Default::default());
 //! let mut file = File::open("/path/to/private_key.p8")?;
 //!
 //! let client = Client::token(
@@ -71,26 +71,26 @@
 //!
 //! #[derive(Serialize, Debug)]
 //! struct CorporateData {
-//!     tracking_code: &'static str,
+//!     tracking_code: String,
 //!     is_paying_user: bool,
 //! }
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 //!     let tracking_data = CorporateData {
-//!         tracking_code: "999-212-UF-NSA",
+//!         tracking_code: "999-212-UF-NSA".to_owned(),
 //!         is_paying_user: false,
 //!     };
 //!
 //!     let mut payload = DefaultNotificationBuilder::new()
 //!         .set_content_available()
-//!         .build("device-token-from-the-user",
+//!         .build("device-token-from-the-user".to_owned(),
 //!         NotificationOptions {
 //!             apns_priority: Some(Priority::Normal),
 //!             ..Default::default()
 //!         },
 //!     );
-//!     payload.add_custom_data("apns_gmbh", &tracking_data)?;
+//!     payload.add_custom_data("apns_gmbh".to_owned(), &tracking_data)?;
 //!
 //!     let mut file = File::open("/path/to/cert_db.p12")?;
 //!

@@ -8,18 +8,18 @@ use std::fmt::Debug;
 
 /// The data and options for a push notification.
 #[derive(Debug, Clone, Serialize)]
-pub struct Payload<'a> {
+pub struct Payload {
     /// Send options
     #[serde(skip)]
-    pub options: NotificationOptions<'a>,
+    pub options: NotificationOptions,
     /// The token for the receiving device
     #[serde(skip)]
-    pub device_token: &'a str,
+    pub device_token: String,
     /// The pre-defined notification payload
-    pub aps: APS<'a>,
+    pub aps: APS,
     /// Application specific payload
     #[serde(flatten)]
-    pub data: BTreeMap<&'a str, Value>,
+    pub data: BTreeMap<String, Value>,
 }
 
 /// Object that can be serialized to create an APNS request.
@@ -35,12 +35,12 @@ pub struct Payload<'a> {
 ///
 /// async fn send() -> Result<(), Box<dyn std::error::Error>> {
 ///     let builder = DefaultNotificationBuilder::new()
-///         .set_body("Hi there")
+///         .set_body("Hi there".to_owned())
 ///         .set_badge(420)
-///         .set_category("cat1")
-///         .set_sound("ping.flac");
+///         .set_category("cat1".to_owned())
+///         .set_sound("ping.flac".to_owned());
 ///
-///     let payload = builder.build("device-token-from-the-user", Default::default());
+///     let payload = builder.build("device-token-from-the-user".to_owned(), Default::default());
 ///     let mut file = File::open("/path/to/private_key.p8")?;
 ///
 ///     let client = Client::token(&mut file, "KEY_ID", "TEAM_ID", ClientConfig::default()).unwrap();
@@ -51,18 +51,18 @@ pub struct Payload<'a> {
 /// }
 ///
 /// #[derive(Serialize, Debug)]
-/// struct Payload<'a> {
-///     aps: APS<'a>,
+/// struct Payload {
+///     aps: APS,
 ///     my_custom_value: String,
 ///     #[serde(skip_serializing)]
-///     options: NotificationOptions<'a>,
+///     options: NotificationOptions,
 ///     #[serde(skip_serializing)]
-///     device_token: &'a str,
+///     device_token: String,
 /// }
 ///
-/// impl<'a> PayloadLike for Payload<'a> {
-///     fn get_device_token(&self) -> &'a str {
-///         self.device_token
+/// impl PayloadLike for Payload {
+///     fn get_device_token(&self) -> String {
+///         self.device_token.to_owned()
 ///     }
 ///     fn get_options(&self) -> &NotificationOptions {
 ///         &self.options
@@ -78,15 +78,15 @@ pub trait PayloadLike: serde::Serialize + Debug {
     }
 
     /// Returns token for the device
-    fn get_device_token(&self) -> &str;
+    fn get_device_token(&self) -> String;
 
     /// Gets [`NotificationOptions`] for this Payload.
     fn get_options(&self) -> &NotificationOptions;
 }
 
-impl<'a> PayloadLike for Payload<'a> {
-    fn get_device_token(&self) -> &'a str {
-        self.device_token
+impl PayloadLike for Payload {
+    fn get_device_token(&self) -> String {
+        self.device_token.clone()
     }
 
     fn get_options(&self) -> &NotificationOptions {
@@ -94,7 +94,7 @@ impl<'a> PayloadLike for Payload<'a> {
     }
 }
 
-impl<'a> Payload<'a> {
+impl Payload {
     /// Client-specific custom data to be added in the payload.
     /// The `root_key` defines the JSON key in the root of the request
     /// data, and `data` the object containing custom data. The `data`
@@ -111,11 +111,11 @@ impl<'a> Payload<'a> {
     /// # fn main() {
     /// let mut payload = DefaultNotificationBuilder::new()
     ///     .set_content_available()
-    ///     .build("token", Default::default());
+    ///     .build("token".to_owned(), Default::default());
     /// let mut custom_data = HashMap::new();
     ///
     /// custom_data.insert("foo", "bar");
-    /// payload.add_custom_data("foo_data", &custom_data).unwrap();
+    /// payload.add_custom_data("foo_data".to_owned(), &custom_data).unwrap();
     ///
     /// assert_eq!(
     ///     "{\"aps\":{\"content-available\":1,\"mutable-content\":0},\"foo_data\":{\"foo\":\"bar\"}}",
@@ -133,15 +133,15 @@ impl<'a> Payload<'a> {
     /// fn main() {
     /// #[derive(Serialize)]
     /// struct CompanyData {
-    ///     foo: &'static str,
+    ///     foo: String,
     /// }
     ///
     /// let mut payload = DefaultNotificationBuilder::new()
     ///     .set_content_available()
-    ///     .build("token", Default::default());
-    /// let mut custom_data = CompanyData { foo: "bar" };
+    ///     .build("token".to_owned(), Default::default());
+    /// let mut custom_data = CompanyData { foo: "bar".to_owned() };
     ///
-    /// payload.add_custom_data("foo_data", &custom_data).unwrap();
+    /// payload.add_custom_data("foo_data".to_owned(), &custom_data).unwrap();
     ///
     /// assert_eq!(
     ///     "{\"aps\":{\"content-available\":1,\"mutable-content\":0},\"foo_data\":{\"foo\":\"bar\"}}",
@@ -149,8 +149,8 @@ impl<'a> Payload<'a> {
     /// );
     /// }
     /// ```
-    pub fn add_custom_data(&mut self, root_key: &'a str, data: &dyn Serialize) -> Result<&mut Self, Error> {
-        self.data.insert(root_key, serde_json::to_value(data)?);
+    pub fn add_custom_data(&mut self, root_key: impl Into<String>, data: &dyn Serialize) -> Result<&mut Self, Error> {
+        self.data.insert(root_key.into(), serde_json::to_value(data)?);
 
         Ok(self)
     }
@@ -160,10 +160,10 @@ impl<'a> Payload<'a> {
 #[derive(Serialize, Default, Debug, Clone)]
 #[serde(rename_all = "kebab-case")]
 #[allow(clippy::upper_case_acronyms)]
-pub struct APS<'a> {
+pub struct APS {
     /// The notification content. Can be empty for silent notifications.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub alert: Option<APSAlert<'a>>,
+    pub alert: Option<APSAlert>,
 
     /// A number shown on top of the app icon.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -171,7 +171,7 @@ pub struct APS<'a> {
 
     /// The name of the sound file to play when user receives the notification.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub sound: Option<APSSound<'a>>,
+    pub sound: Option<APSSound>,
 
     /// Set to one for silent notifications.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -180,7 +180,7 @@ pub struct APS<'a> {
     /// When a notification includes the category key, the system displays the
     /// actions for that category as buttons in the banner or alert interface.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub category: Option<&'a str>,
+    pub category: Option<String>,
 
     /// If set to one, the app can change the notification content before
     /// displaying it to the user.
@@ -188,27 +188,27 @@ pub struct APS<'a> {
     pub mutable_content: Option<u8>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub url_args: Option<&'a [&'a str]>,
+    pub url_args: Option<Vec<String>>,
 }
 
 /// Different notification content types.
 #[derive(Serialize, Debug, Clone)]
 #[serde(untagged)]
-pub enum APSAlert<'a> {
+pub enum APSAlert {
     /// A notification that supports all of the iOS features
-    Default(DefaultAlert<'a>),
+    Default(DefaultAlert),
     /// Safari web push notification
-    WebPush(WebPushAlert<'a>),
+    WebPush(WebPushAlert),
     /// A notification with just a body
-    Body(&'a str),
+    Body(String),
 }
 
 /// Different notification sound types.
 #[derive(Serialize, Debug, Clone)]
 #[serde(untagged)]
-pub enum APSSound<'a> {
+pub enum APSSound {
     /// A critical notification (supported only on >= iOS 12)
-    Critical(DefaultSound<'a>),
+    Critical(DefaultSound),
     /// Name for a notification sound
-    Sound(&'a str),
+    Sound(String),
 }
