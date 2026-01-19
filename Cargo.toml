@@ -8,8 +8,8 @@ keywords    = ["apns", "apple", "push", "async", "http2"]
 repository  = "https://github.com/threema-ch/apns-h2.git"
 homepage    = "https://threema.ch/"
 documentation = "https://docs.rs/apns-h2"
-edition = "2021"
-rust-version = "1.82"  # set the minimum rust version we can work with.
+edition = "2024"
+rust-version = "1.85"  # set the minimum rust version we can work with.
 
 [features]
 default = ["openssl"]

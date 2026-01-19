@@ -9,7 +9,7 @@ Async HTTP/2 APNs client based on hyper.
 
 ## Requirements
 
-Needs a Tokio executor version 1.0 or later and Rust compiler version 1.82.0 or later.
+Needs a Tokio executor version 1.0 or later and Rust compiler version 1.85.0 or later.
 
 ## Features
 
