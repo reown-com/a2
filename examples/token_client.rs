@@ -1,7 +1,7 @@
 use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
 use std::fs::File;
 
-use a2::{
+use apns_h2::{
     client::ClientConfig, Client, DefaultNotificationBuilder, Endpoint, NotificationBuilder, NotificationOptions,
 };
 

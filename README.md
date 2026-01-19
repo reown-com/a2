@@ -1,11 +1,11 @@
-# a2
+# apns-h2
 
-[![CI Status](https://github.com/walletconnect/a2/actions/workflows/ci.yml/badge.svg)](https://github.com/walletconnect/a2/actions/workflows/ci.yml)
+[![CI Status](https://github.com/threema-ch/apns-h2/actions/workflows/ci.yml/badge.svg)](https://github.com/threema-ch/apns-h2/actions/workflows/ci.yml)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-[![crates.io](https://img.shields.io/crates/v/a2)](https://crates.io/crates/a2)
-[![docs.rs](https://img.shields.io/badge/docs.rs-a2-blue)](https://docs.rs/a2/)
+[![crates.io](https://img.shields.io/crates/v/apns-h2)](https://crates.io/crates/apns-h2)
+[![docs.rs](https://img.shields.io/badge/docs.rs-apns-h2-blue)](https://docs.rs/apns-h2/)
 
-HTTP/2 Apple Push Notification Service for Rust using Tokio and async sending.
+Async HTTP/2 APNs client based on hyper.
 
 ## Requirements
 
@@ -30,21 +30,21 @@ Needs a Tokio executor version 1.0 or later and Rust compiler version 1.82.0 or 
 
 The library supports connecting to Apple Push Notification service [either using
 a
-certificate](https://github.com/walletconnect/a2/blob/master/examples/certificate_client.rs)
+certificate](https://github.com/threema-ch/apns-h2/blob/master/examples/certificate_client.rs)
 with a password [or a private
-key](https://github.com/walletconnect/a2/blob/master/examples/token_client.rs) with
+key](https://github.com/threema-ch/apns-h2/blob/master/examples/token_client.rs) with
 a team id and key id. Both are available from your Apple account and with both
 it is possible to send push notifications to one application.
 
-To see it used in a real project, take a look to the [Echo
-Server](https://github.com/walletconnect/echo-server), which is a project by WalletConnect to
-handle incoming webhooks and converting them to push notifications.
+To see it used in a real project, take a look to the [Threema Push
+Relay](https://github.com/threema-ch/push-relay), which is a project by Threema
+to accept and forward pushes to the appropriate push backends.
 
 ## Gotchas
 
-We've been pushing some millions of notifications daily through this library and
-are quite happy with it. Some things to know, if you're evaluating the library
-for production use:
+We've been pushing notifications daily through this library and are quite happy
+with it. Some things to know, if you're evaluating the library for production
+use:
 
 * Do not open new connections for every request. Apple will treat it as Denial of Service attack and block the sending IP address. When using the same `Client` for multiple requests, the `Client` keeps the connection alive if pushing steady traffic through it.
 

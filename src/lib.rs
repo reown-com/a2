@@ -1,6 +1,6 @@
-//! # A2
+//! # apns-h2
 //!
-//! A2 is an asynchronous client to Apple push notification service. It
+//! `apns-h2` is an asynchronous client to Apple push notification service. It
 //! provides a type-safe way to generate correct requests, mapping responses into
 //! corresponding types. The client supports both, certificate and token based
 //! authentication.
@@ -31,7 +31,7 @@
 //! ## Example sending a plain notification using token authentication:
 //!
 //! ```no_run
-//! # use a2::{DefaultNotificationBuilder, NotificationBuilder, Client, ClientConfig, Endpoint};
+//! # use apns-h2::{DefaultNotificationBuilder, NotificationBuilder, Client, ClientConfig, Endpoint};
 //! # use std::fs::File;
 //! # #[tokio::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -63,7 +63,7 @@
 //! # #[cfg(all(feature = "openssl", not(feature = "ring")))]
 //! # {
 //!
-//! use a2::{
+//! use apns-h2::{
 //!     Client, ClientConfig, Endpoint, DefaultNotificationBuilder, NotificationBuilder, NotificationOptions,
 //!     Priority,
 //! };

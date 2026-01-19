@@ -1,4 +1,4 @@
-use a2::{Client, DefaultNotificationBuilder, NotificationBuilder, NotificationOptions};
+use apns_h2::{Client, DefaultNotificationBuilder, NotificationBuilder, NotificationOptions};
 use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
 
 // An example client connectiong to APNs with a certificate and key
@@ -37,15 +37,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         {
             // Which service to call, test or production?
             let endpoint = if sandbox {
-                a2::Endpoint::Sandbox
+                apns_h2::Endpoint::Sandbox
             } else {
-                a2::Endpoint::Production
+                apns_h2::Endpoint::Production
             };
 
             let mut certificate = std::fs::File::open(certificate_file)?;
 
             // Create config with the given endpoint and default timeouts
-            let client_config = a2::ClientConfig::new(endpoint);
+            let client_config = apns_h2::ClientConfig::new(endpoint);
 
             Ok(Client::certificate(&mut certificate, &password, client_config)?)
         }

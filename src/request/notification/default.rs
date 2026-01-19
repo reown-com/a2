@@ -85,8 +85,8 @@ pub struct DefaultAlert<'a> {
 /// # Example
 ///
 /// ```rust
-/// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
-/// # use a2::request::payload::PayloadLike;
+/// # use apns-h2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+/// # use apns-h2::request::payload::PayloadLike;
 /// # fn main() {
 /// let mut builder = DefaultNotificationBuilder::new()
 ///     .set_title("Hi there")
@@ -123,8 +123,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// Creates a new builder with the minimum amount of content.
     ///
     /// ```rust
-    /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
-    /// # use a2::request::payload::PayloadLike;
+    /// # use apns-h2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use apns-h2::request::payload::PayloadLike;
     /// # fn main() {
     /// let payload = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -168,8 +168,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// Specify a string that’s quickly understood by the user.
     ///
     /// ```rust
-    /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
-    /// # use a2::request::payload::PayloadLike;
+    /// # use apns-h2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use apns-h2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title");
@@ -192,8 +192,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// Note: You'll need the [critical alerts entitlement](https://developer.apple.com/contact/request/notifications-critical-alerts-entitlement/) to use `true`!
     ///
     /// ```rust
-    /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
-    /// # use a2::request::payload::PayloadLike;
+    /// # use apns-h2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use apns-h2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_critical(true, None);
@@ -219,8 +219,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// Used to set the subtitle which should provide additional information that explains the purpose of the notification.
     ///
     /// ```rust
-    /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
-    /// # use a2::request::payload::PayloadLike;
+    /// # use apns-h2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use apns-h2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_subtitle("a subtitle");
@@ -241,8 +241,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// Sets the content of the alert message.
     ///
     /// ```rust
-    /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
-    /// # use a2::request::payload::PayloadLike;
+    /// # use apns-h2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use apns-h2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_body("a body");
@@ -262,8 +262,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// A number to show on a badge on top of the app icon.
     ///
     /// ```rust
-    /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
-    /// # use a2::request::payload::PayloadLike;
+    /// # use apns-h2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use apns-h2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_badge(4);
@@ -283,8 +283,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// File name of the custom sound to play when receiving the notification.
     ///
     /// ```rust
-    /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
-    /// # use a2::request::payload::PayloadLike;
+    /// # use apns-h2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use apns-h2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -306,8 +306,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// actions for that category as buttons in the banner or alert interface.
     ///
     /// ```rust
-    /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
-    /// # use a2::request::payload::PayloadLike;
+    /// # use apns-h2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use apns-h2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -328,8 +328,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// The localization key for the notification title.
     ///
     /// ```rust
-    /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
-    /// # use a2::request::payload::PayloadLike;
+    /// # use apns-h2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use apns-h2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -351,8 +351,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// Arguments for the title localization.
     ///
     /// ```rust
-    /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
-    /// # use a2::request::payload::PayloadLike;
+    /// # use apns-h2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use apns-h2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -379,8 +379,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// The localization key for the action.
     ///
     /// ```rust
-    /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
-    /// # use a2::request::payload::PayloadLike;
+    /// # use apns-h2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use apns-h2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -402,8 +402,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// The localization key for the push message body.
     ///
     /// ```rust
-    /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
-    /// # use a2::request::payload::PayloadLike;
+    /// # use apns-h2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use apns-h2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -425,8 +425,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// Arguments for the content localization.
     ///
     /// ```rust
-    /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
-    /// # use a2::request::payload::PayloadLike;
+    /// # use apns-h2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use apns-h2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -453,8 +453,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// Image to display in the rich notification.
     ///
     /// ```rust
-    /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
-    /// # use a2::request::payload::PayloadLike;
+    /// # use apns-h2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use apns-h2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -476,8 +476,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// Allow client to modify push content before displaying.
     ///
     /// ```rust
-    /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
-    /// # use a2::request::payload::PayloadLike;
+    /// # use apns-h2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use apns-h2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")
@@ -498,8 +498,8 @@ impl<'a> DefaultNotificationBuilder<'a> {
     /// Used for adding custom data to push notifications
     ///
     /// ```rust
-    /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
-    /// # use a2::request::payload::PayloadLike;
+    /// # use apns-h2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use apns-h2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = DefaultNotificationBuilder::new()
     ///     .set_title("a title")

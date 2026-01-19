@@ -15,8 +15,8 @@ pub struct WebPushAlert<'a> {
 /// # Example
 ///
 /// ```rust
-/// # use a2::request::notification::{NotificationBuilder, WebNotificationBuilder, WebPushAlert};
-/// # use a2::request::payload::PayloadLike;
+/// # use apns-h2::request::notification::{NotificationBuilder, WebNotificationBuilder, WebPushAlert};
+/// # use apns-h2::request::payload::PayloadLike;
 /// # fn main() {
 /// let mut builder = WebNotificationBuilder::new(WebPushAlert {title: "Hello", body: "World", action: "View"}, &["arg1"]);
 /// builder.set_sound("prööt");
@@ -34,8 +34,8 @@ impl<'a> WebNotificationBuilder<'a> {
     /// Creates a new builder with the minimum amount of content.
     ///
     /// ```rust
-    /// # use a2::request::notification::{WebNotificationBuilder, NotificationBuilder, WebPushAlert};
-    /// # use a2::request::payload::PayloadLike;
+    /// # use apns-h2::request::notification::{WebNotificationBuilder, NotificationBuilder, WebPushAlert};
+    /// # use apns-h2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = WebNotificationBuilder::new(WebPushAlert {title: "Hello", body: "World", action: "View"}, &["arg1"]);
     /// let payload = builder.build("token", Default::default());
@@ -57,8 +57,8 @@ impl<'a> WebNotificationBuilder<'a> {
     /// File name of the custom sound to play when receiving the notification.
     ///
     /// ```rust
-    /// # use a2::request::notification::{WebNotificationBuilder, NotificationBuilder, WebPushAlert};
-    /// # use a2::request::payload::PayloadLike;
+    /// # use apns-h2::request::notification::{WebNotificationBuilder, NotificationBuilder, WebPushAlert};
+    /// # use apns-h2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut builder = WebNotificationBuilder::new(WebPushAlert {title: "Hello", body: "World", action: "View"}, &["arg1"]);
     /// builder.set_sound("meow");

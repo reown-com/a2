@@ -1,13 +1,13 @@
 [package]
-name = "a2"
+name = "apns-h2"
 version = "0.10.0"
 license = "MIT"
 readme  = "README.md"
-description = "A native, asynchronous Apple push notification client"
+description = "Async HTTP/2 APNs client based on hyper"
 keywords    = ["apns", "apple", "push", "async", "http2"]
-repository  = "https://github.com/walletconnect/a2.git"
-homepage    = "https://github.com/walletconnect/a2"
-documentation = "https://docs.rs/a2"
+repository  = "https://github.com/threema-ch/apns-h2.git"
+homepage    = "https://threema.ch/"
+documentation = "https://docs.rs/apns-h2"
 edition = "2021"
 rust-version = "1.82"  # set the minimum rust version we can work with.
 

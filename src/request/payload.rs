@@ -27,9 +27,9 @@ pub struct Payload<'a> {
 ///
 /// # Example
 /// ```no_run
-/// use a2::request::notification::{NotificationBuilder, NotificationOptions};
-/// use a2::request::payload::{PayloadLike, APS};
-/// use a2::{Client, ClientConfig, DefaultNotificationBuilder, Endpoint};
+/// use apns-h2::request::notification::{NotificationBuilder, NotificationOptions};
+/// use apns-h2::request::payload::{PayloadLike, APS};
+/// use apns-h2::{Client, ClientConfig, DefaultNotificationBuilder, Endpoint};
 /// use serde::Serialize;
 /// use std::fs::File;
 ///
@@ -105,9 +105,9 @@ impl<'a> Payload<'a> {
     /// Using a `HashMap`:
     ///
     /// ```rust
-    /// # use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// # use apns-h2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
     /// # use std::collections::HashMap;
-    /// # use a2::request::payload::PayloadLike;
+    /// # use apns-h2::request::payload::PayloadLike;
     /// # fn main() {
     /// let mut payload = DefaultNotificationBuilder::new()
     ///     .set_content_available()
@@ -128,8 +128,8 @@ impl<'a> Payload<'a> {
     ///
     /// ```rust
     /// #[macro_use] extern crate serde;
-    /// use a2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
-    /// use a2::request::payload::PayloadLike;
+    /// use apns-h2::request::notification::{DefaultNotificationBuilder, NotificationBuilder};
+    /// use apns-h2::request::payload::PayloadLike;
     /// fn main() {
     /// #[derive(Serialize)]
     /// struct CompanyData {
