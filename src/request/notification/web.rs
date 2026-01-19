@@ -1,5 +1,5 @@
 use crate::request::notification::{NotificationBuilder, NotificationOptions};
-use crate::request::payload::{APSAlert, APSSound, Payload, APS};
+use crate::request::payload::{APS, APSAlert, APSSound, Payload};
 use std::collections::BTreeMap;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

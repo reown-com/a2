@@ -14,8 +14,8 @@ use http_body_util::{BodyExt, Full};
 use hyper::body::Bytes;
 use hyper::{self, StatusCode};
 use hyper_rustls::{ConfigBuilderExt, HttpsConnector, HttpsConnectorBuilder};
-use hyper_util::client::legacy::connect::HttpConnector;
 use hyper_util::client::legacy::Client as HttpClient;
+use hyper_util::client::legacy::connect::HttpConnector;
 use hyper_util::rt::TokioExecutor;
 use std::convert::Infallible;
 use std::io::Read;
@@ -311,7 +311,7 @@ fn default_connector() -> HyperConnector {
 }
 
 fn client_cert_connector(cert_pem: &[u8], key_pem: &[u8]) -> Result<HyperConnector, Error> {
-    use rustls_pki_types::{PrivatePkcs8KeyDer, CertificateDer};
+    use rustls_pki_types::{CertificateDer, PrivatePkcs8KeyDer};
 
     let cert_error_fn = |e: rustls_pki_types::pem::Error| io::Error::new(io::ErrorKind::InvalidData, e);
 
@@ -335,11 +335,11 @@ fn client_cert_connector(cert_pem: &[u8], key_pem: &[u8]) -> Result<HyperConnect
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::PushType;
     use crate::request::notification::DefaultNotificationBuilder;
     use crate::request::notification::NotificationBuilder;
     use crate::request::notification::{CollapseId, NotificationOptions, Priority};
     use crate::signer::Signer;
-    use crate::PushType;
     use http::header::{AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE};
     use hyper::Method;
 

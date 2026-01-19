@@ -2,7 +2,7 @@ use argparse::{ArgumentParser, Store, StoreOption, StoreTrue};
 use std::fs::File;
 
 use apns_h2::{
-    client::ClientConfig, Client, DefaultNotificationBuilder, Endpoint, NotificationBuilder, NotificationOptions,
+    Client, DefaultNotificationBuilder, Endpoint, NotificationBuilder, NotificationOptions, client::ClientConfig,
 };
 
 // An example client connectiong to APNs with a JWT token

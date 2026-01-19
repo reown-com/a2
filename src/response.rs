@@ -138,62 +138,44 @@ pub enum ErrorReason {
 impl fmt::Display for ErrorReason {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let s = match *self {
-            ErrorReason::BadCollapseId =>
-                "The collapse identifier exceeds the maximum allowed size.",
-            ErrorReason::BadDeviceToken =>
-                "The specified device token was bad. Verify that the request contains a valid token and that the token matches the environment.",
-            ErrorReason::BadExpirationDate =>
-                "The `apns_expiration` in `NotificationOptions` is bad.",
-            ErrorReason::BadMessageId =>
-                "The `apns_id` in `NotificationOptions` is bad.",
-            ErrorReason::BadPriority =>
-                "The `apns_priority` in `NotificationOptions` is bad.",
-            ErrorReason::BadTopic =>
-                "The `apns_topic` in `NotificationOptions` is bad.",
-            ErrorReason::DeviceTokenNotForTopic =>
-                "The device token does not match the specified topic.",
-            ErrorReason::DuplicateHeaders =>
-                "One or more headers were repeated.",
-            ErrorReason::IdleTimeout =>
-                "Idle time out.",
-            ErrorReason::MissingDeviceToken =>
-                "The device token is not specified in the payload.",
-            ErrorReason::MissingTopic =>
-                "The `apns_topic` of the `NotificationOptions` was not specified and was required. The `apns_topic` header is mandatory when the client is connected using the `CertificateConnector` and the included PKCS12 file includes multiple topics, or when using the `TokenConnector`.",
-            ErrorReason::PayloadEmpty =>
-                "The message payload was empty.",
-            ErrorReason::TopicDisallowed =>
-                "Pushing to this topic is not allowed.",
-            ErrorReason::BadCertificate =>
-                "The certificate was bad.",
-            ErrorReason::BadCertificateEnvironment =>
-                "The client certificate was for the wrong environment.",
-            ErrorReason::ExpiredProviderToken =>
-                "The provider token is stale and a new token should be generated.",
-            ErrorReason::Forbidden =>
-                "The specified action is not allowed.",
-            ErrorReason::InvalidProviderToken =>
-                "The provider token is not valid or the token signature could not be verified.",
-            ErrorReason::MissingProviderToken =>
-                "No provider certificate was used to connect to APNs and Authorization header was missing or no provider token was specified.",
-            ErrorReason::BadPath =>
-                "The request path value is bad.",
-            ErrorReason::MethodNotAllowed =>
-                "The request method was not `POST`.",
-            ErrorReason::Unregistered =>
-                "The device token is inactive for the specified topic. You should stop sending notifications to this token.",
-            ErrorReason::PayloadTooLarge =>
-                "The message payload was too large (4096 bytes)",
-            ErrorReason::TooManyProviderTokenUpdates =>
-                "The provider token is being updated too often.",
-            ErrorReason::TooManyRequests =>
-                "Too many requests were made consecutively to the same device token.",
-            ErrorReason::InternalServerError =>
-                "An internal server error occurred.",
-            ErrorReason::ServiceUnavailable =>
-                "The service is unavailable.",
-            ErrorReason::Shutdown =>
-                "The server is shutting down.",
+            ErrorReason::BadCollapseId => "The collapse identifier exceeds the maximum allowed size.",
+            ErrorReason::BadDeviceToken => {
+                "The specified device token was bad. Verify that the request contains a valid token and that the token matches the environment."
+            }
+            ErrorReason::BadExpirationDate => "The `apns_expiration` in `NotificationOptions` is bad.",
+            ErrorReason::BadMessageId => "The `apns_id` in `NotificationOptions` is bad.",
+            ErrorReason::BadPriority => "The `apns_priority` in `NotificationOptions` is bad.",
+            ErrorReason::BadTopic => "The `apns_topic` in `NotificationOptions` is bad.",
+            ErrorReason::DeviceTokenNotForTopic => "The device token does not match the specified topic.",
+            ErrorReason::DuplicateHeaders => "One or more headers were repeated.",
+            ErrorReason::IdleTimeout => "Idle time out.",
+            ErrorReason::MissingDeviceToken => "The device token is not specified in the payload.",
+            ErrorReason::MissingTopic => {
+                "The `apns_topic` of the `NotificationOptions` was not specified and was required. The `apns_topic` header is mandatory when the client is connected using the `CertificateConnector` and the included PKCS12 file includes multiple topics, or when using the `TokenConnector`."
+            }
+            ErrorReason::PayloadEmpty => "The message payload was empty.",
+            ErrorReason::TopicDisallowed => "Pushing to this topic is not allowed.",
+            ErrorReason::BadCertificate => "The certificate was bad.",
+            ErrorReason::BadCertificateEnvironment => "The client certificate was for the wrong environment.",
+            ErrorReason::ExpiredProviderToken => "The provider token is stale and a new token should be generated.",
+            ErrorReason::Forbidden => "The specified action is not allowed.",
+            ErrorReason::InvalidProviderToken => {
+                "The provider token is not valid or the token signature could not be verified."
+            }
+            ErrorReason::MissingProviderToken => {
+                "No provider certificate was used to connect to APNs and Authorization header was missing or no provider token was specified."
+            }
+            ErrorReason::BadPath => "The request path value is bad.",
+            ErrorReason::MethodNotAllowed => "The request method was not `POST`.",
+            ErrorReason::Unregistered => {
+                "The device token is inactive for the specified topic. You should stop sending notifications to this token."
+            }
+            ErrorReason::PayloadTooLarge => "The message payload was too large (4096 bytes)",
+            ErrorReason::TooManyProviderTokenUpdates => "The provider token is being updated too often.",
+            ErrorReason::TooManyRequests => "Too many requests were made consecutively to the same device token.",
+            ErrorReason::InternalServerError => "An internal server error occurred.",
+            ErrorReason::ServiceUnavailable => "The service is unavailable.",
+            ErrorReason::Shutdown => "The server is shutting down.",
         };
 
         f.write_str(s)

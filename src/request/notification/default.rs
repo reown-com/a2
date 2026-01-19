@@ -1,14 +1,14 @@
 use crate::request::notification::{NotificationBuilder, NotificationOptions};
-use crate::request::payload::{APSAlert, APSSound, Payload, APS};
+use crate::request::payload::{APS, APSAlert, APSSound, Payload};
 
 use std::{borrow::Cow, collections::BTreeMap};
 
 /// Represents a bool that serializes as a u8 0/1 for false/true respectively
 mod bool_as_u8 {
     use serde::{
+        Deserialize,
         de::{self, Deserializer, Unexpected},
         ser::Serializer,
-        Deserialize,
     };
 
     pub fn deserialize<'de, D>(deserializer: D) -> Result<bool, D::Error>
